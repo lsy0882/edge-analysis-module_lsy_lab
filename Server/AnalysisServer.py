@@ -1,6 +1,6 @@
 from Modules.dummy.main import Dummy
 from Modules.dummy2.main import Dummy2
-from threading import Lock, Thread
+from threading import Thread
 import socket
 from datetime import datetime
 import ast
@@ -14,7 +14,13 @@ class AnalysisServer:
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen()
+        self.models = []
 
+        dummy_model = Dummy()
+        dummy2_model = Dummy2()
+
+        self.models.append(dummy_model)
+        self.models.append(dummy2_model)
 
     def run_server(self):
         self.client_socket, self.addr = self.server_socket.accept()
@@ -26,9 +32,24 @@ class AnalysisServer:
             json_data = ast.literal_eval(str(data))
             print("INFO: {} - Received from {}\t".format(datetime.now(), self.addr))
 
+            threads = []
+            for model in self.models:
+                thread = Thread(target=model.inference_by_path, args=(json_data,))
+                threads.append(thread)
+
+            for thread in threads:
+                thread.start()
+
+            for thread in threads:
+                thread.join()
 
             results = []
-
+            for model in self.models:
+                result = {
+                    "name": model.model_name,
+                    "result": model.result
+                }
+                results.append(result)
 
             print("INFO: {} - Results analyzed is \"{}\"".format(datetime.now(), results))
 
