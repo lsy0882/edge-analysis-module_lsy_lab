@@ -24,7 +24,7 @@ if __name__ == '__main__':
         with open(json_path) as od_result_file:
             od_result = json.load(od_result_file)
 
-        print(model.inference_by_path(od_result))
+        print(model.analysis_from_json(od_result))
 
     except:
         print("")

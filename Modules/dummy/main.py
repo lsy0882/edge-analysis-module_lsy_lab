@@ -12,7 +12,7 @@ class Dummy:
         #     (전체 결과 예시 : [{'name': 'Dummy', 'result': []}, {'name': 'Dummy2', 'result': []}]})
         self.model_name = "Dummy"
 
-    def inference_by_path(self, od_result):
+    def analysis_from_json(self, od_result):
         '''
         TODO
             - 이미지 경로와 Object detection(e.g. ssd-mobilenet-v2) 결과를 포함한 json data(od_result)를 입력으로 받아 분석하는 함수입니다.

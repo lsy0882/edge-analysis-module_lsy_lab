@@ -34,7 +34,7 @@ class AnalysisServer:
 
             threads = []
             for model in self.models:
-                thread = Thread(target=model.inference_by_path, args=(json_data,))
+                thread = Thread(target=model.analysis_from_json, args=(json_data,))
                 threads.append(thread)
 
             for thread in threads:
