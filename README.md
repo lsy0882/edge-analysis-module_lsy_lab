@@ -5,11 +5,11 @@
 
 각 분석 엔진의 결과를 종합한 전체 분석 결과 전송 모듈은 프로토콜을 정의하는 중으로 추후에 추가될 예정입니다. 
 
-Python 코드로 구성되어 있으며, Socket 통신을 기반으로 개발하였습니다.
+Python 코드로 구성되어 있으며, 소켓 통신을 기반으로 개발하였습니다.
 
-본 프로젝트에서의 모델 테스트는 아래에 설명된 __분석 모델 테스트__([링크]())에 걸쳐 테스트를 하길 권장합니다.
+본 프로젝트에서의 모델 테스트는 아래에 설명된 __분석 모델 테스트__([링크](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%B6%84%EC%84%9D-%EB%AA%A8%EB%8D%B8-%ED%85%8C%EC%8A%A4%ED%8A%B8))에 걸쳐 테스트를 하길 권장합니다.
 
-Jetson Nano에 설치될 예정이기 때문에 Ubuntu 18.04 환경에서 테스트하시길 권장하며, 만약 다른 환경에서 테스트를 진행하시려면 [문의]()에 있는 메일로 문의하시기 바랍니다.
+Jetson Nano에 설치될 예정이기 때문에 Ubuntu 18.04 환경에서 테스트하시길 권장하며, 만약 다른 환경에서 테스트를 진행하시려면 [문의](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%AC%B8%EC%9D%98)에 있는 메일로 문의해주시기 바랍니다.
 
 분석 모델의 입력은 json으로 되어있으며 object detection의 입력으로 사용되는 원본 이미지는 json내에 경로로 입력되어 있으니 원본 이미지가 필요한 경우 해당 경로로 읽고 사용하시기 바랍니다.
 
@@ -21,7 +21,7 @@ Jetson Nano에 설치될 예정이기 때문에 Ubuntu 18.04 환경에서 테스
 ## Installation
 Python 3.6의 기본 라이브러리를 이용하여 작성한 프로그램이기 때문에 별도의 pip를 이용하여 설치해야 할 라이브러리는 없습니다.
 
-분석 모델에서 필요한 pip requirement가 있을 경우 __관련 이슈__([링크]())에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
+분석 모델에서 필요한 pip requirement가 있을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/1))에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
  
 ### Program
 ```shell script
@@ -69,9 +69,10 @@ class Dummy:
 ```
 * 해당 함수는 입력한 json 데이터를 기반으로 분석을 진행하는 함수로 import time과 time.sleep(2)을 지우시고 분석 모듈의 내용을 작성하시면 되며 최종적인 결과 값은 self.result에 저장하시기 바랍니다.
 * object detection에 사용된 원본 이미지의 경우 json 파일 내에 명시되어 있으니 해당 경로를 이용하여 opencv나 pilimage를 이용해 불러와 사용하시면 됩니다.
-* 분석에 필요한 데이터가 없을 경우 __관련 이슈__([링크]())에 코멘트로 추가하여 주시면 해당 데이터를 정의하고 추가하도록 하겠습니다.
-* 분석 결과의 경우 각 연구실별로 분석 내용이 다르고 분석 결과의 형식이 정해지지 않았기 때문에 분석 결과 형식의 경우 __관련 이슈__([링크]())에 작성하여 주시기 바랍니다.
- 
+* 분석에 필요한 입력 데이터가 없을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/2))에 코멘트로 추가하여 주시면 해당 데이터를 정의하고 추가하도록 하겠습니다.
+* 분석 결과의 경우 각 연구실별로 분석 내용이 다르고 분석 결과의 형식이 정해지지 않았기 때문에 분석 결과 형식의 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/3))에 작성하여 주시기 바랍니다.
+* 분석에 필요한 입력 데이터와 분석 결과 형식이 관련 이슈에 작성된 내용가 많이 상이하여 해당 형식을 이용하지 못할 경우 [문의](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%AC%B8%EC%9D%98)에 있는 메일로 기
+
 ## 분석 모델 테스트
 ### 분석 모델 단독 테스트 (${PROJECT_DIR}/ModelTest.py)
 모델을 작성 후 정의하신 분석 모델을 단독으로 테스트하기 위한 소스코드 파일입니다.
@@ -126,12 +127,12 @@ from Modules.dummy.main import Dummy # --> from Modules.Fire.main import FireDet
 cd ${PROJECT_DIR}
 python3 Client/example.py --json_dir=${JSON_DIR}
 ```
-* 기본적으로 프로젝트 디렉토리 내의 ${PROJECT_DIR}/data/json 하위의 json 확장자를 가진 파일만을 Server에 보내며 다른 데이터로 테스트를 하시길 원한다면 [${PROJECT_DIR}/data/json/sample.json]()을 참고하여 작성하신 후 테스트하시길 바랍니다.
+* 기본적으로 프로젝트 디렉토리 내의 ${PROJECT_DIR}/data/json 하위의 json 확장자를 가진 파일만을 Server에 보내며 다른 데이터로 테스트를 하시길 원한다면 [${PROJECT_DIR}/data/json/sample1.json](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/data/json/sample1.json)을 참고하여 작성하신 후 테스트하시길 바랍니다.
 
 ## 분석 엔진 반영 방법
 각 연구실에서는 해당 소스 코드를 fork하여 개발을 진행해주시기 바라며, 각 연구실의 분석 모듈이 완성될 경우 을${PROEJCT_DIR}/Modules 내에 정의하신 분석 모듈만을 pull request 해주시길 바랍니다.
 
-해당 사항에 대하여 문의하실 부분이 있으실 경우 [문의]()에 있는 이메일로 문의주시기 바랍니다.이
+해당 사항에 대하여 문의하실 부분이 있으실 경우 [문의](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%AC%B8%EC%9D%98)에 있는 이메일로 문의해주시기 바랍니다.
 
 ## 문의
 * email: [jinhasong@sogang.ac.kr](jinhasong@sogang.ac.kr)
