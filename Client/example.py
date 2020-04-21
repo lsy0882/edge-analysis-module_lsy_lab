@@ -38,10 +38,11 @@ if __name__ == '__main__':
         dir_path = opt.json_dir
 
         for json_file in os.listdir(dir_path):
-            json_path = os.path.join(dir_path, json_file)
-            print("INFO: Send json data({})".format(json_path))
-            od_result = request_client.load_jsonfile(json_path)
-            request_client.send_od_result(od_result)
+            if ".json" in json_file:
+                json_path = os.path.join(dir_path, json_file)
+                print("INFO: Send json data({})".format(json_path))
+                od_result = request_client.load_jsonfile(json_path)
+                request_client.send_od_result(od_result)
 
         request_client.end_client()
 
