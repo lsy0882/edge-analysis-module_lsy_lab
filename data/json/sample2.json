@@ -1,0 +1,89 @@
+{
+  "image_path": "/home/user/EdgeAnalysisModule/data/images/sample2.jpg",
+  "detection_result": [
+    {
+      "labels": [
+        {
+          "description": "horse",
+          "score": 98.28232526779175
+        }
+      ],
+      "position": {
+        "x": 212,
+        "y": 70,
+        "w": 206,
+        "h": 300
+      }
+    },
+    {
+      "labels": [
+        {
+          "description": "person",
+          "score": 97.0687747001648
+        }
+      ],
+      "position": {
+        "x": 274,
+        "y": 1,
+        "w": 73,
+        "h": 222
+      }
+    },
+    {
+      "labels": [
+        {
+          "description": "car",
+          "score": 53.46125364303589
+        }
+      ],
+      "position": {
+        "x": 6,
+        "y": 101,
+        "w": 126,
+        "h": 98
+      }
+    },
+    {
+      "labels": [
+        {
+          "description": "dog",
+          "score": 51.26926302909851
+        }
+      ],
+      "position": {
+        "x": 141,
+        "y": 206,
+        "w": 58,
+        "h": 138
+      }
+    },
+    {
+      "labels": [
+        {
+          "description": "person",
+          "score": 83.97339582443237
+        }
+      ],
+      "position": {
+        "x": 430,
+        "y": 126,
+        "w": 20,
+        "h": 50
+      }
+    },
+    {
+      "labels": [
+        {
+          "description": "person",
+          "score": 53.12093496322632
+        }
+      ],
+      "position": {
+        "x": 414,
+        "y": 134,
+        "w": 11,
+        "h": 21
+      }
+    }
+  ]
+}

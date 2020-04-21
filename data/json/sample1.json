@@ -1,0 +1,47 @@
+{
+    "image_path": "/home/user/EdgeAnalysisModule/data/images/sample1.jpg",
+    "detection_result": [
+        {
+            "labels": [
+                {
+                    "description": "horse",
+                    "score": 96.9613254070282
+                }
+            ],
+            "position": {
+                "x": 398,
+                "y": 138,
+                "w": 200,
+                "h": 204
+            }
+        },
+        {
+            "labels": [
+                {
+                    "description": "person",
+                    "score": 99.54792261123657
+                }
+            ],
+            "position": {
+                "x": 188,
+                "y": 100,
+                "w": 82,
+                "h": 269
+            }
+        },
+        {
+            "labels": [
+                {
+                    "description": "dog",
+                    "score": 50.341784954071045
+                }
+            ],
+            "position": {
+                "x": 64,
+                "y": 266,
+                "w": 142,
+                "h": 86
+            }
+        }
+    ]
+}
