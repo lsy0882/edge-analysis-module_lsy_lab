@@ -35,10 +35,13 @@ if __name__ == '__main__':
         opt = parser.parse_known_args()[0]
 
         request_client = RequestClient(opt.ip, opt.port)
-        for i in range(10):
-            od_result = request_client.load_jsonfile()
+        dir_path = opt.json_dir
+
+        for json_file in os.listdir(dir_path):
+            json_path = os.path.join(dir_path, json_file)
+            print("INFO: Send json data({})".format(json_path))
+            od_result = request_client.load_jsonfile(json_path)
             request_client.send_od_result(od_result)
-            time.sleep(5)
 
         request_client.end_client()
 
