@@ -17,10 +17,15 @@ class AnalysisServer:
         self.models = []
 
         dummy_model = Dummy()
+        print("INFO: {} - {} model is loaded".format(datetime.now(), dummy_model.model_name))
+
         dummy2_model = Dummy2()
+        print("INFO: {} - {} model is loaded".format(datetime.now(), dummy2_model.model_name))
 
         self.models.append(dummy_model)
         self.models.append(dummy2_model)
+        print("INFO: {} - Server is Initialized".format(datetime.now()))
+
 
     def run_server(self):
         self.client_socket, self.addr = self.server_socket.accept()
