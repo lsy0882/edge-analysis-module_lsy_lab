@@ -1,7 +1,7 @@
 {
     "image_path": "/home/user/EdgeAnalysisModule/data/images/sample1.jpg",
-	"cam_id": 0,
-	"frame_num": 1,
+    "cam_id": 0,
+    "frame_num": 1,
     "detection_result": [
         {
             "labels": [
