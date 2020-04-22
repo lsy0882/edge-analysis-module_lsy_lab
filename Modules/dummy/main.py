@@ -19,6 +19,8 @@ class Dummy:
             - input이 되는 json data의 형태는 다음과 같습니다.
             {
                 "image_path": "/home/user/image/image.jpg",
+				"cam_id": 0,
+				"frame_num": 0,
                 "detection_result": [
                     {   # ===== When the label of the detection result is one ===== #
                         "labels": [
