@@ -17,6 +17,7 @@ Jetson Nano에 설치될 예정이기 때문에 Ubuntu 18.04 환경에서 테스
 
 ## Prerequisites
 * Ubuntu 18.04
+* python 3.6
 
 ## Installation
 Python 3.6의 기본 라이브러리를 이용하여 작성한 프로그램이기 때문에 별도의 pip를 이용하여 설치해야 할 라이브러리는 없습니다.
