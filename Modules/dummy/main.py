@@ -21,31 +21,36 @@ class Dummy:
                 "image_path": "/home/user/image/image.jpg",
 				"cam_id": 0,
 				"frame_num": 0,
-                "detection_result": [
-                    {   # ===== When the label of the detection result is one ===== #
-                        "labels": [
-                            { "description": "person", "score": 0.865448932 },
-                        ],
-                        "position": {
-                            "x": 100,               -> int
-                            "y": 100,               -> int
-                            "w": 100,               -> int
-                            "h": 100,               -> int
-                        }
-                    },
-                    {   # ===== When the label of the detection result is multiple ===== #
-                        "labels": [
-                            { "description": "dog", "score": 0.865448932 },
-                            { "description": "cat", "score": 0.105616512 },
-                            .....
-                        ],
-                        "position": {
-                            "x": 100,               -> int
-                            "y": 100,               -> int
-                            "w": 100,               -> int
-                            "h": 100,               -> int
-                        }
-                    },
+				"results": [
+                    {
+                        "module_name": "ssd-mobilenet-v2",
+                        "detection_result": [
+                            {   # ===== When the label of the detection result is one ===== #
+                                "labels": [
+                                    { "description": "person", "score": 0.865448932 },
+                                ],
+                                "position": {
+                                    "x": 100,               -> float
+                                    "y": 100,               -> float
+                                    "w": 100,               -> float
+                                    "h": 100,               -> float
+                                }
+                            },
+                            {   # ===== When the label of the detection result is multiple ===== #
+                                "labels": [
+                                    { "description": "dog", "score": 0.865448932 },
+                                    { "description": "cat", "score": 0.105616512 },
+                                    .....
+                                ],
+                                "position": {
+                                    "x": 100,               -> float
+                                    "y": 100,               -> float
+                                    "w": 100,               -> float
+                                    "h": 100,               -> float
+                                }
+                            },
+                        ]
+                    }
                 ]
             }
         '''
