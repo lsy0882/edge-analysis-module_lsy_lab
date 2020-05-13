@@ -1,5 +1,5 @@
 {
-    "image_path": "/home/user/EdgeAnalysisModule/data/images/sample1.jpg",
+    "image_path": "/home/user/EdgeAnalysisModule/data/images/sample2.jpg",
     "modules": "ssd-mobilenet-v2",
     "cam_id": 0,
     "frame_num": 1,
@@ -8,46 +8,88 @@
             "module_name": "ssd-mobilenet-v2",
             "detection_result": [
                 {
-                    "position": {
-                        "y": 138.13653564453125,
-                        "h": 204.25827026367188,
-                        "w": 200.53924560546875,
-                        "x": 398.72503662109375
-                    },
                     "label": [
                         {
-                            "score": 0.969613254070282,
-                            "description": "horse"
+                            "description": "horse",
+                            "score": 98.28232526779175
                         }
-                    ]
+                    ],
+                    "position": {
+                        "x": 212,
+                        "y": 70,
+                        "w": 206,
+                        "h": 300
+                    }
                 },
                 {
-                    "position": {
-                        "y": 100.32173919677734,
-                        "h": 269.5154113769531,
-                        "w": 82.43435668945312,
-                        "x": 188.98428344726562
-                    },
                     "label": [
                         {
-                            "score": 0.9954792261123657,
-                            "description": "person"
+                            "description": "person",
+                            "score": 97.0687747001648
                         }
-                    ]
+                    ],
+                    "position": {
+                        "x": 274,
+                        "y": 1,
+                        "w": 73,
+                        "h": 222
+                    }
                 },
                 {
-                   "position": {
-                        "y": 266.0620422363281,
-                        "h": 86.06045532226562,
-                        "w": 142.75128173828125,
-                        "x": 64.1348876953125
-                    },
                     "label": [
                         {
-                            "score": 0.5034178495407104,
-                            "description": "dog"
+                            "description": "car",
+                            "score": 53.46125364303589
                         }
-                    ]
+                    ],
+                    "position": {
+                        "x": 6,
+                        "y": 101,
+                        "w": 126,
+                        "h": 98
+                    }
+                },
+                {
+                    "label": [
+                        {
+                            "description": "dog",
+                            "score": 51.26926302909851
+                        }
+                    ],
+                    "position": {
+                        "x": 141,
+                        "y": 206,
+                        "w": 58,
+                        "h": 138
+                    }
+                },
+                {
+                    "label": [
+                        {
+                            "description": "person",
+                            "score": 83.97339582443237
+                        }
+                    ],
+                    "position": {
+                        "x": 430,
+                        "y": 126,
+                        "w": 20,
+                        "h": 50
+                    }
+                },
+                {
+                    "label": [
+                        {
+                            "description": "person",
+                            "score": 53.12093496322632
+                        }
+                    ],
+                    "position": {
+                        "x": 414,
+                        "y": 134,
+                        "w": 11,
+                        "h": 21
+                    }
                 }
             ]
         }
