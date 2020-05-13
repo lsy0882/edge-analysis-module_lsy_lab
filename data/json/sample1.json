@@ -1,49 +1,55 @@
 {
     "image_path": "/home/user/EdgeAnalysisModule/data/images/sample1.jpg",
+    "modules": "ssd-mobilenet-v2",
     "cam_id": 0,
     "frame_num": 1,
-    "detection_result": [
+    "results": [
         {
-            "label": [
+            "module_name": "ssd-mobilenet-v2",
+            "detection_result": [
                 {
-                    "description": "horse",
-                    "score": 96.9613254070282
-                }
-            ],
-            "position": {
-                "x": 398,
-                "y": 138,
-                "w": 200,
-                "h": 204
-            }
-        },
-        {
-            "labels": [
+                    "position": {
+                        "y": 138.13653564453125,
+                        "h": 204.25827026367188,
+                        "w": 200.53924560546875,
+                        "x": 398.72503662109375
+                    },
+                    "label": [
+                        {
+                            "score": 0.969613254070282,
+                            "description": "horse"
+                        }
+                    ]
+                },
                 {
-                    "description": "person",
-                    "score": 99.54792261123657
-                }
-            ],
-            "position": {
-                "x": 188,
-                "y": 100,
-                "w": 82,
-                "h": 269
-            }
-        },
-        {
-            "label": [
+                    "position": {
+                        "y": 100.32173919677734,
+                        "h": 269.5154113769531,
+                        "w": 82.43435668945312,
+                        "x": 188.98428344726562
+                    },
+                    "label": [
+                        {
+                            "score": 0.9954792261123657,
+                            "description": "person"
+                        }
+                    ]
+                },
                 {
-                    "description": "dog",
-                    "score": 50.341784954071045
+                   "position": {
+                        "y": 266.0620422363281,
+                        "h": 86.06045532226562,
+                        "w": 142.75128173828125,
+                        "x": 64.1348876953125
+                    },
+                    "label": [
+                        {
+                            "score": 0.5034178495407104,
+                            "description": "dog"
+                        }
+                    ]
                 }
-            ],
-            "position": {
-                "x": 64,
-                "y": 266,
-                "w": 142,
-                "h": 86
-            }
+            ]
         }
     ]
 }
