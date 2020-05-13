@@ -4,7 +4,7 @@
     "frame_num": 1,
     "detection_result": [
         {
-            "labels": [
+            "label": [
                 {
                     "description": "horse",
                     "score": 96.9613254070282
@@ -32,7 +32,7 @@
             }
         },
         {
-            "labels": [
+            "label": [
                 {
                     "description": "dog",
                     "score": 50.341784954071045
