@@ -4,7 +4,7 @@
   "frame_num": 1,
   "detection_result": [
     {
-      "labels": [
+      "label": [
         {
           "description": "horse",
           "score": 98.28232526779175
@@ -18,7 +18,7 @@
       }
     },
     {
-      "labels": [
+      "label": [
         {
           "description": "person",
           "score": 97.0687747001648
@@ -32,7 +32,7 @@
       }
     },
     {
-      "labels": [
+      "label": [
         {
           "description": "car",
           "score": 53.46125364303589
@@ -46,7 +46,7 @@
       }
     },
     {
-      "labels": [
+      "label": [
         {
           "description": "dog",
           "score": 51.26926302909851
@@ -60,7 +60,7 @@
       }
     },
     {
-      "labels": [
+      "label": [
         {
           "description": "person",
           "score": 83.97339582443237
@@ -74,7 +74,7 @@
       }
     },
     {
-      "labels": [
+      "label": [
         {
           "description": "person",
           "score": 53.12093496322632
