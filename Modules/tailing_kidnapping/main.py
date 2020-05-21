@@ -32,9 +32,9 @@ class Tailing_Kidnapping:
         resultJson["cam_id"] = data["cam_id"]
         resultJson["frame_num"] = data["frame_num"]
                 
-        if len(detected_person) >=2 :
+        if len(detected_person) >=2 : # 보행자가 2명 이상 검출되면 미행 및 납치 상황 의심
             resultJson["state"] = "suspect"
-            resultJson["detected_person"] = detected_person
+            resultJson["detected_person"] = detected_person # 검출된 보행자의 정보
         else :
             resultJson["state"] = "safe"
 
