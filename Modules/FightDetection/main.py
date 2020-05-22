@@ -12,17 +12,16 @@ import itertools
 
 class FightDetection:
     model = None
-    result = None
+    # result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
     def __init__(self):
         self.model_name = "FightDetection"
-
+        self.result = []
 
     def analysis_from_json(self, od_result, json_file):
         position_list = []
         dist_list = []
-        result = []
         dist_flag = 0
         
         detection_result = od_result['results'][0]['detection_result']
@@ -44,12 +43,17 @@ class FightDetection:
         if dist_list:
             for dist_ in dist_list:
                 if dist_ < 500:
-                    result.append(1) #return true
+                    self.result.append(1) #return true
+                    return self.result
+
+        # Rule 2) Simple smoothing 
+        if sum(self.result[-10:]) > 6:
+            self.result.append(1) #return true
+            return self.result
+
+
+        self.result.append(0) #return false
+        return self.result
         
-        # Rule 2) If ...
         # Rule 3) If ...
         # Rule 4) If ...
-
-        self.result = result
-
-        return self.result
