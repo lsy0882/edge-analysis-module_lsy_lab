@@ -20,6 +20,12 @@ class FightDetection:
         self.result = []
 
     def analysis_from_json(self, od_result, json_file):
+
+
+        #if too long
+        if len(self.result) >= 10000:
+            self.result = []
+
         position_list = []
         dist_list = []
         dist_flag = 0
