@@ -50,16 +50,16 @@ class FightDetection:
             for dist_ in dist_list:
                 if dist_ < 500:
                     self.result.append(1) #return true
-                    return self.result
+                    return 1
 
         # Rule 2) Simple smoothing 
         if sum(self.result[-10:]) > 6:
             self.result.append(1) #return true
-            return self.result
+            return 1
 
 
         self.result.append(0) #return false
-        return self.result
+        return 0
         
         # Rule 3) If ...
         # Rule 4) If ...
