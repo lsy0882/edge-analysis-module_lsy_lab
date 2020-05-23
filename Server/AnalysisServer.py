@@ -1,5 +1,5 @@
-from Modules.dummy.main import Dummy
-from Modules.dummy2.main import Dummy2
+from Modules.tailing_kidnapping.main import Tailing_Kidnapping
+from Modules.obstacle.main import Obstacle
 from threading import Thread
 import socket
 from datetime import datetime
@@ -16,10 +16,10 @@ class AnalysisServer:
         self.server_socket.listen()
         self.models = []
 
-        dummy_model = Dummy()
+        dummy_model = Obstacle()
         print("INFO: {} - {} model is loaded".format(datetime.now(), dummy_model.model_name))
 
-        dummy2_model = Dummy2()
+        dummy2_model = Tailing_Kidnapping()
         print("INFO: {} - {} model is loaded".format(datetime.now(), dummy2_model.model_name))
 
         self.models.append(dummy_model)
@@ -31,7 +31,7 @@ class AnalysisServer:
         self.client_socket, self.addr = self.server_socket.accept()
         print("INFO: {} - Connected by {}".format(datetime.now(), self.addr))
         while True:
-            data = self.client_socket.recv(1024)
+            data = self.client_socket.recv(5120) # bufSize 1KB->5KB
             if not data:
                 break
             json_data = ast.literal_eval(str(data))
