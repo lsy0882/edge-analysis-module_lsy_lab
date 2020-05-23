@@ -1,5 +1,4 @@
 from dummy.main import Dummy
-from FightDetection.main import FightDetection
 import argparse
 import os
 import json
@@ -19,8 +18,7 @@ if __name__ == '__main__':
         #       from dummy.main import Dummy -> from fireDetection.main import FireDetection()
         #       Dummy()                      -> FireDetection()
         #     )
-        # model = Dummy()
-        model = FightDetection()
+        model = Dummy()
         json_path = opt.json_path
 
         with open(json_path) as od_result_file:
