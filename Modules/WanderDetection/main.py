@@ -1,9 +1,6 @@
 from __future__ import print_function
 import os
 import numpy as np
-import matplotlib
-
-from skimage import io
 
 import glob
 import time
