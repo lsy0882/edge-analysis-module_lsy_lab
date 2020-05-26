@@ -1,10 +1,9 @@
 from __future__ import print_function
 import os
 import numpy as np
-
-import glob
+import json
 import time
-import argparse
+
 from filterpy.kalman import KalmanFilter
 
 try:
@@ -239,23 +238,32 @@ class Sort(object):
 
 class WanderDetection:
     model = None
-    result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self):
-
+    def __init__(self, debug):
         self.model_name = "WanderDetection"
         self.id_stack = [0,0,0,0]
         self.wandering_id_list = []
         self.mot_tracker = Sort()
         # print(self.model_name)
+        self.analysis_time = 0
+        self.debug = debug
         self.result = []
         self.temp_frame =1
-    def analysis_from_json(self, od_result,frame_n):
 
+    def analysis_from_json(self, od_result):
         # frame = od_result["frame_num"]
-        frame = frame_n
+        # frame = frame_n
         # print(frame)
+        start = 0
+        end = 0
+        if self.debug :
+            start = time.time()
+
+        od_result = od_result.decode('utf-8').replace("'", '"')
+        od_result = json.loads(od_result)
+
+        frame = od_result["frame_num"]
         detection_result = od_result["results"][0]["detection_result"]
         result = {}
         det_list = []

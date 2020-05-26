@@ -1,18 +1,26 @@
-import os
-
-import json
 from collections import OrderedDict
+
+import os
+import json
+import time
 
 class Tailing_Kidnapping:
     model = None
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self):
+    def __init__(self, debug):
         self.model_name = "Tailing_Kidnapping"
+        self.analysis_time = 0
         self.target = ['person']
+        self.debug = debug
+
 
     def analysis_from_json(self, od_result):
+        start = 0
+        end = 0
+        if self.debug :
+            start = time.time()
 
         received = od_result.decode('utf-8').replace("'", '"')
         data = json.loads(received)
@@ -33,12 +41,16 @@ class Tailing_Kidnapping:
         resultJson["frame_num"] = data["frame_num"]
                 
         if len(detected_person) >=2 : # 보행자가 2명 이상 검출되면 미행 및 납치 상황 의심
-            resultJson["state"] = "suspect"
+            resultJson["state"] = "warning"
             resultJson["detected_person"] = detected_person # 검출된 보행자의 정보
         else :
             resultJson["state"] = "safe"
 
         result = json.dumps(resultJson)
-        self.result = result
+        self.result = resultJson["state"]
+
+        if self.debug :
+            end = time.time()
+            self.analysis_time = end - start
 
         return self.result

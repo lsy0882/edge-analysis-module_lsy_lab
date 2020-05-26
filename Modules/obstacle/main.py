@@ -1,21 +1,27 @@
-import os
-
-import json
 from collections import OrderedDict
+
+import os
+import json
+import time
 
 class Obstacle:
     model = None
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self):
-
+    def __init__(self, debug):
         self.model_name = "Obstacle"
+        self.analysis_time = 0
+        self.debug = debug
         #검출대상(보행장애물)
         self.target = ['car', 'truck', 'bus', 'motorcycle', 'bicycle', 'scooter', 
                     'movable_signage', 'potted_plant', 'bollard', 'chair', 'carrier']
 
     def analysis_from_json(self, od_result):
+        start = 0
+        end = 0
+        if self.debug :
+            start = time.time()
 
         # result json - image_path, cam_id, frame_num, detected_categories(label, score, center_coordinates)
 
@@ -39,7 +45,11 @@ class Obstacle:
         resultJson["frame_num"] = data["frame_num"]
         resultJson["detected_obstacle"] = detected_categories
 
-        result = json.dumps(resultJson)
+        result = json.dumps(resultJson["detected_obstacle"])
         self.result = result
+
+        if self.debug :
+            end = time.time()
+            self.analysis_time = end - start
 
         return self.result
