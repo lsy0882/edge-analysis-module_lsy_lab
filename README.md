@@ -1,6 +1,6 @@
 # EdgeAnalysisModule
 ## 변경 사항
-* [0601]() - 각 모듈별 테스트를 위한 방법 추가
+* [0601](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/UPDATE.md#0602) - 각 모듈별 테스트를 위한 방법 추가
 
 ## Introduce
 본 프로젝트는 Jetson Nano에서 object detection 결과를 입력으로 받아 각 분석 엔진의 결과를 종합하여 관제 서버에 전송하는 서비스를 제공합니다.
