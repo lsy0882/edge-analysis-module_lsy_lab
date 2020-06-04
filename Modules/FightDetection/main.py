@@ -17,14 +17,15 @@ class FightDetection:
 
     def __init__(self):
         self.model_name = "FightDetection"
-        self.result = []
+        self.history = []
+        self.result = 0
 
     def analysis_from_json(self, od_result, json_file):
 
 
         #if too long
-        if len(self.result) >= 10000:
-            self.result = []
+        if len(self.history) >= 10000:
+            self.history = []
 
         position_list = []
         dist_list = []
@@ -49,17 +50,18 @@ class FightDetection:
         if dist_list:
             for dist_ in dist_list:
                 if dist_ < 500:
-                    self.result.append(1) #return true
-                    return 1
+                    self.history.append(1) #return true
+                    self.result = 1
 
         # Rule 2) Simple smoothing 
-        if sum(self.result[-10:]) > 6:
-            self.result.append(1) #return true
-            return 1
+        if sum(self.history[-20:]) > 13:
+            self.history.append(1) #return true
+            self.result = 1
 
 
-        self.result.append(0) #return false
-        return 0
-        
+        self.history.append(0) #return false
+        self.result = 0
+
+        return self.result 
         # Rule 3) If ...
         # Rule 4) If ...
