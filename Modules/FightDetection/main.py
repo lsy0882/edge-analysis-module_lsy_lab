@@ -52,12 +52,13 @@ class FightDetection:
                 if dist_ < 500:
                     self.history.append(1) #return true
                     self.result = 1
+                    return self.result
 
         # Rule 2) Simple smoothing 
         if sum(self.history[-20:]) > 13:
             self.history.append(1) #return true
             self.result = 1
-
+            return self.result
 
         self.history.append(0) #return false
         self.result = 0
