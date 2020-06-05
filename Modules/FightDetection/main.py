@@ -15,10 +15,6 @@ class FightDetection:
 
     def __init__(self, debug):
         self.model_name = "FightDetection"
-        self.analysis_time = 0
-        self.results = []
-        self.result = "safe"
-        self.debug = debug
 
     def analysis_from_json(self, od_result):
         self.result = "safe"
@@ -30,8 +26,6 @@ class FightDetection:
         od_result = od_result.decode('utf-8').replace("'", '"')
         od_result = json.loads(od_result)
         #if too long
-        if len(self.results) >= 10000:
-            self.results = []
 
         position_list = []
         dist_list = []
@@ -59,20 +53,6 @@ class FightDetection:
         if dist_list:
             for dist_ in dist_list:
                 if dist_ < 500:
-                    self.results.append(1) #return true
-                    self.result = "warning"
-                    return self.result
-
-        # Rule 2) Simple smoothing
-        if sum(self.results[-10:]) > 6:
-            self.results.append(1) #return true
-            self.result = "warning"
-            return self.result
-
-        self.results.append(0) #return false
-        self.result = "safe"
-
-        return self.result
-        
+                  
         # Rule 3) If ...
         # Rule 4) If ...
