@@ -1,5 +1,5 @@
-from dummy.main import Dummy
-from FightDetection.main import FightDetection
+from obstacle.main import Obstacle
+from tailing_kidnapping.main import Tailing_Kidnapping
 import argparse
 import os
 import json
@@ -13,14 +13,7 @@ if __name__ == '__main__':
     try:
         opt = parser.parse_known_args()[0]
 
-        # TODO:
-        #   - 테스트 하고자 하는 모델로 수정
-        #     (e.g.
-        #       from dummy.main import Dummy -> from fireDetection.main import FireDetection()
-        #       Dummy()                      -> FireDetection()
-        #     )
-        # model = Dummy()
-        model = FightDetection()
+        model = Obstacle()
         json_path = opt.json_path
 
         with open(json_path) as od_result_file:
