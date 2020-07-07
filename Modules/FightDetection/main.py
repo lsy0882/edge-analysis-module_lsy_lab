@@ -15,8 +15,16 @@ class FightDetection:
 
     def __init__(self, debug):
         self.model_name = "FightDetection"
+        self.history = []
+        self.result = 0
 
     def analysis_from_json(self, od_result):
+
+        #if too long
+        if len(self.history) >= 10000:
+            self.history = []
+
+
         self.result = "safe"
         start = 0
         end = 0
@@ -53,6 +61,17 @@ class FightDetection:
         if dist_list:
             for dist_ in dist_list:
                 if dist_ < 500:
-                  
-        # Rule 3) If ...
-        # Rule 4) If ...
+                    self.history.append(1) #return true
+                    self.result = 1
+                    return self.result
+
+        # Rule 2) Simple smoothing 
+        if sum(self.history[-20:]) > 13:
+            self.history.append(1) #return true
+            self.result = 1
+            return self.result
+
+        self.history.append(0) #return false
+        self.result = 0
+
+        return self.result 
