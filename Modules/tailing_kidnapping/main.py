@@ -3,6 +3,8 @@ from collections import OrderedDict
 import os
 import json
 import time
+import numpy as np
+from itertools import combinations
 
 class Tailing_Kidnapping:
     model = None
@@ -12,9 +14,11 @@ class Tailing_Kidnapping:
     def __init__(self, debug):
         self.model_name = "Tailing_Kidnapping"
         self.analysis_time = 0
-        self.target = ['person']
         self.debug = debug
-
+        self.history = []
+        self.history_state = []
+        self.max_history = 10
+        self.warning = 0
 
     def analysis_from_json(self, od_result):
         start = 0
@@ -25,29 +29,67 @@ class Tailing_Kidnapping:
         received = od_result.decode('utf-8').replace("'", '"')
         data = json.loads(received)
 
-        resultJson = OrderedDict()
+        result = OrderedDict()
         detected_person = []
+        detected_vehicle = []
+
+        result["frame_num"] = data["frame_num"]
 
         for i, e in enumerate(data['results'][0]['detection_result']):
-            if e['label'][0]['description'] in self.target:
+            if e['label'][0]['description'] in ['person']:
                 person = OrderedDict()
-                person["id"] = i+1  # id는 1부터 시작
+                # person["id"] = i+1  # id는 1부터 시작
+                person["position"] = e['position']
                 person["center_coordinates"] =  ( (e['position']['x'] + e['position']['w'])/2, (e['position']['y'] + e['position']['h'])/2 )
                 detected_person.append(person)
+            elif e['label'][0]['description'] in ['car', 'truck']:
+                vehicle = OrderedDict()
+                vehicle["position"] = e['position']
+                vehicle["center_coordinates"] = ( (e['position']['x'] + e['position']['w'])/2, (e['position']['y'] + e['position']['h'])/2 )
+                detected_vehicle.append(vehicle)
 
-        resultJson["image_path"] = data["image_path"]
-        resultJson["modules"] = data["modules"]
-        resultJson["cam_id"] = data["cam_id"]
-        resultJson["frame_num"] = data["frame_num"]
-                
-        if len(detected_person) >=2 : # 보행자가 2명 이상 검출되면 미행 및 납치 상황 의심
-            resultJson["state"] = "warning"
-            resultJson["detected_person"] = detected_person # 검출된 보행자의 정보
+        num_of_detected_person = len(detected_person)
+        num_of_detected_vehicle = len(detected_vehicle)
+
+        # result["detected_person"] = num_of_detected_person
+        result["adjacnency"] = None
+
+        if num_of_detected_person >=2 and num_of_detected_person <= 4 : # 보행자가 2~4인 
+            center_coordinates = []
+            for i in range(num_of_detected_person):
+                center_coordinates.append(detected_person[i]["center_coordinates"])
+
+            pair_of_center_coordinates = np.array(list(combinations(center_coordinates, 2)), dtype=int)
+
+            dist = 0
+            set_of_adjacency = []
+            for i in range(pair_of_center_coordinates.shape[0]):
+                adjacency = OrderedDict()
+                dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
+                if dist < 20 :
+                    adjacency["distance"] = dist
+                    adjacency["between_coordinates"] = (pair_of_center_coordinates[i][0] + pair_of_center_coordinates[i][1])/2
+                    set_of_adjacency.append(adjacency)
+
+            result["adjacnency"] = set_of_adjacency
+
+        if len(self.history) >= self.max_history :
+            self.history.pop(0)
+
+        self.history.append(result)
+
+        check = 0
+        for i in range(len(self.history)) :
+            if self.history[i]["adjacnency"] != None :
+                check += 1
+
+        prob = check / len(self.history)
+        if prob > 0.7 :
+            state = 1
         else :
-            resultJson["state"] = "safe"
+            state = 0
 
-        result = json.dumps(resultJson)
-        self.result = resultJson["state"]
+        self.result = state
 
         if self.debug :
             end = time.time()
