@@ -60,7 +60,7 @@ class FightDetection:
         # Rule 1) If two people are close to each other
         if dist_list:
             for dist_ in dist_list:
-                if dist_ < 500:
+                if dist_ < 30:
                     self.history.append(1) #return true
                     self.result = 1
                     return self.result
