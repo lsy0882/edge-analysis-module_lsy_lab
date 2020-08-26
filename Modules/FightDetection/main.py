@@ -16,6 +16,7 @@ class FightDetection:
     def __init__(self, debug):
         self.model_name = "FightDetection"
         self.history = []
+        self.debug = debug
         self.result = 0
 
     def analysis_from_json(self, od_result):
