@@ -8,13 +8,13 @@ class FalldownDetection:
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self):
+    def __init__(self, debug):
         self.model_name = "FalldownDetection"
         self.people_max = 100
         
         # print(self.model_name)
         self.analysis_time = 0
-        #self.debug = debug        
+        self.debug = debug        
         self.history = []
         for i in range(self.people_max):
             self.history.append(0)
@@ -29,6 +29,11 @@ class FalldownDetection:
         self.stop_count = 0
 
     def analysis_from_json(self, od_result):
+        start = 0
+        end = 0
+
+        if self.debug :
+            start = time.time()
 
         # rule 1  
         count = 0
@@ -71,6 +76,9 @@ class FalldownDetection:
             if self.history[i] > 10:
                 #print("Fall down!, ", self.people_locate[i])
                 self.result = 1
-        
+                
+        if self.debug :
+            end = time.time()
+            self.analysis_time = end - start
         
         return self.result
