@@ -3,7 +3,7 @@ import os
 import numpy as np
 import json
 import time
-
+# import copy
 from filterpy.kalman import KalmanFilter
 
 try:
@@ -248,8 +248,9 @@ class WanderDetection:
         # print(self.model_name)
         self.analysis_time = 0
         self.debug = debug
-        self.result = []
+        self.history = []
         self.temp_frame =1
+        self.result = 0
 
     def analysis_from_json(self, od_result):
         # frame = od_result["frame_num"]
@@ -260,10 +261,13 @@ class WanderDetection:
         if self.debug :
             start = time.time()
 
+
         od_result = od_result.decode('utf-8').replace("'", '"')
         od_result = json.loads(od_result)
-
-        frame = od_result["frame_num"]
+        
+        frame = frame_num
+        # frame = od_result["frame_num"]
+        # print("frame: {}".format(frame))
         detection_result = od_result["results"][0]["detection_result"]
         result = {}
         det_list = []
@@ -281,22 +285,25 @@ class WanderDetection:
                 det_list.append(dets)
 
         trackers = self.mot_tracker.update(det_list) # output : track_id, x1,y1,x2,y2
-        
         # print('%d,%d,%.2f,%.2f,%.2f,%.2f'%(frame,trackers[4],trackers[0],trackers[1],trackers[2]-trackers[0],trackers[3]-trackers[1]))
-        # print(trackers)
+        # print(trackers[:,4])
         # rule 1 
+        self.result = 0
         for d in trackers:
             while len(self.id_stack) <= d[4]:
                 self.id_stack.append(0)
+            # previous_id_stack = copy.deepcopy(self.id_stack)
+            
             self.id_stack[int(d[4])] +=1
             # detect Wander
-            if self.id_stack[int(d[4])] >= 20:
-
-                result["event"] ="wander"
-                result["frame"] = int(frame)
-                result["id_num"] = int(d[4])
-                result["id_count"] = self.id_stack[int(d[4])]
-                # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
-                self.result.append(result)
-
-        return result
+            if self.id_stack[int(d[4])] >= 30:        
+              # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
+              result["event"] ="wander"
+              result["frame"] = int(frame)
+              result["id_num"] = int(d[4])
+              result["id_count"] = self.id_stack[int(d[4])]
+              # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
+              self.history.append(result)
+              self.result = 1
+        
+        return self.result
