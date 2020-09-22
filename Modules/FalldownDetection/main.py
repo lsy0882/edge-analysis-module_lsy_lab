@@ -27,6 +27,8 @@ class FalldownDetection:
         
         self.temp_frame =1
         self.stop_count = 0
+        self.tracking_method = False
+        self.before_falldown_count = [0 for i in range (self.people_max)]
 
     def analysis_from_json(self, od_result):
         start = 0
@@ -38,6 +40,8 @@ class FalldownDetection:
         # rule 1  
         count = 0
         detection_result = od_result['results'][0]['detection_result']
+        self.result = 0 #init 
+            
         for info_ in detection_result:
             #print(info_['position'])
             #dets =[]
@@ -49,34 +53,51 @@ class FalldownDetection:
                 #convert to [x1,y1,w,h] to [x1,y1,x2,y2]
                 #dets.append(float(info_['label'][0]['score']))
 
-                #print("x: , ", int(info_['position']['x']) , " y: ",int(info_['position']['y']) )
-                    
-                
-                for i in range(self.people_max):
-                    dis_x = self.people_locate[i][0] - int(info_['position']['x'])
-                    dis_y = self.people_locate[i][1] - int(info_['position']['y'])
-                    
-                    if (dis_x*dis_x) + (dis_y*dis_y) < 10\
-                        and int(info_['position']['w']) >= int(info_['position']['h']):
-                        self.history[i] += 1
-                        break # if checked the info_['position'], break and check other person
+                #print("x: , ", int(info_['position']['x']) , " y: ",int(info_['position']['y']) )  
                         
-                    elif self.history[i] > 0 : 
-                        self.history[i] -= 1
                 
+                if self.tracking_method == True:
                 
-                self.people_locate[count] = [int(info_['position']['x']), int(info_['position']['y'])]
-
-                count += 1 # person count      
+                    for i in range(self.people_max):
+                        dis_x = self.people_locate[i][0] - int(info_['position']['x'])
+                        dis_y = self.people_locate[i][1] - int(info_['position']['y'])
+                        
+                        if (dis_x*dis_x) + (dis_y*dis_y) < 100\
+                            and int(info_['position']['w']) >= int(info_['position']['h']):
+                            self.history[i] += 1
+                            break # if checked the info_['position'], break and check other person
+                            
+                        elif self.history[i] > 0 : 
+                            self.history[i] -= 1
+                    
+                    
+                    self.people_locate[count] = [int(info_['position']['x']), int(info_['position']['y'])]
+                    
+                else:
+                    if int(info_['position']['w']) >= int(info_['position']['h']):
+                        self.before_falldown_count[count] += 1
+                    else :
+                        self.before_falldown_count[count] = 0
+                        
+                    #print("before_falldown_count : ", self.before_falldown_count[count])
+                    
+                count += 1 # person count 
                 
         #print("history : ", self.history)
         
-        self.result = 0 #init 
-        for i in range(self.people_max):
-            if self.history[i] > 10:
-                #print("Fall down!, ", self.people_locate[i])
-                self.result = 1
-                
+        if self.tracking_method == True:
+            for i in range(self.people_max):
+                if self.history[i] > 3:
+                    #print("Fall down!, ", self.people_locate[i])
+                    self.result = 1
+        else:
+            for i in range(self.people_max):
+                if self.before_falldown_count[i] >1 :
+                    #print("Fall down!, ", self.before_falldown_count[i])
+                    self.result = 1
+                    break
+        #print("self.result :", self.result )    
+        
         if self.debug :
             end = time.time()
             self.analysis_time = end - start

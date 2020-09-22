@@ -250,6 +250,7 @@ class WanderDetection:
         self.debug = debug
         self.history = []
         self.temp_frame =1
+        self.result = 0
 
     def analysis_from_json(self, od_result):
         # frame = od_result["frame_num"]
@@ -287,7 +288,7 @@ class WanderDetection:
         # print('%d,%d,%.2f,%.2f,%.2f,%.2f'%(frame,trackers[4],trackers[0],trackers[1],trackers[2]-trackers[0],trackers[3]-trackers[1]))
         # print(trackers[:,4])
         # rule 1 
-        state = 0
+        self.result = 0
         for d in trackers:
             while len(self.id_stack) <= d[4]:
                 self.id_stack.append(0)
@@ -302,7 +303,7 @@ class WanderDetection:
               result["id_num"] = int(d[4])
               result["id_count"] = self.id_stack[int(d[4])]
               # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
-              self.history(result)
-              state = 1
+              self.history.append(result)
+              self.result = 1
         
-        return state
+        return self.result
