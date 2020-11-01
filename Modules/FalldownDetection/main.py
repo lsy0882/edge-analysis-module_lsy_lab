@@ -74,10 +74,10 @@ class FalldownDetection:
                     self.people_locate[count] = [int(info_['position']['x']), int(info_['position']['y'])]
                     
                 else:
-                    if int(info_['position']['w']) >= int(info_['position']['h']):
+                    if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
                         self.before_falldown_count[count] += 1
-                    else :
-                        self.before_falldown_count[count] = 0
+                    elif  self.before_falldown_count[count] > 0:
+                        self.before_falldown_count[count] -= 1
                         
                     #print("before_falldown_count : ", self.before_falldown_count[count])
                     
@@ -92,7 +92,7 @@ class FalldownDetection:
                     self.result = 1
         else:
             for i in range(self.people_max):
-                if self.before_falldown_count[i] >1 :
+                if self.before_falldown_count[i] > 2 :
                     #print("Fall down!, ", self.before_falldown_count[i])
                     self.result = 1
                     break
