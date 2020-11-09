@@ -296,7 +296,7 @@ class WanderDetection:
             
             self.id_stack[int(d[4])] +=1
             # detect Wander
-            if self.id_stack[int(d[4])] >= 30:        
+            if self.id_stack[int(d[4])] >= 20:        
               # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
               result["event"] ="wander"
               result["frame"] = int(frame)
