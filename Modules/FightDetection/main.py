@@ -58,6 +58,8 @@ class FightDetection:
             end = time.time()
             self.analysis_time = end - start
 
+        self.result = 0
+        
         # Rule 1) If two people are close to each other
         if dist_list:
             for dist_ in dist_list:
@@ -67,12 +69,12 @@ class FightDetection:
                     return self.result
 
         # Rule 2) Simple smoothing 
-        if sum(self.history[-20:]) > 13:
-            self.history.append(1) #return true
+        if sum(self.history[-10:]) > 5:
+            self.history.append(0)
             self.result = 1
             return self.result
+        
 
-        self.history.append(0) #return false
+        self.history.append(0)
         self.result = 0
-
         return self.result 
