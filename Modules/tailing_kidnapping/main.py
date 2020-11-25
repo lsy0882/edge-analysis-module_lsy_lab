@@ -47,8 +47,7 @@ class Tailing_Kidnapping:
             if len(pair_of_center_coordinates) >= 1 :
                 for i in range(len(pair_of_center_coordinates)) :
                     dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
-                    print(dist)
-                    if dist < 45 :
+                    if dist < 60 :
                         eventFlag = 1
 
         # tailing detection module
