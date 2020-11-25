@@ -37,11 +37,21 @@ class Tailing_Kidnapping:
                 detected_person.append(((e['position']['x'] + e['position']['w']/2), (e['position']['y'] + e['position']['h']/2)))
 
         num_of_person = len(detected_person)
-        # print(f'[Detected {num_of_person} person]')
 
         result["num_of_person"] = num_of_person
         result["center_coordinates"] = detected_person
 
+        # kidnapping detection module
+        if num_of_person >= 2 and num_of_person <= 8 :
+            pair_of_center_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
+            if len(pair_of_center_coordinates) >= 1 :
+                for i in range(len(pair_of_center_coordinates)) :
+                    dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
+                    print(dist)
+                    if dist < 45 :
+                        eventFlag = 1
+
+        # tailing detection module
         vector = OrderedDict()
         mapping, tmp_combi = [], []
         if self.frame != None :
@@ -80,6 +90,8 @@ class Tailing_Kidnapping:
             self.history.pop(0)
         self.history.append(eventFlag)
 
+
+        # Smoothing (history check)
         sum = 0
         if len(self.history) == self.max_history :
             for i in range(self.max_history) :
