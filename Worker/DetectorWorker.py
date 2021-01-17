@@ -3,7 +3,7 @@ from datetime import datetime
 from threading import Thread
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from Detector.ObjectDetection import ObjectDetection
+from Detector.yolov4 import YOLOv4
 from Modules.assault.main import AssaultEvent
 from Modules.wanderer.main import WandererEvent
 from Modules.obstacle.main import ObstacleEvent
@@ -35,7 +35,7 @@ class DetectorWorker(QThread):
 
         # Load object detection model
         try :
-            self.model_object_detection = ObjectDetection()
+            self.model_object_detection = YOLOv4()
             self.edit_text_log_signal.emit("VERBOSE: Succeeded to load object detection model({})".format(self.model_object_detection.model_name))
         except:
             self.edit_text_log_signal.emit("ERROR: Failed to load object detection model ")
