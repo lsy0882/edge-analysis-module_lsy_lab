@@ -1,0 +1,11 @@
+{
+  "dataset" :[
+    "obstacle",
+    "mscoco"
+  ],
+  "model": [
+    "yolov4-416",
+    "ssd-mobilenet-v1",
+    "ssd-mobilenet-v2"
+  ]
+}

@@ -1,2 +1,2 @@
-filterpy
-numpy==1.16.4
+PyQt5
+opencv-python

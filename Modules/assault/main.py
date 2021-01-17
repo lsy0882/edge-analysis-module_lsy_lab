@@ -6,14 +6,14 @@ from Modules.template.main import Event
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
 # - 이미 정의된 함수 및 클래스 멤버 변수의 이름은 *****절대로**** 변경하지마세요.
 
-class ObstacleEvent(Event):
+class AssaultEvent(Event):
     model = None
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
     def __init__(self, debug=False):
         super().__init__(debug)
-        self.model_name = "obstacle"
+        self.model_name = "assault"
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
