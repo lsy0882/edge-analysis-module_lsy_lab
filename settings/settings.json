@@ -5,5 +5,6 @@
     "extract_fps": "1",
     "dataset": 0,
     "model": 0,
-    "analysis_type": false
+    "analysis_type": false,
+    "display_fps": 10
 }

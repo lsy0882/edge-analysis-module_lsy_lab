@@ -9,7 +9,6 @@ class ObjectDetection:
         self.model_name = model
         start_time = time.time()
         end_time = time.time()
-        print("VERBOSE: model is initialized - " + model + "({})".format(end_time - start_time))
 
     def inference_by_image(self, image, confidence_threshold=0.3):
         """

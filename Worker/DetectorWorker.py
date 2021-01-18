@@ -1,9 +1,9 @@
+from datetime import timedelta
 from datetime import datetime
-
 from threading import Thread
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from Detector.yolov4 import YOLOv4
+from Detector.ObjectDetection import ObjectDetection
 from Modules.assault.main import AssaultEvent
 from Modules.wanderer.main import WandererEvent
 from Modules.obstacle.main import ObstacleEvent
@@ -29,15 +29,22 @@ class DetectorWorker(QThread):
         self.edit_text_log_signal.emit(self.video_worker.get_video_worker_info())
 
     def initialize_models(self):
-        log = ""
         success_event_models = ""
         fail_event_models = ""
 
         # Load object detection model
         try :
+            import pycuda.autoinit
+            from Detector.yolov4 import YOLOv4
+
+            self.edit_text_log_signal.emit("VERBOSE:\tLoading object detection model....")
+            import time
+            start = time.time()
             self.model_object_detection = YOLOv4()
-            self.edit_text_log_signal.emit("VERBOSE: Succeeded to load object detection model({})".format(self.model_object_detection.model_name))
+            end = time.time()
+            self.edit_text_log_signal.emit("VERBOSE:\tSucceeded to load object detection model - ({})\n\tmodel name: {} ".format(timedelta(seconds=end-start)), self.model_object_detection.model_name)
         except:
+            self.model_object_detection = ObjectDetection()
             self.edit_text_log_signal.emit("ERROR: Failed to load object detection model ")
 
         self.event_models = []
@@ -91,13 +98,15 @@ class DetectorWorker(QThread):
             fail_event_models += "{} ".format("reid")
 
         if len(success_event_models) > 0 :
-            self.edit_text_log_signal.emit("VERBOSE: Succeeded to load event models( {})".format(success_event_models))
+            self.edit_text_log_signal.emit("VERBOSE:\tSucceeded to load event models\n\t( {})".format(success_event_models))
         if len(fail_event_models) > 0:
             self.edit_text_log_signal.emit("ERROR: Failed to load event models( {})".format(fail_event_models))
 
+        self.button_start.setEnabled(True)
+
     def add_row(self, index, row_number, frame_number, event_result):
         self.table_widget_add_row_signal.emit(index, row_number, 0, str(frame_number + 1))
-        self.table_widget_add_row_signal.emit(index, row_number, 1, "{}".format(datetime.now()))
+        self.table_widget_add_row_signal.emit(index, row_number, 1, "{}".format(self.convert_frame_number_to_timestamp(frame_number)))
         self.table_widget_add_row_signal.emit(index, row_number, 2, str(event_result))
 
     def run(self):
@@ -107,11 +116,17 @@ class DetectorWorker(QThread):
         self.print_video_log()
         self.initialize_models()
 
+        is_ended = False
         while self.run_detection:
+            if not self.video_worker.run_video:
+                if is_ended == False :
+                    self.edit_text_log_signal.emit("VERBOSE:\tAnalysis End - ({})".format(str(timedelta(seconds=self.video_worker.running_time))))
+                    is_ended = True
+
             if len(self.video_worker.frame_queue) > 0:
                 frame_info = self.video_worker.frame_queue.pop()
-                if len(self.video_worker.object_detection_result_queue) > 0:
-                    self.video_worker.object_detection_result_queue.pop()
+
+                object_detection_result = self.model_object_detection.inference_by_image(frame_info[1], confidence_threshold=0.3)
 
                 result = dict()
                 result["image"] = "{0:06d}.jpg".format(frame_info[0])
@@ -119,8 +134,6 @@ class DetectorWorker(QThread):
                 result["cam_id"] = 0  # TODO
                 result["frame_num"] = int(frame_info[0])
                 result["results"] = []
-
-                object_detection_result = self.model_object_detection.inference_by_image(frame_info[1])
                 result["results"].append(object_detection_result)
 
                 self.video_worker.object_detection_result_queue.append(object_detection_result)
@@ -136,12 +149,16 @@ class DetectorWorker(QThread):
                 for event_thread in event_threads:
                     event_thread.join()
 
-                self.add_row(0, analysis_frame_count, frame_info[0], self.get_objects(result["results"][0]))
+                result["event_result"] = dict()
+                for event_model in self.event_models:
+                    result["event_result"][event_model.model_name] = event_model.result
 
+                self.add_row(0, analysis_frame_count, frame_info[0], self.get_objects(result["results"][0]))
                 for i, event_model in enumerate(self.event_models):
                     self.add_row(i + 1, analysis_frame_count, frame_info[0], event_model.result)
 
                 analysis_frame_count += 1
+
 
     def get_objects(self, object_detection_results):
         result = ""
@@ -156,3 +173,9 @@ class DetectorWorker(QThread):
             result += "{}:{:.2f}({},{},{},{}), ".format(label, score, x, y, w, h)
 
         return result
+
+    def convert_frame_number_to_timestamp(self, frame_number):
+        return timedelta(seconds=frame_number/self.video_worker.video_fps)
+
+    def connect_button_start(self, button_start):
+        self.button_start = button_start

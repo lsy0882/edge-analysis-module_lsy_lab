@@ -72,7 +72,9 @@ class SettingsWindow(QMainWindow, form_class):
             "extract_fps": self.edit_text_fps.text(),
             "dataset": int(self.combo_box_dataset.currentIndex()),
             "model": int(self.combo_box_model.currentIndex()),
-            "analysis_type": self.check_box_analysis_type.isChecked()
+            "analysis_type": self.check_box_analysis_type.isChecked(),
+            "display_fps": 10,
+            "add_row_type": "one_line" # increase
         }
 
         with open(os.path.join(self.settings_dir, "settings.json"), 'w') as settings_json:

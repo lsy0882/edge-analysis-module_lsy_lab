@@ -95,18 +95,25 @@ class MainWindow(QMainWindow, form_class):
         settings_attr = json.load(open(os.path.join(os.getcwd(), "settings", "settings.json")))
         self.video_worker.set_attribute(
             video_url=settings_attr["video_url"],
-            extract_fps=settings_attr["extract_fps"]
+            extract_fps=settings_attr["extract_fps"],
+            display_fps=settings_attr["display_fps"]
         )
         self.video_thread.start()
         self.video_worker.moveToThread(self.video_thread)
         self.video_worker.video_signal_frame.connect(self.video_viewer.setImage)
+        self.add_row_type = settings_attr["add_row_type"]
 
+        self.detector_worker.connect_button_start(self.button_start)
         self.detector_worker.start()
 
-        self.button_start.setEnabled(True)
-
     def event_start(self):
+        self.add_log("VERBOSE:\tAnalysis Start")
+
         self.video_worker.event_start()
+        self.button_start.setEnabled(False)
+        self.button_settings.setEnabled(False)
+        self.button_server_url_test.setEnabled(False)
+        self.button_ready.setEnabled(False)
 
     def event_detection_start(self):
         self.detector_object.event_detection_start()
@@ -118,7 +125,11 @@ class MainWindow(QMainWindow, form_class):
 
     @QtCore.pyqtSlot(int, int, int, str)
     def add_row(self, index, row, column, text):
+        if self.add_row_type == "one_line":
+            row = 0
         if column == 0:
+            self.table_row_count_list[index] = 1
+        elif column != 0 and self.add_row_type != "one_line":
             self.table_row_count_list[index] += 1
         self.table_widget_list[index].setRowCount(self.table_row_count_list[index])
         item = self.table_widget_list[index].item(row, column)

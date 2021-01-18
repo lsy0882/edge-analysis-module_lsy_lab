@@ -1,17 +1,14 @@
-import pycuda.autoinit
-
 from utils.yolo_with_plugins import TrtYOLO
 from utils.yolo_classes import get_cls_dict
-import time
 
 class YOLOv4:
-    def __init__(self, model='yolov4-416', dataset='coco',category_num=80):
+    def __init__(self, model='yolov4-416', dataset='coco',category_num=15):
         """
         :param model: model name
         :param category_num:
         """
+        self.results = dict()
         self.model_name = model
-        start_time = time.time()
         self.cls_dict = get_cls_dict(category_num)
 
         yolo_dim = model.split('-')[-1]
@@ -26,8 +23,6 @@ class YOLOv4:
             raise SystemExit('ERROR: bad yolo_dim (%s)!' % yolo_dim)
 
         self.model = TrtYOLO(model, (h, w), category_num)
-        end_time = time.time()
-        print("VERBOSE: model is initialized - " + model + "({})".format(end_time - start_time))
 
     def inference_by_image(self, image, confidence_threshold=0.1):
         """
