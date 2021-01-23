@@ -42,7 +42,7 @@ class DetectorWorker(QThread):
             start = time.time()
             self.model_object_detection = YOLOv4()
             end = time.time()
-            self.edit_text_log_signal.emit("VERBOSE:\tSucceeded to load object detection model - ({})\n\tmodel name: {} ".format(timedelta(seconds=end-start)), self.model_object_detection.model_name)
+            self.edit_text_log_signal.emit("VERBOSE:\tSucceeded to load object detection model - ({})\n\tmodel name: {} ".format(timedelta(seconds=end-start), self.model_object_detection.model_name))
         except:
             self.model_object_detection = ObjectDetection()
             self.edit_text_log_signal.emit("ERROR: Failed to load object detection model ")
