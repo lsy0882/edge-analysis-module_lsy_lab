@@ -12,41 +12,59 @@ class VideoWorker(QtCore.QObject):
         super(VideoWorker, self).__init__(parent)
         self.run_video = True
         self.frame = None
-
+        self.analysis_fps = 0
         self.height = height
         self.width = width
         self.detection_result = None
-        self.video_fps = 0.0
-        self.analysis_fps = 0
         self.cls_dict = dict()
         self.video_type = ""
-        self.vis = None
+        self.bbox_visualization = None
         self.frame_queue = []
         self.object_detection_result_queue = []
         self.running_time = 0
 
-    def set_attribute(self, video_url, extract_fps, class_num=15, display_fps=1):
-        self.video_url = video_url
-        self.capture = cv2.VideoCapture(video_url)
-        if "://" in video_url:
+        self.video_url = ""
+        self.video_fps = 0.0
+        self.display_delay = 0
+        self.server_url = ""
+        self.server_port = ""
+        self.dataset_index = 0
+        self.capture = None
+
+    def set_attribute(self, settings_attr):
+        self.video_url = settings_attr["video_url"]
+        self.analysis_fps = float(settings_attr["analysis_fps"])
+        self.display_delay = int(settings_attr["display_delay"])
+        self.server_url = settings_attr["server_url"]
+        self.server_port = settings_attr["server_port"]
+        self.dataset_index = settings_attr["dataset"]
+
+        self.capture = cv2.VideoCapture(settings_attr["video_url"])
+        self.video_fps = float(self.capture.get(cv2.CAP_PROP_FPS))
+
+        if "://" in self.video_url:
             self.video_type = "streaming"
         else:
             self.video_type = "file"
-        self.video_fps = float(self.capture.get(cv2.CAP_PROP_FPS))
-        self.analysis_fps = int(extract_fps)
-        self.cls_dict = get_cls_dict(class_num)
-        self.vis = BBoxVisualization(self.cls_dict)
-        self.display_fps = display_fps
+
+        if self.dataset_index == 0:   # obstacle
+            self.cls_dict = get_cls_dict(15)
+        elif self.dataset_index == 1: # mscoco
+            self.cls_dict = get_cls_dict(80)
+
+        self.bbox_visualization = BBoxVisualization(self.cls_dict)
 
     def get_video_worker_info(self):
         log = "VERBOSE:\tVideo info\n"
         if self.video_type == "streaming":
             log += "\tVideo URL\t: {}\n".format(self.video_url)
         else :
-            log += "\tVideo path\t: {}\n".format(self.video_url)
+            log += "\tVideo Path\t: {}\n".format(self.video_url)
         log += "\tResolution\t: {}x{}\n".format(self.width, self.height)
         log += "\tVideo fps\t: {}\n".format(self.video_fps)
-        log += "\tAnalysis fps: {}".format(self.analysis_fps)
+        log += "\tAnalysis fps\t: {}\n".format(self.analysis_fps)
+        log += "\tDisplay delay: {}\n".format(self.display_delay)
+        log += "\tServer URL\t: {}:{}\n".format(self.server_url, self.server_port)
         return log
 
 
@@ -68,9 +86,9 @@ class VideoWorker(QtCore.QObject):
                 if len(self.object_detection_result_queue) > 0:
                     if len(self.object_detection_result_queue) > 1:
                         self.object_detection_result_queue.pop(0)
-                    self.vis.draw_bboxes(self.frame, self.object_detection_result_queue[0])
+                    self.bbox_visualization.draw_bboxes(self.frame, self.object_detection_result_queue[0])
 
-                if frame_number % self.display_fps == 0:
+                if frame_number % self.display_delay == 0:
                     color_swapped_image = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
 
                     qt_image = QtGui.QImage(color_swapped_image.data,
@@ -81,7 +99,7 @@ class VideoWorker(QtCore.QObject):
                     self.video_signal_frame.emit(qt_image)
 
                     loop = QtCore.QEventLoop()
-                    QtCore.QTimer.singleShot(1, loop.quit)  # 25 ms
+                    QtCore.QTimer.singleShot(self.display_delay, loop.quit)  # 25 ms
                     loop.exec_()
 
             frame_number += 1
@@ -91,7 +109,3 @@ class VideoWorker(QtCore.QObject):
 
     def event_stop(self):
         self.run_video = False
-
-    def get_timestamp(self, frame_number, fps):
-        if self.video_type == "streaming":
-            return datetime.now().strftime("%Y/%d/%m %H:%M:%S")
