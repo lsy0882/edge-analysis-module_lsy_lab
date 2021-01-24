@@ -4,6 +4,7 @@ import os
 import cv2
 import time
 from Detector.yolov4 import YOLOv4
+import pycuda.autoinit
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
