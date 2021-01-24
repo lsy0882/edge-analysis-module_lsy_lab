@@ -46,7 +46,7 @@ class SettingsWindow(QMainWindow, form_class):
 
     def load_settings(self):
         self.settings_dir = os.path.join(os.getcwd(), "Settings")
-        setting_json_file = open(os.path.join(self.settings_dir, "Settings.json"))
+        setting_json_file = open(os.path.join(self.settings_dir, "settings.json"))
         settings = json.load(setting_json_file)
         setting_json_file.close()
 
@@ -78,7 +78,7 @@ class SettingsWindow(QMainWindow, form_class):
             "table_row_multiple": self.check_box_table_row_type.isChecked()
         }
 
-        with open(os.path.join(self.settings_dir, "Settings.json"), 'w') as settings_json:
+        with open(os.path.join(self.settings_dir, "settings.json"), 'w') as settings_json:
             json.dump(settings, settings_json, indent=4)
             settings_json.close()
 

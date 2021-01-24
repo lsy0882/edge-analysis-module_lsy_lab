@@ -92,7 +92,7 @@ class MainWindow(QMainWindow, form_class):
         self.setting_window.show()
 
     def event_ready(self):
-        settings_attr = json.load(open(os.path.join(os.getcwd(), "Settings", "Settings.json")))
+        settings_attr = json.load(open(os.path.join(os.getcwd(), "Settings", "settings.json")))
         self.video_worker.set_attribute(settings_attr=settings_attr)
         self.video_thread.start()
         self.video_worker.moveToThread(self.video_thread)
