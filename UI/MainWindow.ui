@@ -47,82 +47,285 @@
          <layout class="QVBoxLayout" name="vertical_layout_video_viewer"/>
         </item>
         <item>
-         <widget class="QGroupBox" name="group_box_player_controller">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>60</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Controller</string>
-          </property>
-          <widget class="QWidget" name="horizontalLayoutWidget_2">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>10</y>
-             <width>640</width>
-             <height>41</height>
-            </rect>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <property name="leftMargin">
-             <number>5</number>
+         <layout class="QHBoxLayout" name="horizontal_layout_controller">
+          <item>
+           <widget class="QGroupBox" name="group_box_player_controller">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>55</height>
+             </size>
             </property>
-            <property name="topMargin">
-             <number>5</number>
+            <property name="title">
+             <string>Controller</string>
             </property>
-            <property name="rightMargin">
-             <number>5</number>
+            <widget class="QWidget" name="horizontal_layout_widget">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>20</y>
+               <width>609</width>
+               <height>31</height>
+              </rect>
+             </property>
+             <layout class="QHBoxLayout" name="horizontal_layout_controll_buttons">
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="button_start">
+                <property name="maximumSize">
+                 <size>
+                  <width>210</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Start</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_settings">
+                <property name="text">
+                 <string>Settings</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="button_ready">
+                <property name="text">
+                 <string>Ready</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="check_box_send_message">
+                <property name="text">
+                 <string>Send Message to Server</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontal_layout_progressbar">
+          <item>
+           <widget class="QGroupBox" name="group_box_progress">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>100</height>
+             </size>
             </property>
-            <property name="bottomMargin">
-             <number>5</number>
+            <property name="title">
+             <string>Progress</string>
             </property>
-            <item>
-             <widget class="QPushButton" name="button_start">
-              <property name="maximumSize">
-               <size>
-                <width>210</width>
-                <height>16777215</height>
-               </size>
+            <widget class="QWidget" name="vertical_layout_widget_progress">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>20</y>
+               <width>618</width>
+               <height>80</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="vertical_layout_decode_progressbar">
+              <property name="leftMargin">
+               <number>5</number>
               </property>
-              <property name="text">
-               <string>Start</string>
+              <property name="topMargin">
+               <number>5</number>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_settings">
-              <property name="text">
-               <string>Settings</string>
+              <property name="rightMargin">
+               <number>5</number>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_server_url_test">
-              <property name="text">
-               <string>Server URL test</string>
+              <property name="bottomMargin">
+               <number>5</number>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_ready">
-              <property name="text">
-               <string>Ready</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </widget>
+              <item>
+               <layout class="QHBoxLayout" name="horizontal_layout_decode_progressbar">
+                <property name="leftMargin">
+                 <number>5</number>
+                </property>
+                <property name="topMargin">
+                 <number>5</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>5</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_decode_progressbar">
+                  <property name="minimumSize">
+                   <size>
+                    <width>150</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Decode</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QProgressBar" name="progressbar_decode">
+                  <property name="minimumSize">
+                   <size>
+                    <width>350</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>350</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="value">
+                   <number>0</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_decode_progress">
+                  <property name="minimumSize">
+                   <size>
+                    <width>80</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0/0</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontal_layout_send_message_progressbar">
+                <property name="leftMargin">
+                 <number>5</number>
+                </property>
+                <property name="topMargin">
+                 <number>5</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>5</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_send_message_progress_bar">
+                  <property name="minimumSize">
+                   <size>
+                    <width>150</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Send Result Message</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QProgressBar" name="progresbar_send_message">
+                  <property name="minimumSize">
+                   <size>
+                    <width>350</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>350</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="value">
+                   <number>0</number>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="label_send_message_progress">
+                  <property name="minimumSize">
+                   <size>
+                    <width>80</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>80</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0/0</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QPlainTextEdit" name="edit_text_log">
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>400</height>
+            <height>350</height>
            </size>
           </property>
           <property name="readOnly">
