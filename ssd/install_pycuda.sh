@@ -2,6 +2,7 @@
 #
 # Reference for installing 'pycuda': https://wiki.tiker.net/PyCuda/Installation/Linux/Ubuntu
 
+rm -rf ${HOME}/src/pycuda-2019.1.2/siteconf.py
 set -e
 
 if ! which nvcc > /dev/null; then
