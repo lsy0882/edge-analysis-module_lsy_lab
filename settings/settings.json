@@ -1,10 +1,10 @@
 {
     "video_url": "./videos/origin/1_360p.mp4",
+    "analysis_fps": "0.5",
+    "display_delay": 25,
     "server_url": "mlaries.sogang.ac.kr",
     "server_port": 40000,
-    "extract_fps": "1",
     "dataset": 0,
     "model": 0,
-    "analysis_type": false,
-    "display_fps": 10
+    "table_row_multiple": false
 }

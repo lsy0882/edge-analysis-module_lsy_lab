@@ -12,19 +12,20 @@ class SettingsWindow(QMainWindow, form_class):
 
         self.video_url = ""
         self.server_url = ""
-        self.extract_fps = ""
+        self.analysis_fps = ""
         self.dataset = ""
         self.model = ""
 
         self.load_settings()
 
         # Set line edits only number
-        self.edit_text_fps.setValidator(QtGui.QIntValidator(0, 30))
+        self.edit_text_fps.setValidator(QtGui.QDoubleValidator(0.0, 1.0, 2))
+        self.edit_text_display_delay.setValidator(QtGui.QIntValidator(0, 25))
         self.edit_text_server_port.setValidator(QtGui.QIntValidator(0, 99999))
 
         # Set button events
         self.button_open.clicked.connect(self.event_button_open)
-        self.button_server_url_test.clicked.connect(self.event_button_server_url_test)
+        self.button_server_connection_test.clicked.connect(self.event_button_server_connection_test)
         self.button_ok.clicked.connect(self.event_button_ok)
         self.button_cancel.clicked.connect(self.event_button_cancel)
 
@@ -32,7 +33,7 @@ class SettingsWindow(QMainWindow, form_class):
         fname = QFileDialog.getOpenFileName(self, 'Open file', '.', "Video Files (*.mp4 *.flv *.ts *.mts *.avi)")
         self.edit_text_video_url.setText(fname[0])
 
-    def event_button_server_url_test(self):
+    def event_button_server_connection_test(self):
         print("server url test")
 
     def event_button_ok(self):
@@ -57,24 +58,24 @@ class SettingsWindow(QMainWindow, form_class):
         self.combo_box_model.addItems(combo_box_items["model"])
 
         self.edit_text_video_url.setText(settings["video_url"]),
+        self.edit_text_fps.setText(str(settings["analysis_fps"])),
+        self.check_box_table_row_type.setChecked(settings["table_row_multiple"])
+        self.edit_text_display_delay.setText(str(settings["display_delay"]))
         self.edit_text_server_url.setText(settings["server_url"]),
         self.edit_text_server_port.setText(str(settings["server_port"])),
-        self.edit_text_fps.setText(str(settings["extract_fps"])),
         self.combo_box_dataset.setCurrentIndex(settings["dataset"])
         self.combo_box_model.setCurrentIndex(settings["model"])
-        self.check_box_analysis_type.setChecked(settings["analysis_type"])
 
     def save_settings(self):
         settings = {
             "video_url": self.edit_text_video_url.text(),
+            "analysis_fps": self.edit_text_fps.text(),
+            "display_delay": int(self.edit_text_display_delay.text()),
             "server_url": self.edit_text_server_url.text(),
             "server_port": int(self.edit_text_server_port.text()),
-            "extract_fps": self.edit_text_fps.text(),
             "dataset": int(self.combo_box_dataset.currentIndex()),
             "model": int(self.combo_box_model.currentIndex()),
-            "analysis_type": self.check_box_analysis_type.isChecked(),
-            "display_fps": 10,
-            "add_row_type": "one_line" # increase
+            "table_row_multiple": self.check_box_table_row_type.isChecked()
         }
 
         with open(os.path.join(self.settings_dir, "settings.json"), 'w') as settings_json:
