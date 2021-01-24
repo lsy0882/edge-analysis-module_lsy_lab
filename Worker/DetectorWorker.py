@@ -16,9 +16,10 @@ class DetectorWorker(QThread):
     table_widget_add_row_signal = pyqtSignal(int, int, int, str)
     edit_text_log_signal = pyqtSignal(str)
 
-    def __init__(self, video_worker, parent=None):
+    def __init__(self, video_worker, send_message_worker, parent=None):
         super().__init__()
         self.video_worker = video_worker
+        self.send_message_worker = send_message_worker
         self.run_detection = False
 
 
@@ -124,7 +125,7 @@ class DetectorWorker(QThread):
                     is_ended = True
 
             if len(self.video_worker.frame_queue) > 0:
-                frame_info = self.video_worker.frame_queue.pop()
+                frame_info = self.video_worker.frame_queue.pop(0)
 
                 object_detection_result = self.model_object_detection.inference_by_image(frame_info[1], confidence_threshold=0.3)
 
@@ -152,6 +153,7 @@ class DetectorWorker(QThread):
                 result["event_result"] = dict()
                 for event_model in self.event_models:
                     result["event_result"][event_model.model_name] = event_model.result
+                self.send_message_worker.result_queue.append(result)
 
                 self.add_row(0, analysis_frame_count, frame_info[0], self.get_objects(result["results"][0]))
                 for i, event_model in enumerate(self.event_models):
