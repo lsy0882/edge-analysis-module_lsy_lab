@@ -1,6 +1,6 @@
 import os
 import time
-from Modules.template.main import Event
+from modules.template.main import Event
 
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.

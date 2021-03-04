@@ -104,7 +104,7 @@ CCTV 영상을 decoding 및 object detection하는 프로그램과는 소켓으�
 반드시 서버 코드(${PROJECT_DIR}/Server/AnalysisServer.py)를 먼저 실행하시고 클라이언트 코드(${PROJECT_DIR}/Client/example.py)를 실행하시기 바랍니다.
 #### 서버 코드 내 호출 모델 변경(${PROJECT_DIR}/Server/AnalysisServer.py)
 ```python
-from Modules.dummy.main import Dummy # --> from Modules.Fire.main import FireDetection
+from modules.dummy.main import Dummy # --> from modules.Fire.main import FireDetection
 ```
 * 기존 호출 모델인 Dummy 대신 정의하신 분석 모델을 import 해야 하는 부분입니다.
 ```python

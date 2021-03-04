@@ -1,14 +1,23 @@
 from utils.yolo_with_plugins import TrtYOLO
 from utils.yolo_classes import get_cls_dict
+from utils import PrintLog
 
 class YOLOv4:
-    def __init__(self, model='yolov4-416', dataset='coco',category_num=15):
+    def __init__(self, frame_info_pool=None, detection_result_pool=None, final_result_pool=None, model='yolov4-416', dataset='obstacle'):
         """
         :param model: model name
         :param category_num:
         """
         self.results = dict()
         self.model_name = model
+        self.dataset = dataset
+        self.frame_info_pool = frame_info_pool
+        self.detection_result_pool = detection_result_pool
+        self.final_result_pool = final_result_pool
+        if dataset == "coco":
+            category_num = 80
+        else :
+            category_num = 15
         self.cls_dict = get_cls_dict(category_num)
 
         yolo_dim = model.split('-')[-1]
@@ -23,6 +32,8 @@ class YOLOv4:
             raise SystemExit('ERROR: bad yolo_dim (%s)!' % yolo_dim)
 
         self.model = TrtYOLO(model, (h, w), category_num)
+
+        PrintLog.i("Object detection model is loaded - {}\t{}".format(model, dataset))
 
     def inference_by_image(self, image, confidence_threshold=0.1):
         """
@@ -50,3 +61,16 @@ class YOLOv4:
             })
 
         return results
+
+    def run(self):
+        while True:
+            if len(self.frame_info_pool) > 0:
+                frame_info = self.frame_info_pool.pop(0)
+                result = self.inference_by_image(frame_info["frame"])
+                detection_result = dict()
+                detection_result["cam_address"] = frame_info["cam_address"]
+                detection_result["timestamp"] = frame_info["timestamp"]
+                detection_result["frame_number"] = frame_info["frame_number"]
+                detection_result["results"] = result
+                self.detection_result_pool.append(detection_result)
+                PrintLog.i("{}\t{}\t{}\t{}".format(detection_result["frame_number"], len(self.frame_info_pool), len(self.detection_result_pool), len(self.final_result_pool)))

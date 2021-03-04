@@ -1,0 +1,21 @@
+version: '2.3'
+
+services:
+  main:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    runtime: nvidia
+    restart: always
+    env_file:
+      - "docker-compose-env/main.env"
+    volumes:
+      - /home/mmlab/Projects/CCTV/videos:/videos
+    expose:
+      - "8000"
+      - "22"
+    ports:
+      - "40001:8000"
+      - "40022:22"
+    stdin_open: true
+    tty: true

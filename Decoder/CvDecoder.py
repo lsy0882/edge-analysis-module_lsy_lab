@@ -1,59 +1,50 @@
 import cv2
-import threading
-
-class CvDecoder(object):
-    def __init__(self, url, fps, cam_id, is_show=False):
-        self.url = url
-        self.fps = fps
-        self.cam_id = cam_id
-        self.window_name = "cam_" + str(cam_id)
-        self.is_show = is_show
-        self.frame_num = 0
-        self.frame_queue = []
-
-    def init_capture(self):
-        try:
-            self.capture = cv2.VideoCapture(self.url)
-            return True
-        except:
-            print("Error: Fail to open url {}".format(self.url))
-            return False
-
-    def decode_video(self):
-        if self.is_show :
-            cv2.namedWindow(self.window_name)
-
-        while True:
-            ret, frame = self.capture.read()
-            self.frame_num += 1
-
-            if self.frame_num % self.fps == 1:
-                self.frame_queue.append({"frame_num": self.frame_num, "frame": frame})
-
-            if ret == False:
-                break
+import time
+from decoder.Decoder import Decoder
+from utils import PrintLog
 
 
-    def show_frame(self, frame):
-        cv2.imshow(self.window_name, frame)
-
-class DecoderThread(threading.Thread) :
-    def __init__(self, url, fps, cam_id, is_show=False):
-        threading.Thread.__init__(self)
-        self.url = url
-        self.cam_id = cam_id
-        self.decoder = CvDecoder(url, fps, cam_id, is_show=is_show)
-        self.decoder.init_capture()
-
-    def run(self):
-        print("INFO: Start Decoding")
-        self.decoder.decode_video()
-
-    def getFrameFromFQ(self):
-        if len(self.decoder.frame_queue) > 0:
-            frame_info = self.decoder.frame_queue.pop()
-            return frame_info
+class CvSingleDecoder(Decoder):
+    def __init__(self, cam_address, analysis_fps):
+        super().__init__(cam_address)
+        self.ret = None
+        self.frame = None
+        self.frame_number = 0
+        self.cam_address = cam_address
+        self.video_capture = cv2.VideoCapture(self.cam_address)
+        self.fps = 0
+        if not self.video_capture.isOpened():
+            self.video_capture = None
+            PrintLog.e("Invalid URL({})".format(self.cam_address))
         else:
-            return None
+            self.fps = self.video_capture.get(cv2.CAP_PROP_FPS)
+        self.analysis_fps = int(self.fps / analysis_fps)
 
+    def read(self):
+        super().read()
 
+        if self.video_capture is not None:
+            self.ret, self.frame = self.video_capture.read()
+            if self.ret:
+                self.frame_number += 1
+                if self.frame_number % self.analysis_fps == 0:
+                    return {"cam_address": self.cam_address, "frame": self.frame, "frame_number": self.frame_number, "timestamp": float(time.time())}
+                else:
+                    return None
+
+class CvMultipleDecoder:
+    def __init__(self, cam_addresss, analysis_fps=4):
+        self.cam_addresses = cam_addresss
+        self.decoders = []
+
+        for cam_address in self.cam_addresses:
+            self.decoders.append(CvSingleDecoder(cam_address, analysis_fps))
+
+    def read(self):
+        frame_infos = []
+        for i, decoder in enumerate(self.decoders):
+            frame_info = decoder.read()
+            if frame_info is not None:
+                frame_infos.append(frame_info)
+
+        return frame_infos

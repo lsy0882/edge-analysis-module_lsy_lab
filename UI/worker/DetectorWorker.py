@@ -3,13 +3,13 @@ from datetime import datetime
 from threading import Thread
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from Detector.ObjectDetection import ObjectDetection
-from Modules.assault.main import AssaultEvent
-from Modules.wanderer.main import WandererEvent
-from Modules.obstacle.main import ObstacleEvent
-from Modules.kidnapping.main import KidnappingEvent
-from Modules.tailing.main import TailingEvent
-from Modules.reid.main import ReidEvent
+from detector.ObjectDetection import ObjectDetection
+from modules.assault.main import AssaultEvent
+from modules.wanderer.main import WandererEvent
+from modules.obstacle.main import ObstacleEvent
+from modules.kidnapping.main import KidnappingEvent
+from modules.tailing.main import TailingEvent
+from modules.reid.main import ReidEvent
 
 
 class DetectorWorker(QThread):
@@ -36,7 +36,7 @@ class DetectorWorker(QThread):
         # Load object detection model
         try :
             import pycuda.autoinit
-            from Detector.yolov4 import YOLOv4
+            from detector.yolov4 import YOLOv4
 
             self.edit_text_log_signal.emit("VERBOSE:\tLoading object detection model....")
             import time

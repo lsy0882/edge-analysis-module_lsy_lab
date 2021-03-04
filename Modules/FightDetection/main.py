@@ -13,7 +13,7 @@ class FightDetection:
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug):
+    def __init__(self, debug=False):
         self.model_name = "FightDetection"
         self.history = []
         self.debug = debug

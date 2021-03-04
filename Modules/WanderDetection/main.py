@@ -240,7 +240,7 @@ class WanderDetection:
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug):
+    def __init__(self, debug=False):
         self.model_name = "WanderDetection"
         self.id_stack = [0,0,0,0]
         self.wandering_id_list = []
