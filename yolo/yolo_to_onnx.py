@@ -216,7 +216,7 @@ class ConvParams(object):
 
     def __init__(self, node_name, batch_normalize, conv_weight_dims):
         """Constructor based on the base node name (e.g. 101_convolutional), the batch
-        normalization setting, and the convolutional weights shape.
+        normalization settings, and the convolutional weights shape.
 
         Keyword arguments:
         node_name -- base name of this YOLO convolutional layer

@@ -1,11 +1,11 @@
 import threading
 
-from modules.assault.main import AssaultEvent
-from modules.wanderer.main import WandererEvent
-from modules.obstacle.main import ObstacleEvent
-from modules.kidnapping.main import KidnappingEvent
-from modules.tailing.main import TailingEvent
-from modules.reid.main import ReidEvent
+from module.assault.main import AssaultEvent
+from module.wanderer.main import WandererEvent
+from module.obstacle.main import ObstacleEvent
+from module.kidnapping.main import KidnappingEvent
+from module.tailing.main import TailingEvent
+from module.reid.main import ReidEvent
 from utils import PrintLog
 
 

@@ -4,12 +4,12 @@ from threading import Thread
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from detector.ObjectDetection import ObjectDetection
-from modules.assault.main import AssaultEvent
-from modules.wanderer.main import WandererEvent
-from modules.obstacle.main import ObstacleEvent
-from modules.kidnapping.main import KidnappingEvent
-from modules.tailing.main import TailingEvent
-from modules.reid.main import ReidEvent
+from module.assault.main import AssaultEvent
+from module.wanderer.main import WandererEvent
+from module.obstacle.main import ObstacleEvent
+from module.kidnapping.main import KidnappingEvent
+from module.tailing.main import TailingEvent
+from module.reid.main import ReidEvent
 
 
 class DetectorWorker(QThread):
@@ -131,7 +131,7 @@ class DetectorWorker(QThread):
 
                 result = dict()
                 result["image"] = "{0:06d}.jpg".format(frame_info[0])
-                result["modules"] = self.model_object_detection.model_name
+                result["module"] = self.model_object_detection.model_name
                 result["cam_id"] = 0  # TODO
                 result["frame_num"] = int(frame_info[0])
                 result["results"] = []

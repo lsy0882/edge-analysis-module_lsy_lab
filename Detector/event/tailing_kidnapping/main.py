@@ -12,7 +12,7 @@ class Tailing_Kidnapping:
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug):
+    def __init__(self, debug=False):
         self.model_name = "Tailing_Kidnapping"
         self.analysis_time = 0
         self.debug = debug

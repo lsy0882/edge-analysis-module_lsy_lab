@@ -1,6 +1,6 @@
 import threading
 
-from modules.EventManager import EventManager
+from module.EventManager import EventManager
 from utils import PrintLog
 from communicator.Socket import Communicator
 from decoder.DecoderManagerConsole import DecoderManager
