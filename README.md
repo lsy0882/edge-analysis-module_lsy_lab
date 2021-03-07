@@ -3,20 +3,16 @@
 ## Introduce
 본 프로젝트는 Jetson Nano 및 Jetson Xavier NX에서 object detection 결과를 입력으로 받아 각 분석 엔진의 결과를 종합하여 관제 서버에 전송하는 서비스를 제공합니다.
 
-Python 코드로 구성되어 있으며, 소켓 통신을 기반으로 개발하였습니다.
-
 본 프로젝트에서의 모델 테스트는 아래에 설명된 __분석 모델 테스트__([링크](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%B6%84%EC%84%9D-%EB%AA%A8%EB%8D%B8-%ED%85%8C%EC%8A%A4%ED%8A%B8))에 걸쳐 테스트를 하길 권장합니다.
 
 Jetson Nano 및 Jetson Xavier NX에 설치될 예정이기 때문에 Ubuntu 18.04 환경에서 테스트하시길 권장하며, 만약 다른 환경에서 테스트를 진행하시려면 [문의](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%AC%B8%EC%9D%98)에 있는 메일로 문의해주시기 바랍니다.
-
-분석 모델의 입력은 json으로 되어있으며 object detection의 입력으로 사용되는 원본 이미지는 json내에 경로로 입력되어 있으니 원본 이미지가 필요한 경우 해당 경로로 읽고 사용하시기 바랍니다.
 
 또한 입력 json의 형식은 각 연구실에서 필요한 입력에 따라 데이터가 추가될 수 있으니 참고하시기 바랍니다.
 
 ## Installation
 설치 방법은 Jetson Nano & Jetson Xavier NX에서 진행하는 방법과 docker-compose 상에서 실행하는 방법으로 구성됩니다.
 
-분석 모델에서 필요한 pip requirement가 있을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/1))에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
+분석 모델에서 필요한 python requirement가 있을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/1))에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
  
 * [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_jetson.md)
 * [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/build_on_docker-compose.md)
@@ -102,7 +98,8 @@ python3 Modules/ModuleTest.py --json_path ${json_path}
 ```
 ### EdgeAnalysisModule 전체 실행 방법
 ```shell script
-python3 main.py --mode=console --cam_address=rtsp://163.239.25.80:8554/1_360p --analysis_fps=4
+python3 main.py --mode=console --cam_address=rtsp://localhost:8554/1_360p --analysis_fps=4 # single video
+python3 main.py --mode=console --cam_address=rtsp://localhost:8554/1_360p,rtsp://localhost/2_360p --analysis_fps=4 # single video
 python3 main.py --mode=console --cam_address=/workspace/videos/1_360p.mp4 --analysis_fps=4
 ```
 #### Argument
