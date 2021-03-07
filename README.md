@@ -26,7 +26,7 @@ detector/event/ 디렉토리 내에는 기존에 정의하셨던 모델들을 re
 
 변경된 이벤트 디렉토리 이름 및 클래스 이름은 다음과 같습니다.
 * FightDetection -> assault, AssaultEvent
-* FalldownDetection -> falldown, FallDown
+* FalldownDetection -> falldown, FalldownEvent
 * Tailing_Kidnapping -> kidnapping, KidnappingEvent & tailing, TailingEvent
 * Obstacle -> obstacle, ObstacleEvent
 * ReID -> reid, ReidEvent
