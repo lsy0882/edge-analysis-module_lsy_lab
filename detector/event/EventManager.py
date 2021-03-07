@@ -66,6 +66,4 @@ class EventManager:
                 for event_detector in self.event_detectors:
                     result["event_result"][event_detector.model_name] = event_detector.result
 
-                PrintLog.i("{}\t{}\t{}".format(object_detection_result["frame_number"], object_detection_result["timestamp"], result["event_result"]))
-
                 self.final_result_pool.append(result)
