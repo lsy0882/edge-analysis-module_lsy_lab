@@ -1,10 +1,10 @@
 import threading
 
-from module.EventManager import EventManager
+from detector.event.EventManager import EventManager
 from utils import PrintLog
 from communicator.Socket import Communicator
 from decoder.DecoderManagerConsole import DecoderManager
-from detector.yolov4 import YOLOv4
+from detector.object_detection.yolov4 import YOLOv4
 
 
 class MainConsole:

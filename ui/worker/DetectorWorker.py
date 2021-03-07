@@ -3,13 +3,14 @@ from datetime import datetime
 from threading import Thread
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from detector.ObjectDetection import ObjectDetection
-from module.assault.main import AssaultEvent
-from module.wanderer.main import WandererEvent
-from module.obstacle.main import ObstacleEvent
-from module.kidnapping.main import KidnappingEvent
-from module.tailing.main import TailingEvent
-from module.reid.main import ReidEvent
+from detector.object_detection.ObjectDetection import ObjectDetection
+from detector.event.assault.main import AssaultEvent
+from detector.event.falldown.main import FalldownEvent
+from detector.event.wanderer.main import WandererEvent
+from detector.event.obstacle.main import ObstacleEvent
+from detector.event.kidnapping.main import KidnappingEvent
+from detector.event.tailing.main import TailingEvent
+from detector.event.reid.main import ReidEvent
 
 
 class DetectorWorker(QThread):
@@ -36,7 +37,7 @@ class DetectorWorker(QThread):
         # Load object detection model
         try :
             import pycuda.autoinit
-            from detector.yolov4 import YOLOv4
+            from detector.object_detection.yolov4 import YOLOv4
 
             self.edit_text_log_signal.emit("VERBOSE:\tLoading object detection model....")
             import time
@@ -57,6 +58,14 @@ class DetectorWorker(QThread):
             success_event_models += "{} ".format(model_event_assault.model_name)
         except :
             fail_event_models += "{} ".format("assault")
+
+        # Load wanderer event detection model
+        try :
+            model_event_falldown = FalldownEvent()
+            self.event_models.append(model_event_falldown)
+            success_event_models += "{} ".format(model_event_falldown.model_name)
+        except :
+            fail_event_models += "{} ".format("wanderer")
 
         # Load wanderer event detection model
         try :
@@ -133,7 +142,7 @@ class DetectorWorker(QThread):
                 result["image"] = "{0:06d}.jpg".format(frame_info[0])
                 result["module"] = self.model_object_detection.model_name
                 result["cam_id"] = 0  # TODO
-                result["frame_num"] = int(frame_info[0])
+                result["frame_number"] = int(frame_info[0])
                 result["results"] = []
                 result["results"].append(object_detection_result)
 

@@ -63,6 +63,7 @@ class YOLOv4:
         return results
 
     def run(self):
+        PrintLog.i("Frame Number\tTimestamp")
         while True:
             if len(self.frame_info_pool) > 0:
                 frame_info = self.frame_info_pool.pop(0)
@@ -71,6 +72,7 @@ class YOLOv4:
                 detection_result["cam_address"] = frame_info["cam_address"]
                 detection_result["timestamp"] = frame_info["timestamp"]
                 detection_result["frame_number"] = frame_info["frame_number"]
-                detection_result["results"] = result
+                detection_result["results"] = []
+                detection_result["results"].append({"detection_result": result})
                 self.detection_result_pool.append(detection_result)
-                PrintLog.i("{}\t{}\t{}\t{}".format(detection_result["frame_number"], len(self.frame_info_pool), len(self.detection_result_pool), len(self.final_result_pool)))
+                # PrintLog.i("{}\t{}\t{}\t{}".format(detection_result["frame_number"], len(self.frame_info_pool), len(self.detection_result_pool), len(self.final_result_pool)))

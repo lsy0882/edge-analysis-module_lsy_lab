@@ -2,7 +2,7 @@
     "image_path": "/home/user/EdgeAnalysisModule/data/images/sample2.jpg",
     "modules": "ssd-mobilenet-v2",
     "cam_id": 0,
-    "frame_num": 1,
+    "frame_number": 1,
     "results": [
         {
             "module_name": "ssd-mobilenet-v2",

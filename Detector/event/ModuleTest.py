@@ -1,5 +1,4 @@
-from obstacle.main import Obstacle
-from tailing_kidnapping.main import Tailing_Kidnapping
+from detector.event.template.main import Event
 import argparse
 import os
 import json
@@ -13,13 +12,13 @@ if __name__ == '__main__':
     try:
         opt = parser.parse_known_args()[0]
 
-        model = Obstacle()
+        model = Event()
         json_path = opt.json_path
 
         with open(json_path) as od_result_file:
-            od_result = json.load(od_result_file)
+            detection_result = json.load(od_result_file)
 
-        print(model.analysis_from_json(od_result))
+        print(model.inference(detection_result))
 
     except:
         print("")

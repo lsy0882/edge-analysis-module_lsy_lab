@@ -3,7 +3,7 @@ import json
 import os
 import cv2
 import time
-from Detector.yolov4 import YOLOv4
+from detector.object_detection.yolov4 import YOLOv4
 import pycuda.autoinit
 
 if __name__ == '__main__':
@@ -46,10 +46,10 @@ if __name__ == '__main__':
 
                 dict_result = dict()
                 dict_result["image_path"] = "./data/frames/1_360p/" + frame_name + ".jpg"
-                dict_result["modules"] = model_name
+                dict_result["module"] = model_name
                 dict_result["cam_id"] = 0
                 dict_result["analysis_time"] = end_time - start_time
-                dict_result["frame_num"] = frame_number
+                dict_result["frame_number"] = frame_number
                 dict_result["results"] = results
 
                 json_result_file = open(os.path.join(json_dir, frame_name + ".json"), "w")
