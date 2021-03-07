@@ -105,10 +105,10 @@ python3 Modules/ModuleTest.py --json_path ${json_path}
 python3 main.py --mode=console --cam_address=rtsp://163.239.25.80:8554/1_360p --analysis_fps=4
 python3 main.py --mode=console --cam_address=/workspace/videos/1_360p.mp4 --analysis_fps=4
 ```
-Argument
-* mode: UI 모드 또는 console 모드 (UI 모드는 jetson 상에서만 가능하며 docker container는 GUI 환경을 가지지 못하기 때문에 docker 상에서는 console 모드로만 사용하시기 바랍니다.)
-* cam_address: 분석하고자하는 비디오 스트리밍의 주소 또는 비디오 파일의 경로 입니다.
-* analysis_fps: 초당 분석할 프레임의 수입니다.
+#### Argument
+* __mode__: UI 모드 또는 console 모드 (UI 모드는 jetson 상에서만 가능하며 docker container는 GUI 환경을 가지지 못하기 때문에 docker 상에서는 console 모드로만 사용하시기 바랍니다.)
+* __cam_address__: 분석하고자하는 비디오 스트리밍의 주소 또는 비디오 파일의 경로 입니다.
+* __analysis_fps__: 초당 분석할 프레임의 수입니다.
 
 ## 분석 엔진 반영 방법
 각 연구실에서는 해당 소스 코드를 fork하여 개발을 진행해주시기 바라며, 각 연구실의 분석 모듈이 완성될 경우 을${PROEJCT_DIR}/detector/event 내에 수정하신 분석 모듈만을 pull request 해주시길 바랍니다.
