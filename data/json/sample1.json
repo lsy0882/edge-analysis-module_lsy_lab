@@ -1,7 +1,7 @@
 {
     "image_path": "/home/user/EdgeAnalysisModule/data/images/sample2.jpg",
-    "modules": "ssd-mobilenet-v2",
-    "cam_id": 0,
+    "modules": "yolov4-obstacle-416-trt",
+    "cam_address": "rtsp://localhost/1_360p",
     "frame_number": 1,
     "results": [
         {
