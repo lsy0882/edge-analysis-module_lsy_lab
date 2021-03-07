@@ -1,6 +1,4 @@
 # EdgeAnalysisModule
-## 변경 사항
-* [0601](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/UPDATE.md#0602) - 각 모듈별 테스트를 위한 방법 추가
 
 ## Introduce
 본 프로젝트는 Jetson Nano 및 Jetson Xavier NX에서 object detection 결과를 입력으로 받아 각 분석 엔진의 결과를 종합하여 관제 서버에 전송하는 서비스를 제공합니다.
@@ -20,8 +18,8 @@ Jetson Nano 및 Jetson Xavier NX에 설치될 예정이기 때문에 Ubuntu 18.0
 
 분석 모델에서 필요한 pip requirement가 있을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/1))에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
  
-* [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/EdgeAnalysisModule/docs/build_on_jetson.md)
-* [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/docs/build_on_docker-compose.md)
+* [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_jetson.md)
+* [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/build_on_docker-compose.md)
 
 ## 분석 모델 정의
 모든 설치가 끝났다면 이벤트 검출기 모델을 정의하기위해 detector/event/ 디렉토리로 이동합니다.
@@ -113,7 +111,7 @@ Argument
 * analysis_fps: 초당 분석할 프레임의 수입니다.
 
 ## 분석 엔진 반영 방법
-각 연구실에서는 해당 소스 코드를 fork하여 개발을 진행해주시기 바라며, 각 연구실의 분석 모듈이 완성될 경우 을${PROEJCT_DIR}/Modules 내에 정의하신 분석 모듈만을 pull request 해주시길 바랍니다.
+각 연구실에서는 해당 소스 코드를 fork하여 개발을 진행해주시기 바라며, 각 연구실의 분석 모듈이 완성될 경우 을${PROEJCT_DIR}/detector/event 내에 수정하신 분석 모듈만을 pull request 해주시길 바랍니다.
 
 pull request를 통해 소스 코드를 업데이트 하시기 전 테스트를 위한 주석 코드들은 모두 삭제하시고 pull request를 보내주시기 바랍니다.
 
