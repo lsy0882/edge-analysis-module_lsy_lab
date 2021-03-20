@@ -4,7 +4,7 @@ import os
 import numpy as np
 import json
 import time
-from detector.event.template.main import Event
+from template.main import Event
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
 # - 이미 정의된 함수 및 클래스 멤버 변수의 이름은 *****절대로**** 변경하지마세요.
@@ -41,7 +41,7 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
 
-    def analysis_from_json(self, od_result):
+    def inference(self, od_result):
         start = 0
         end = 0
 
