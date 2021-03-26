@@ -93,4 +93,4 @@ class WandererEvent(Event):
                 end = time.time()
                 self.analysis_time = end - start
 
-            return self.result,trackers[0]
+            return self.result
