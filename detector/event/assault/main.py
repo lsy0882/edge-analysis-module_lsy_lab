@@ -47,7 +47,7 @@ class AssaultEvent(Event):
         dist_list = []
         dist_flag = 0
 
-        detection_result = detection_result['results'][0]['detection_result']
+        detection_result = detection_result['results']
         for info_ in detection_result:
 
             if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.65:
