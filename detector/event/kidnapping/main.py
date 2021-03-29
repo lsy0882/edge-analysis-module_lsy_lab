@@ -62,9 +62,9 @@ class KidnappingEvent(Event):
                     sum += 1
 
         if sum >= (self.max_history * 0.4) :
-            state = 1
+            state = True
         else :
-            state = 0
+            state = False
 
         self.result = state
 
