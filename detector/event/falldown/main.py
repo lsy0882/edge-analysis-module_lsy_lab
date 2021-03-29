@@ -20,7 +20,7 @@ class FalldownEvent(Event):
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.result = 0
+        self.result = False
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -58,7 +58,7 @@ class FalldownEvent(Event):
         # rule 1  
         count = 0
         detection_result = od_result['results'][0]['detection_result']
-        self.result = 0 #init 
+        self.result = False #init 
             
         for info_ in detection_result:
             #print(info_['position'])
@@ -107,12 +107,12 @@ class FalldownEvent(Event):
             for i in range(self.people_max):
                 if self.history[i] > 3:
                     #print("Fall down!, ", self.people_locate[i])
-                    self.result = 1
+                    self.result = True
         else:
             for i in range(self.people_max):
                 if self.before_falldown_count[i] > 2 :
                     #print("Fall down!, ", self.before_falldown_count[i])
-                    self.result = 1
+                    self.result = True
                     break
         #print("self.result :", self.result )    
 
