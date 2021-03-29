@@ -28,7 +28,7 @@ class ObstacleEvent(Event):
 
         self.target = ['bicycle', 'bus', 'car', 'carrier', 'motorcycle', 'movable_signage', 'truck',
                        'bollard', 'chair', 'potted_plant', 'table', 'tree_trunk', 'pole', 'fire_hydrant']
-        self.threshold = 0.5
+        self.threshold = 0.3
         self.max_history = 5
 
 
@@ -45,25 +45,23 @@ class ObstacleEvent(Event):
         # - 이전 프레임의 결과를 사용해야하는 모듈들의 경우 self.history에 저장한 후 사용하시기 바랍니다.
 
         state = 0
-        for _, e in enumerate(detection_result['results'][0]['detection_result']):  # json 파일의 검출 객체 목록
-            if e['label'][0]['description'] in self.target and e['label'][0][
-                'score'] >= self.threshold:  # 객체 목록 중 보행장애물(target)이 있을 경우 리스트에 추가
+        for _, e in enumerate(detection_result['results']):  # json 파일의 검출 객체 목록
+            if e['label'][0]['description'] in self.target and e['label'][0]['score'] >= self.threshold:  # 객체 목록 중 보행장애물(target)이 있을 경우 리스트에 추가
                 state = 1
 
-        if len(self.history) >= self.max_history:
+        if len(self.history) == self.max_history:
             self.history.pop(0)
 
         self.history.append(state)
 
         sum = 0
-        if len(self.history) == self.max_history:
-            for i in range(self.max_history):
-                sum += self.history[i]
+        for i in range(len(self.history)):
+            sum += self.history[i]
 
-        if sum >= (self.max_history * 0.6):
-            state = 1
+        if sum >= (len(self.history) * 0.6):
+            state = True
         else:
-            state = 0
+            state = False
 
         self.result = state
 

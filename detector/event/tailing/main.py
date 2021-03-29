@@ -39,17 +39,10 @@ class TailingEvent(Event):
         if self.debug :
             start = time.time()
 
-        # TODO: analysis(시작 지점)
-        # - 분석에 필요한 내용을 작성해주실 부분입니다.
-        # - 마지막 라인(return self.result)는 테스트 코드에서 확인하기 위한 코드이며 실제로는 thread에서 사용하지 않습니다.
-        #   따라서 반드시 결과 값은 self.result에 저장하시기 바라며, 마지막 라인은 변경하지 마시기 바랍니다.
-        # - 이전 프레임의 결과를 사용해야하는 모듈들의 경우 self.history에 저장한 후 사용하시기 바랍니다.
-        # - self.result에는 True 또는 False 값으로 이벤트 검출 결과를 저장해주시기 바랍니다.
-
         eventFlag = 0
         result = OrderedDict()
         detected_person = []
-        for i, e in enumerate(detection_result['results'][0]['detection_result']):
+        for i, e in enumerate(detection_result['results']):
             if e['label'][0]['description'] in ['person']:
                 detected_person.append(
                     ((e['position']['x'] + e['position']['w'] / 2), (e['position']['y'] + e['position']['h'] / 2)))
@@ -58,15 +51,6 @@ class TailingEvent(Event):
 
         result["num_of_person"] = num_of_person
         result["center_coordinates"] = detected_person
-
-        # kidnapping detection module
-        if num_of_person >= 2 and num_of_person <= 8:
-            pair_of_center_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
-            if len(pair_of_center_coordinates) >= 1:
-                for i in range(len(pair_of_center_coordinates)):
-                    dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
-                    if dist < 60:
-                        eventFlag = 1
 
         # tailing detection module
         vector = OrderedDict()
@@ -116,7 +100,7 @@ class TailingEvent(Event):
                 if self.history[i] == 1:
                     sum += 1
 
-        if sum >= (self.max_history * 0.4):
+        if sum >= (self.max_history * 0.2):
             state = 1
         else:
             state = 0
