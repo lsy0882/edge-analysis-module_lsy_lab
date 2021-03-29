@@ -19,7 +19,7 @@ class WandererEvent(Event):
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.result = 0
+        self.result = False
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -84,7 +84,7 @@ class WandererEvent(Event):
                     # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
                 
                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander":
-                        self.result = 1
+                        self.result = True
                     # print(self.result)
                 self.history.append(result)
             # TODO: analysis(끝 지점)
