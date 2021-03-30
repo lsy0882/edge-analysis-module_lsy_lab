@@ -15,7 +15,7 @@ Jetson Nano 및 Jetson Xavier NX에 설치될 예정이기 때문에 Ubuntu 18.0
 분석 모델에서 필요한 python requirement가 있을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/1))에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
  
 * [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_jetson.md)
-* [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/build_on_docker-compose.md)
+* [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_docker-compose.md)
 
 ## 분석 모델 정의
 모든 설치가 끝났다면 이벤트 검출기 모델을 정의하기위해 detector/event/ 디렉토리로 이동합니다.
