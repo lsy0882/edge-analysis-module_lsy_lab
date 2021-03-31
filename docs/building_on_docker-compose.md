@@ -44,7 +44,7 @@ chmod +x ./install_pycuda_root.sh
 ### Build plugin for yolo layer
 ```shell script
 cd /workspace/plugins
-make ${NPROC}
+make -j${NPROC}
 ```
 ### Download YOLOv4-obstacle model and Convert yolo to trt
 ```shell script
