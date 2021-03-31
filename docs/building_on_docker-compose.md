@@ -38,8 +38,8 @@ pip3 install -r requirements.txt
 cd /workspace/ssd
 chmod +x ./install_protobuf-3.8.0_root.sh
 chmod +x ./install_pycuda_root.sh
-./install_protobuf-3.8.0.sh
-./install_pycuda.sh
+./install_protobuf-3.8.0_root.sh
+./install_pycuda_root.sh
 ```
 ### Build plugin for yolo layer
 ```shell script
