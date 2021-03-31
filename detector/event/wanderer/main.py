@@ -1,8 +1,8 @@
 import os
 import time
-from template.main import Event
-from wanderer.utils import *
-from wanderer.Sort import Sort
+from detector.event.template.main import Event
+from detector.event.wanderer.utils import *
+from detector.event.wanderer.Sort import Sort
 
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
