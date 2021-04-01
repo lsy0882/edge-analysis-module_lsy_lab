@@ -17,20 +17,23 @@ class FalldownEvent(Event):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.model_name = "falldown"
+        self.people_max = 100
+        
         self.analysis_time = 0
         self.debug = debug
         self.history = []
         self.result = False
 
+        for i in range(self.people_max):
+            self.history.append(0)
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-        self.people_max = 100
+
         
-        for i in range(self.people_max):
-            self.history.append(0)
+
 
         self.people_locate = []
         for i in range(self.people_max):
@@ -63,7 +66,7 @@ class FalldownEvent(Event):
         for info_ in detection_result:
             #print(info_['position'])
             #dets =[]
-            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) > 0.5:
+            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) > 50:
                 #dets.append(int(info_['position']['x']))
                 #dets.append(int(info_['position']['y']))
                 #dets.append(int(info_['position']['x']+info_['position']['w']))
