@@ -35,7 +35,7 @@ class YOLOv4:
 
         PrintLog.i("Object detection model is loaded - {}\t{}".format(model, dataset))
 
-    def inference_by_image(self, image, confidence_threshold=0.1):
+    def inference_by_image(self, image, confidence_threshold=0.5):
         """
         :param image: input image
         :param confidence_threshold: confidence/score threshold for object detection.
@@ -44,21 +44,22 @@ class YOLOv4:
         boxes, scores, classes = self.model.detect(image, confidence_threshold)
         results = []
         for box, score, cls in zip(boxes, scores, classes):
-            results.append({
-                "label" :[
-                    {
-                        "description": self.cls_dict.get(int(cls), 'CLS{}'.format(int(cls))),
-                        "score": float(score),
-                        "class_idx": int(cls)
+            if score > confidence_threshold:
+                results.append({
+                    "label" :[
+                        {
+                            "description": self.cls_dict.get(int(cls), 'CLS{}'.format(int(cls))),
+                            "score": float(score),
+                            "class_idx": int(cls)
+                        }
+                    ],
+                    "position": {
+                        "x": int(box[0]),
+                        "y": int(box[1]),
+                        "w": int(box[2] - box[0]),
+                        "h": int(box[3] - box[1])
                     }
-                ],
-                "position": {
-                    "x": int(box[0]),
-                    "y": int(box[1]),
-                    "w": int(box[2] - box[0]),
-                    "h": int(box[3] - box[1])
-                }
-            })
+                })
 
         return results
 
@@ -70,6 +71,7 @@ class YOLOv4:
                 result = self.inference_by_image(frame_info["frame"])
                 detection_result = dict()
                 detection_result["cam_address"] = frame_info["cam_address"]
+                detection_result["frame"] = frame_info["frame"]
                 detection_result["timestamp"] = frame_info["timestamp"]
                 detection_result["frame_number"] = frame_info["frame_number"]
                 detection_result["results"] = []

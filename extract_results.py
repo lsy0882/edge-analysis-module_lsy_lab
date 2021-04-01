@@ -8,8 +8,8 @@ import pycuda.autoinit
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--video_path", type=str, default="videos/origin/2_360p.mp4", help="Video path")
-    parser.add_argument("--fps", type=int, default=30, help="FPS of extraction frame ")
+    parser.add_argument("--video_path", type=str, default="videos/1_360p.mp4", help="Video path")
+    parser.add_argument("--fps", type=int, default=7, help="FPS of extraction frame ")
     parser.add_argument("--model_name", type=str, default="yolov4-416", help="Model name")
     parser.add_argument("--result_dir", type=str, default="result/", help="Ground truth file(json)")
 
@@ -20,8 +20,8 @@ if __name__ == '__main__':
     fps = opt.fps
     model_name = opt.model_name
     result_dir = opt.result_dir
-    frame_dir = os.path.join(result_dir, "frame", video_name.split(".mp4")[0])
-    json_dir = os.path.join(result_dir, "json", video_name.split(".mp4")[0])
+    frame_dir = os.path.join(result_dir, video_name.split(".mp4")[0])
+    json_dir = os.path.join(result_dir, video_name.split(".mp4")[0])
 
     model = YOLOv4()
     capture = cv2.VideoCapture(video_path)

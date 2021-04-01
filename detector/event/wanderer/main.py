@@ -44,7 +44,7 @@ class WandererEvent(Event):
             # - 이전 프레임의 결과를 사용해야하는 모듈들의 경우 self.history에 저장한 후 사용하시기 바랍니다.
             # - self.result에는 True 또는 False 값으로 이벤트 검출 결과를 저장해주시기 바랍니다.
 
-            frame = detection_result["frame_num"]
+            frame = detection_result["frame_number"]
             detection_result = detection_result["results"][0]["detection_result"]
             result = {}
             det_list = []
@@ -64,9 +64,9 @@ class WandererEvent(Event):
             # print('%d,%d,%.2f,%.2f,%.2f,%.2f'%(frame,trackers[4],trackers[0],trackers[1],trackers[2]-trackers[0],trackers[3]-trackers[1]))
             # print(trackers[:,4])
             # rule 1
-            self.result = 0
+            self.result = False
             for d in trackers:
-                print("id : {}".format(d[4]))
+                # print("id : {}".format(d[4]))
                 while len(self.id_stack) <= d[4]:
                     self.id_stack.append(0)
                 # previous_id_stack = copy.deepcopy(self.id_stack)

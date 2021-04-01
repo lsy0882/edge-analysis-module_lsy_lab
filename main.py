@@ -14,7 +14,7 @@ def main_ui():
     sys.exit(app.exec_())
 
 
-def main_con(server_address, cam_address, analysis_fps, dataset, model):
+def main_cons(server_address, cam_address, analysis_fps, dataset, model):
     import pycuda.autoinit
     main_console = MainConsole(server_address, cam_address, analysis_fps, dataset, model)
     ret = main_console.init()
@@ -45,7 +45,7 @@ if __name__ == '__main__':
             parser.print_help()
             sys.exit(0)
         else :
-            main_con(cam_address, server_address, analysis_fps, model, dataset)
+            main_cons(cam_address, server_address, analysis_fps, model, dataset)
     else :
         main_ui()
 

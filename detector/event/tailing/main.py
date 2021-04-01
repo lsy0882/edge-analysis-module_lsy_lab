@@ -42,7 +42,7 @@ class TailingEvent(Event):
         eventFlag = 0
         result = OrderedDict()
         detected_person = []
-        for i, e in enumerate(detection_result['results']):
+        for i, e in enumerate(detection_result['results'][0]['detection_result']):
             if e['label'][0]['description'] in ['person']:
                 detected_person.append(
                     ((e['position']['x'] + e['position']['w'] / 2), (e['position']['y'] + e['position']['h'] / 2)))

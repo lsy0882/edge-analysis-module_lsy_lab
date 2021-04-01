@@ -17,7 +17,7 @@ class ReidEvent(Event):
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.result = 0
+        self.result = False
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
