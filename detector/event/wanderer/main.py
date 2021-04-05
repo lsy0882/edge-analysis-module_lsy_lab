@@ -75,7 +75,7 @@ class WandererEvent(Event):
                 # detect Wander
                 result["frame"]= int(frame)
                 result["event"] = "no"
-                if self.id_stack[int(d[4])] >= 10:
+                if self.id_stack[int(d[4])] >= 20:
                     # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
                     result["event"] = "wander"
                     # result["frame"] = int(frame)
