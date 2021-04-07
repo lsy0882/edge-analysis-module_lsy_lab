@@ -11,19 +11,23 @@ if __name__ == '__main__':
     parser.add_argument("--video_path", type=str, default="videos/1_360p.mp4", help="Video path")
     parser.add_argument("--fps", type=int, default=7, help="FPS of extraction frame ")
     parser.add_argument("--model_name", type=str, default="yolov4-416", help="Model name")
-    parser.add_argument("--result_dir", type=str, default="result/", help="Ground truth file(json)")
+    parser.add_argument("--score_threshold", type=float, default=0.5, help="Model name")
+    parser.add_argument("--nms_threshold", type=float, default=0.3, help="Model name")
+    parser.add_argument("--result_dir", type=str, default="./", help="Ground truth file(json)")
 
     opt = parser.parse_known_args()[0]
 
     video_path = opt.video_path
     video_name = video_path.split("/")[-1]
     fps = opt.fps
+    score_threshold = opt.score_threshold
+    nms_threshold = opt.nms_threshold
     model_name = opt.model_name
     result_dir = opt.result_dir
     frame_dir = os.path.join(result_dir, video_name.split(".mp4")[0])
     json_dir = os.path.join(result_dir, video_name.split(".mp4")[0])
 
-    model = YOLOv4()
+    model = YOLOv4(score_threshold=score_threshold, nms_threshold=nms_threshold)
     capture = cv2.VideoCapture(video_path)
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
 
@@ -38,7 +42,7 @@ if __name__ == '__main__':
         if ret:
             if frame_number % fps == 0:
                 frame_name = "{0:06d}".format(frame_number + 1)
-                # cv2.imwrite(os.path.join(frame_dir, frame_name + ".jpg"), frame)
+                cv2.imwrite(os.path.join(frame_dir, frame_name + ".jpg"), frame)
 
                 start_time = time.time()
                 results = model.inference_by_image(frame)
