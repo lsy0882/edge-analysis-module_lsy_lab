@@ -1,6 +1,7 @@
 # Build the Project using Docker-compose from Source
 * 본 프로젝트를 Ubuntu 18.04에서 설치하기 위해서는 TensorRT 및 별도의 라이브러리를 설치하여야 하기때문에 docker와 docker-compose를 설치하신 후 아래에 따라 빌드하시기 바랍니다.
 * [docker 설치 방법](https://velog.io/@jinhasong/Docker-install)
+* [nvidia-docker2 설치 방법](https://velog.io/@jinhasong/Nvidia-docker2-install)
 * [docker-compose 설치 방법](https://velog.io/@jinhasong/Docker-compose-install)
 
 ## Build using Docker-compose 
