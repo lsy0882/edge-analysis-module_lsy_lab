@@ -6,6 +6,8 @@ import time
 from detector.object_detection.yolov4 import YOLOv4
 import pycuda.autoinit
 
+from utils import PrintLog
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--video_path", type=str, default="videos/1_360p.mp4", help="Video path")
@@ -19,7 +21,7 @@ if __name__ == '__main__':
 
     video_path = opt.video_path
     video_name = video_path.split("/")[-1]
-    fps = opt.fps
+    extract_fps = opt.fps
     score_threshold = opt.score_threshold
     nms_threshold = opt.nms_threshold
     model_name = opt.model_name
@@ -30,17 +32,33 @@ if __name__ == '__main__':
     model = YOLOv4(score_threshold=score_threshold, nms_threshold=nms_threshold)
     capture = cv2.VideoCapture(video_path)
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps = int(round(capture.get(cv2.CAP_PROP_FPS)))
+
+    PrintLog.i("YOLO detector information\n"
+               "\tmodel name: {}\n"
+               "\tscore threshold: {}\n"
+               "\tnms threshold: {}"
+               .format(model_name, score_threshold, nms_threshold))
+
+    PrintLog.i("Extract information\n"
+               "\tvideo path: {}\n"
+               "\tvideo fps: {}\n"
+               "\tvideo framecount: {}\n"
+               "\textract fps: {}\n"
+               "\textract frame number: {}"
+               .format(video_path, fps, frame_count, extract_fps, int(frame_count/(fps/extract_fps))))
 
     if not os.path.exists(frame_dir):
         os.makedirs(frame_dir)
     if not os.path.exists(json_dir):
         os.makedirs(json_dir)
     frame_number = 0
+    extract_frame_number = 0
     while True:
         ret, frame = capture.read()
 
         if ret:
-            if frame_number % fps == 0:
+            if ((frame_number % fps) + 1) % (fps/extract_fps) == 0 :
                 frame_name = "{0:06d}".format(frame_number + 1)
                 cv2.imwrite(os.path.join(frame_dir, frame_name + ".jpg"), frame)
 
@@ -61,8 +79,11 @@ if __name__ == '__main__':
                 json_result_file.close()
 
                 print("\rframe number: {:>6}/{}".format(frame_number, frame_count), end='')
+                extract_frame_number += 1
 
             frame_number += 1
         else:
             print()
             break
+
+    PrintLog.i("Extraction is successfully completed(framecount: {})".format(extract_frame_number))
