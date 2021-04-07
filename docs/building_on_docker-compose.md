@@ -49,7 +49,7 @@ make -j${NPROC}
 ```
 ### Download YOLOv4-obstacle model and Convert yolo to trt
 ```shell script
-cd ${WORKSPACE}/EdgeAnalysisModule/yolo/
+cd /workspace/yolo/
 chmod +x download_yolov4_416_obstacle.sh
 chmod +x yolov4_obstacle_yolo_to_trt.sh
 ./download_yolov4_416_obstacle.sh
