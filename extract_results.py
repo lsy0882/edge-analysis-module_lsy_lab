@@ -52,7 +52,7 @@ if __name__ == '__main__':
         os.makedirs(frame_dir)
     if not os.path.exists(json_dir):
         os.makedirs(json_dir)
-    frame_number = 1
+    frame_number = 0
 
     frame_path_list = list()
     try:
