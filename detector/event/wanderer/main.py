@@ -20,6 +20,7 @@ class WandererEvent(Event):
         self.debug = debug
         self.history = []
         self.result = False
+        self.tracking_threshold = 400
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -75,7 +76,7 @@ class WandererEvent(Event):
                 # detect Wander
                 result["frame"]= int(frame)
                 result["event"] = "no"
-                if self.id_stack[int(d[4])] >= 20:
+                if self.id_stack[int(d[4])] >= self.tracking_threshold:
                     # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
                     result["event"] = "wander"
                     # result["frame"] = int(frame)
