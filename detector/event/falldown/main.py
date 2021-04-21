@@ -96,28 +96,28 @@ class FalldownEvent(Event):
                     
                 else:
                     if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
-                        self.before_falldown_count[count] += 1
-                    elif  self.before_falldown_count[count] > 0:
+                        if self.before_falldown_count[count] >= 44: #count 44이상 되면 더이상 count 안함
+                            pass
+                        else:
+                            self.before_falldown_count[count] += 1
+                    elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
                         self.before_falldown_count[count] -= 1
-                        
-                    #print("before_falldown_count : ", self.before_falldown_count[count])
-                    
                 count += 1 # person count 
-                
-        #print("history : ", self.history)
-        
+
+        ## count 개수가 len(before_falldown_count)보다 작은 경우 그 index이상의 원소들([count:])에 -1씩 해줌
+        x = np.array(self.before_falldown_count)
+        x = np.concatenate((x[:count],np.where(x[count:] > 0, x[count:]-1, x[count:])))
+        self.before_falldown_count = x.tolist()
+
         if self.tracking_method == True:
             for i in range(self.people_max):
                 if self.history[i] > 3:
-                    #print("Fall down!, ", self.people_locate[i])
                     self.result = True
         else:
             for i in range(self.people_max):
-                if self.before_falldown_count[i] > 2 :
-                    #print("Fall down!, ", self.before_falldown_count[i])
+                if self.before_falldown_count[i] > 22 : ## threshold 3->22 --> falldown아닌 부분에서 falldown값이 나오는 현상 방지
                     self.result = True
-                    break
-        #print("self.result :", self.result )    
+                    break  
 
         # TODO: analysis(끝 지점)
         if self.debug :
