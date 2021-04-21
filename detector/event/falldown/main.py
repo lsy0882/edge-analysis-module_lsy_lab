@@ -96,7 +96,7 @@ class FalldownEvent(Event):
                     
                 else:
                     if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
-                        if self.before_falldown_count[count] > 11: #count 11이상 되면 더이상 count 안함
+                        if self.before_falldown_count[count] >= 44: #count 44이상 되면 더이상 count 안함
                             pass
                         else:
                             self.before_falldown_count[count] += 1
