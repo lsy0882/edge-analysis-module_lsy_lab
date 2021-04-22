@@ -66,7 +66,7 @@ class FalldownEvent(Event):
         for info_ in detection_result:
             #print(info_['position'])
             #dets =[]
-            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score') >= 0.5:
+            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) >= 0.5:
                 #dets.append(int(info_['position']['x']))
                 #dets.append(int(info_['position']['y']))
                 #dets.append(int(info_['position']['x']+info_['position']['w']))
