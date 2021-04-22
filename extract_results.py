@@ -38,8 +38,11 @@ def load_video(video_path):
     return capture, frame_count, fps
 
 
-def load_models(od_model_name, score_threshold, nms_threshold, event_model_names):
-    od_model = YOLOv4(model=od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold)
+def load_models(od_model_name="yolov4-416", score_threshold=0.5, nms_threshold=0.3, event_model_names="all"):
+    if od_model_name == "yolov4-416":
+        od_model = YOLOv4(model=od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold)
+    else :
+        od_model = YOLOv4(model=od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold)
 
     PrintLog.i("YOLO detector information\n"
                "\tmodel name: {}\n"
@@ -184,7 +187,7 @@ def extract_event_results(event_dir, video_name, event_detectors, event_results)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--video_path", type=str, default="videos/1_360p.mp4", help="Video path")
-    parser.add_argument("--fps", type=int, default=22, help="FPS of extraction frame ")
+    parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
     parser.add_argument("--score_threshold", type=float, default=0.5, help="Object detection score threshold")
     parser.add_argument("--nms_threshold", type=float, default=0.3, help="Object detection nms threshold")
