@@ -20,7 +20,7 @@ def event_checker(vector_combi):
         scalar = norm1 * norm2
 
         if dot==0 and scalar==0:
-            dot, scalar = 0.1, 0.1
+            dot, scalar = 0.01, 0.01
 
         elif abs(scalar) < abs(dot):
             if scalar >= 0:
