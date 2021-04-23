@@ -33,10 +33,8 @@ def event_checker(vector_combi):
                     scalar = dot
                 else:
                     scalar = -dot
-        
-        print(f'[dot:{dot}][scalar:{scalar}]')
+
         theta = math.acos(dot/scalar)
-        print(f'[dot:{dot}][scalar:{scalar}][theta:{theta}]')
         deg = (theta*180) / math.pi 
 
         if deg < 100:
