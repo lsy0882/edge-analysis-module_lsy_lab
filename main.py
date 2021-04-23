@@ -14,9 +14,9 @@ def main_ui():
     sys.exit(app.exec_())
 
 
-def main_con(server_address, cam_address, analysis_fps, dataset, model):
+def main_cons(server_address, cam_address, analysis_fps, dataset, model, object_detection_threshold):
     import pycuda.autoinit
-    main_console = MainConsole(server_address, cam_address, analysis_fps, dataset, model)
+    main_console = MainConsole(server_address, cam_address, analysis_fps, dataset, model, object_detection_threshold)
     ret = main_console.init()
     if ret:
         main_console.run()
@@ -31,6 +31,8 @@ if __name__ == '__main__':
     parser.add_argument("--analysis_fps", type=int, default=4, help="Please input fps to be analyzed.")
     parser.add_argument("--model", type=str, default="yolov4-416", help="Plase input model of object detector.(e.g. yolov3-416, yolov4-416)")
     parser.add_argument("--dataset", type=str, default="obstacle", help="Please input dataset of object detector.(e.g. mscoco, obstacle)")
+    parser.add_argument("--od_score_thresh", type=float, default=0.5, help="Please input object detection score threshold")
+    parser.add_argument("--od_nms_thresh", type=float, default=0.5, help="Please input object detection nms threshold")
 
     option = parser.parse_known_args()[0]
     mode = str(option.mode)
@@ -41,11 +43,14 @@ if __name__ == '__main__':
         analysis_fps = int(option.analysis_fps)
         model = str(option.model)
         dataset = str(option.dataset)
+        od_score_thresh = float(option.od_score_thresh)
+        od_nms_thresh = float(option.od_nms_thresh)
+        object_detection_threshold = {"score_threshold":od_score_thresh, "nms_threshold": od_nms_thresh}
         if cam_address == "":
             parser.print_help()
             sys.exit(0)
         else :
-            main_con(cam_address, server_address, analysis_fps, model, dataset)
+            main_cons(cam_address, server_address, analysis_fps, model, dataset, object_detection_threshold)
     else :
         main_ui()
 
