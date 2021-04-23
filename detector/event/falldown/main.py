@@ -4,7 +4,7 @@ import os
 import numpy as np
 import json
 import time
-from template.main import Event
+from detector.event.template.main import Event
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
 # - 이미 정의된 함수 및 클래스 멤버 변수의 이름은 *****절대로**** 변경하지마세요.
@@ -17,20 +17,23 @@ class FalldownEvent(Event):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.model_name = "falldown"
+        self.people_max = 100
+        
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.result = 0
+        self.result = False
 
+        for i in range(self.people_max):
+            self.history.append(0)
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-        self.people_max = 100
+
         
-        for i in range(self.people_max):
-            self.history.append(0)
+
 
         self.people_locate = []
         for i in range(self.people_max):
@@ -58,12 +61,12 @@ class FalldownEvent(Event):
         # rule 1  
         count = 0
         detection_result = od_result['results'][0]['detection_result']
-        self.result = 0 #init 
+        self.result = False #init 
             
         for info_ in detection_result:
             #print(info_['position'])
             #dets =[]
-            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) > 0.5:
+            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) >= 0.5:
                 #dets.append(int(info_['position']['x']))
                 #dets.append(int(info_['position']['y']))
                 #dets.append(int(info_['position']['x']+info_['position']['w']))
@@ -93,28 +96,28 @@ class FalldownEvent(Event):
                     
                 else:
                     if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
-                        self.before_falldown_count[count] += 1
-                    elif  self.before_falldown_count[count] > 0:
+                        if self.before_falldown_count[count] >= 44: #count 44이상 되면 더이상 count 안함
+                            pass
+                        else:
+                            self.before_falldown_count[count] += 1
+                    elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
                         self.before_falldown_count[count] -= 1
-                        
-                    #print("before_falldown_count : ", self.before_falldown_count[count])
-                    
                 count += 1 # person count 
-                
-        #print("history : ", self.history)
-        
+
+        ## count 개수가 len(before_falldown_count)보다 작은 경우 그 index이상의 원소들([count:])에 -1씩 해줌
+        x = np.array(self.before_falldown_count)
+        x = np.concatenate((x[:count],np.where(x[count:] > 0, x[count:]-1, x[count:])))
+        self.before_falldown_count = x.tolist()
+
         if self.tracking_method == True:
             for i in range(self.people_max):
                 if self.history[i] > 3:
-                    #print("Fall down!, ", self.people_locate[i])
-                    self.result = 1
+                    self.result = True
         else:
             for i in range(self.people_max):
-                if self.before_falldown_count[i] > 2 :
-                    #print("Fall down!, ", self.before_falldown_count[i])
-                    self.result = 1
-                    break
-        #print("self.result :", self.result )    
+                if self.before_falldown_count[i] > 22 : ## threshold 3->22 --> falldown아닌 부분에서 falldown값이 나오는 현상 방지
+                    self.result = True
+                    break  
 
         # TODO: analysis(끝 지점)
         if self.debug :

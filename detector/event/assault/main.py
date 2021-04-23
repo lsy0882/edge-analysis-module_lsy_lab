@@ -61,24 +61,24 @@ class AssaultEvent(Event):
             dist_ = np.linalg.norm(pt_[0] - pt_[1])
             dist_list.append(dist_)
 
-        self.result = 0
+        self.result = False
 
         # Rule 1) If two people are close to each other
         if dist_list:
             for dist_ in dist_list:
                 if dist_ < 40:
                     self.history.append(1)  # return true
-                    self.result = 1
+                    self.result = True
                     return self.result
 
         # Rule 2) Simple smoothing
         if sum(self.history[-20:]) > 2:
             self.history.append(0)
-            self.result = 1
+            self.result = True
             return self.result
 
         self.history.append(0)
-        self.result = 0
+        self.result = False
 
         # TODO: analysis(끝 지점)
 

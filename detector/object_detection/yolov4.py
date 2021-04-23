@@ -3,7 +3,7 @@ from utils.yolo_classes import get_cls_dict
 from utils import PrintLog
 
 class YOLOv4:
-    def __init__(self, frame_info_pool=None, detection_result_pool=None, final_result_pool=None, model='yolov4-416', dataset='obstacle'):
+    def __init__(self, frame_info_pool=None, detection_result_pool=None, final_result_pool=None, model='yolov4-416', dataset='obstacle', score_threshold=0.5, nms_threshold=0.3):
         """
         :param model: model name
         :param category_num:
@@ -14,6 +14,8 @@ class YOLOv4:
         self.frame_info_pool = frame_info_pool
         self.detection_result_pool = detection_result_pool
         self.final_result_pool = final_result_pool
+        self.score_threshold = score_threshold
+        self.nms_threshold = nms_threshold
         if dataset == "coco":
             category_num = 80
         else :
@@ -35,34 +37,35 @@ class YOLOv4:
 
         PrintLog.i("Object detection model is loaded - {}\t{}".format(model, dataset))
 
-    def inference_by_image(self, image, confidence_threshold=0.1):
+    def inference_by_image(self, image):
         """
         :param image: input image
         :param confidence_threshold: confidence/score threshold for object detection.
         :return: bounding box(x1, y1, x2, y2), scores, classes
         """
-        boxes, scores, classes = self.model.detect(image, confidence_threshold)
+        boxes, scores, classes = self.model.detect(image, self.score_threshold, self.nms_threshold)
         results = []
         for box, score, cls in zip(boxes, scores, classes):
-            results.append({
-                "label" :[
-                    {
-                        "description": self.cls_dict.get(int(cls), 'CLS{}'.format(int(cls))),
-                        "score": float(score),
-                        "class_idx": int(cls)
+            if score > self.score_threshold:
+                results.append({
+                    "label" :[
+                        {
+                            "description": self.cls_dict.get(int(cls), 'CLS{}'.format(int(cls))),
+                            "score": float(score),
+                            "class_idx": int(cls)
+                        }
+                    ],
+                    "position": {
+                        "x": int(box[0]),
+                        "y": int(box[1]),
+                        "w": int(box[2] - box[0]),
+                        "h": int(box[3] - box[1])
                     }
-                ],
-                "position": {
-                    "x": int(box[0]),
-                    "y": int(box[1]),
-                    "w": int(box[2] - box[0]),
-                    "h": int(box[3] - box[1])
-                }
-            })
+                })
 
         return results
 
-    def run(self):
+    def run(self, ):
         PrintLog.i("Frame Number\tTimestamp")
         while True:
             if len(self.frame_info_pool) > 0:
@@ -70,6 +73,7 @@ class YOLOv4:
                 result = self.inference_by_image(frame_info["frame"])
                 detection_result = dict()
                 detection_result["cam_address"] = frame_info["cam_address"]
+                detection_result["frame"] = frame_info["frame"]
                 detection_result["timestamp"] = frame_info["timestamp"]
                 detection_result["frame_number"] = frame_info["frame_number"]
                 detection_result["results"] = []

@@ -19,10 +19,7 @@ def event_checker(vector_combi):
         dot = float(np.dot(vector_combi[i][0], vector_combi[i][1]))
         scalar = norm1 * norm2
 
-        if dot==0 and scalar==0:
-            dot=0.1
-            scalar=0.1
-        elif abs(scalar) < abs(dot):
+
             if scalar >= 0:
                 if dot > 0:
                     scalar = dot
