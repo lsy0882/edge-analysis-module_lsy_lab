@@ -108,7 +108,7 @@ def run_ffmpeg(video_path, extract_fps, frame_dir):
     try:
         command = "ffmpeg -y -hide_banner -loglevel panic -i {} -vsync 2 -q:v 0 -vf fps={} {}/%04d.jpg".format(video_path, extract_fps, frame_dir)
         os.system(command)
-        frame_path_list = os.listdir(frame_dir)
+        frame_path_list = sorted(os.listdir(frame_dir))
         PrintLog.i("Frame extraction is successfully completed(path: {}, framecount: {})".format(frame_dir, len(frame_path_list)))
         return frame_path_list
     except:
@@ -166,11 +166,10 @@ def extract_event_results(event_dir, video_name, event_detectors, event_results)
     event_csv_file_path = os.path.join(event_dir, video_name.split(".mp4")[0] + ".csv")
     with open(event_csv_file_path, "w") as event_file:
         csv_writer = csv.writer(event_file)
-        event_names = []
+        event_names = ["assault", "falldown", "obstacle", "kidnapping", "tailing", "wanderer"]
         name = [""]
         for i, event_detector in enumerate(event_detectors):
             name.append(event_detector.model_name)
-            event_names.append(event_detector.model_name)
 
         csv_writer.writerow(name)
 
