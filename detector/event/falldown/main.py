@@ -96,7 +96,7 @@ class FalldownEvent(Event):
                     
                 else:
                     if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
-                        if self.before_falldown_count[count] >= 44: #count 44이상 되면 더이상 count 안함
+                        if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
                             pass
                         else:
                             self.before_falldown_count[count] += 1
@@ -115,7 +115,7 @@ class FalldownEvent(Event):
                     self.result = True
         else:
             for i in range(self.people_max):
-                if self.before_falldown_count[i] > 22 : ## threshold 3->22 --> falldown아닌 부분에서 falldown값이 나오는 현상 방지
+                if self.before_falldown_count[i] > 35 : ## threshold : fps*1.5 --> falldown아닌 부분에서 falldown값이 나오는 현상 방지
                     self.result = True
                     break  
 
