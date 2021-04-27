@@ -21,7 +21,7 @@ class WandererEvent(Event):
         self.history = []
         self.result = False
         self.tracking_threshold = 250
-        self.wander_check_point = [-5,-4,-3,-2,-1,-50,-100]
+        self.wander_check_point = [-5,-4,-3,-2,-1,-50,-100,-150]
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
