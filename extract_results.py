@@ -162,11 +162,14 @@ def run_detection(od_model, event_detectors, frame_path_list, fram_bbox_dir):
     return event_results
 
 
-def extract_event_results(event_dir, video_name, event_detectors, event_results):
+def extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results):
     event_csv_file_path = os.path.join(event_dir, video_name.split(".mp4")[0] + ".csv")
     with open(event_csv_file_path, "w") as event_file:
         csv_writer = csv.writer(event_file)
-        event_names = ["assault", "falldown", "obstacle", "kidnapping", "tailing", "wanderer"]
+        if type(event_model_names) == list:
+            event_names = event_model_names
+        else :
+            event_names = [event_model_names]
         name = [""]
         for i, event_detector in enumerate(event_detectors):
             name.append(event_detector.model_name)
@@ -220,4 +223,4 @@ if __name__ == '__main__':
     event_results = run_detection(od_model, event_detectors, frame_path_list, fram_bbox_dir)
 
     # Extract event result as csv
-    extract_event_results(event_dir, video_name, event_detectors, event_results)
+    extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results)
