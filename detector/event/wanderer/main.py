@@ -77,6 +77,8 @@ class WandererEvent(Event):
                 # detect Wander
                 result["frame"]= int(frame)
                 result["event"] = "no"
+                list_check = True
+                count50 = 0
                 if self.id_stack[int(d[4])] >= self.tracking_threshold:
                     # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
                     result["event"] = "wander"
@@ -84,12 +86,12 @@ class WandererEvent(Event):
                     result["id_num"] = int(d[4])
                     result["id_count"] = self.id_stack[int(d[4])]
                     # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
-                    list_check = True
+                    
                     for i in self.wander_check_point:
                         if self.history[i]["event"] != "wander":
                             list_check = False
                             break
-                    count50 = 0
+                    
                     for i in range(1,50):
                         if self.history[-i]["event"] == "wander":
                             count50 +=1                    
