@@ -91,7 +91,7 @@ class WandererEvent(Event):
                             break
                     count50 = 0
                     for i in range(50):
-                        if self.history[-i]["event"] == "wander:
+                        if self.history[-i]["event"] == "wander":
                             count50 +=1                    
 #                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
 #                         self.result = True
