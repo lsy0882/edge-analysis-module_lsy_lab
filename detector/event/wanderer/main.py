@@ -84,8 +84,7 @@ class WandererEvent(Event):
                     result["id_count"] = self.id_stack[int(d[4])]
                     # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
                 
-                    if self.history[-10:]["event"]=="wander":
-#                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander":
+                    if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
                         self.result = True
                     # print(self.result)
                 self.history.append(result)
