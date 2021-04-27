@@ -95,7 +95,7 @@ class WandererEvent(Event):
                             count50 +=1                    
 #                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
 #                         self.result = True
-                    if list_check == True and count50==50:
+                    if list_check == True and count50==30:
                         self.result = True
                     # print(self.result)
                 self.history.append(result)
