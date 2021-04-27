@@ -21,6 +21,7 @@ class WandererEvent(Event):
         self.history = []
         self.result = False
         self.tracking_threshold = 250
+        self.wander_check_point = [-5,-4,-3,-2,-1,-50,-100]
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -83,8 +84,14 @@ class WandererEvent(Event):
                     result["id_num"] = int(d[4])
                     result["id_count"] = self.id_stack[int(d[4])]
                     # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
-                
-                    if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
+                    list_check = True
+                    for i in self.wander_check_point:
+                        if self.history[i]["event"] != "wander":
+                            list_check = False
+                            break
+#                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
+#                         self.result = True
+                    if list_check == True:
                         self.result = True
                     # print(self.result)
                 self.history.append(result)
