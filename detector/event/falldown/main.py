@@ -44,7 +44,7 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
 
-    def inference(self, od_result):
+    def inference(self, frame, od_result):
         start = 0
         end = 0
 

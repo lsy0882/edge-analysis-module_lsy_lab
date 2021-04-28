@@ -64,7 +64,7 @@ class TailingEvent(Event):
         self.max_history = 5
         self.frame = None
 
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
         start = 0
         end = 0
         if self.debug :
@@ -72,7 +72,7 @@ class TailingEvent(Event):
 
         result = OrderedDict()
         detected_person = []
-        for i, e in enumerate(detection_result['results']):
+        for i, e in enumerate(detection_result['results'][0]["detection_result"]):
             if e['label'][0]['description'] in ['person']:
                 detected_person.append(
                     ((e['position']['x'] + e['position']['w'] / 2), (e['position']['y'] + e['position']['h'] / 2)))

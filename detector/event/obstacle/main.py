@@ -32,7 +32,7 @@ class ObstacleEvent(Event):
         self.max_history = 5
 
 
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
         start = 0
         end = 0
         if self.debug :

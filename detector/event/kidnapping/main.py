@@ -22,7 +22,7 @@ class KidnappingEvent(Event):
         self.max_history = 10
         self.frame = None
         
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
         start = 0
         end = 0
         if self.debug :

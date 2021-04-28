@@ -33,7 +33,7 @@ class WandererEvent(Event):
         self.temp_frame = 1
 
 
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
             start = 0
             end = 0
             if self.debug :

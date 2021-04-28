@@ -24,7 +24,7 @@ class ReidEvent(Event):
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
         start = 0
         end = 0
         if self.debug :
