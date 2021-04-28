@@ -23,7 +23,7 @@ from utils.Visualize import BBoxVisualization
 def split_model_names(model_names):
     return model_names.split(",")
 
-def load_video(video_path):
+def load_video(video_path, extract_fps):
     capture = cv2.VideoCapture(video_path)
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(round(capture.get(cv2.CAP_PROP_FPS)))
@@ -116,7 +116,10 @@ def run_ffmpeg(video_path, extract_fps, frame_dir):
         exit(0)
 
 
-def run_detection(od_model, event_detectors, frame_path_list, fram_bbox_dir):
+def run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bbox_dir, json_dir, bbox_video_path):
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+    video_writer = cv2.VideoWriter(bbox_video_path, fourcc, 20, (640, 360))
+
     frame_number = 0
     event_results = []
     cls_dict = get_cls_dict(15)
@@ -129,25 +132,25 @@ def run_detection(od_model, event_detectors, frame_path_list, fram_bbox_dir):
 
         frame_bbox = bbox_visualization.draw_bboxes(frame, results)
         cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
+        video_writer.write(frame_bbox)
 
         dict_result = dict()
         dict_result["image_path"] = os.path.join(frame_dir, frame_name)
         dict_result["cam_address"] = video_path
         dict_result["module"] = od_model_name
         dict_result["frame_number"] = int(frame_number / extract_fps * fps)
-        dict_result["timestamp"] = str(convert_framenumber2timestamp(frame_number, fps))
+        dict_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
         dict_result["results"] = []
         dict_result["results"].append({"detection_result": results})
 
         event_result = dict()
         event_result["cam_address"] = video_path
         event_result["frame_number"] = int(frame_number / extract_fps * fps)
-        event_result["timestamp"] = str(convert_framenumber2timestamp(frame_number, fps))
+        event_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
         event_result["event_result"] = dict()
 
         for event_detector in event_detectors:
-            event_result["event_result"][event_detector.model_name] = event_detector.inference(dict_result)
-
+            event_result["event_result"][event_detector.model_name] = event_detector.inference(frame, dict_result)
         event_results.append(event_result)
         print("\rframe number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
               .format(frame_number, len(frame_path_list), int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
@@ -155,10 +158,13 @@ def run_detection(od_model, event_detectors, frame_path_list, fram_bbox_dir):
         json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
         json.dump(dict_result, json_result_file, indent=4)
         json_result_file.close()
-
-
-    PrintLog.i("\nExtraction is successfully completed(framecount: {})".format(frame_number))
-
+    video_writer.release()
+    print()
+    PrintLog.i("Extraction is successfully completed(framecount: {})".format(frame_number))
+    if os.path.exists(bbox_video_path) :
+        PrintLog.i("BBox video is successfully generated(path: {})".format(bbox_video_path))
+    else :
+        PrintLog.i("BBox video is failed to generated.")
     return event_results
 
 
@@ -168,6 +174,8 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
         csv_writer = csv.writer(event_file)
         if type(event_model_names) == list:
             event_names = event_model_names
+        elif event_model_names == "all":
+            event_names = ["assault", "falldown", "kidnapping", "obstacle", "tailing", "wanderer"]
         else :
             event_names = [event_model_names]
         name = [""]
@@ -206,9 +214,19 @@ if __name__ == '__main__':
     od_model_name = option.od_model_name
     event_model_names = option.event_model
     result_dir = option.result_dir
+    bbox_video_path = os.path.join(result_dir, video_name.split(".mp4")[0] + "_bbox.avi")
+    PrintLog.i("Argument Info:\n"
+               "\tinput video path: {}\n"
+               "\textract fps: {}\n"
+               "\tscore threshold: {}\n"
+               "\tnms threshold: {}\n"
+               "\tobject detection model name: {}\n"
+               "\tevent model names: {}\n"
+               "\tresult directory path: {}\n"
+               "\tbbox video path: {}".format(video_path, extract_fps, score_threshold, nms_threshold, od_model_name, event_model_names, result_dir, bbox_video_path))
 
     # Load Video
-    capture, frame_count, fps = load_video(video_path)
+    capture, frame_count, fps = load_video(video_path, extract_fps)
 
     # Load Object Detection & Event Detection models
     od_model, event_detectors = load_models(od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold, event_model_names=event_model_names)
@@ -220,7 +238,7 @@ if __name__ == '__main__':
     frame_path_list = run_ffmpeg(video_path, extract_fps, frame_dir)
 
     # Run detection
-    event_results = run_detection(od_model, event_detectors, frame_path_list, fram_bbox_dir)
+    event_results = run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bbox_dir, json_dir, bbox_video_path)
 
     # Extract event result as csv
     extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results)
