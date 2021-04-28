@@ -19,8 +19,7 @@ class KidnappingEvent(Event):
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.max_history = 5
-        self.pre_detected_person = 0
+        self.max_history = 10
         self.frame = None
         
     def inference(self, detection_result):
@@ -49,13 +48,8 @@ class KidnappingEvent(Event):
             if len(pair_of_center_coordinates) >= 1 :
                 for i in range(len(pair_of_center_coordinates)) :
                     dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
-                    if dist < 120 :
+                    if dist < 100 :
                         eventFlag = 1
-        elif num_of_person==1:
-            if self.pre_detected_person >=2:
-                eventFlag = 1
-        else:
-            self.pre_detected_person = 0
             
 
         if len(self.history) >= self.max_history :
@@ -69,8 +63,11 @@ class KidnappingEvent(Event):
                 if self.history[i] == 1 :
                     sum += 1
 
-        if sum >= (self.max_history * 0.4) :
-            state = True
+        if sum >= (self.max_history * 0.6):
+            if self.history[7] == 1 and self.history[8] == 1 and self.history[9] == 1:
+                state = True
+            else:
+                state = False
         else :
             state = False
 
