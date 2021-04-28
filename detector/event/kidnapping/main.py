@@ -20,6 +20,7 @@ class KidnappingEvent(Event):
         self.debug = debug
         self.history = []
         self.max_history = 5
+        self.pre_detected_person = 0
         self.frame = None
         
     def inference(self, detection_result):
@@ -42,13 +43,20 @@ class KidnappingEvent(Event):
         result["center_coordinates"] = detected_person
 
         # kidnapping detection module
-        if num_of_person >= 2 and num_of_person <= 8 :
+        if num_of_person >= 2 :
+            self.pre_detected_person = num_of_person
             pair_of_center_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
             if len(pair_of_center_coordinates) >= 1 :
                 for i in range(len(pair_of_center_coordinates)) :
                     dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
-                    if dist < 60 :
+                    if dist < 120 :
                         eventFlag = 1
+        elif num_of_person==1:
+            if self.pre_detected_person >=2:
+                eventFlag = 1
+        else:
+            self.pre_detected_person = 0
+            
 
         if len(self.history) >= self.max_history :
             self.history.pop(0)
