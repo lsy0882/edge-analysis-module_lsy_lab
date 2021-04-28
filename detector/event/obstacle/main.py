@@ -32,7 +32,7 @@ class ObstacleEvent(Event):
         self.max_history = 5
 
 
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
         start = 0
         end = 0
         if self.debug :
@@ -44,9 +44,10 @@ class ObstacleEvent(Event):
         #   따라서 반드시 결과 값은 self.result에 저장하시기 바라며, 마지막 라인은 변경하지 마시기 바랍니다.
         # - 이전 프레임의 결과를 사용해야하는 모듈들의 경우 self.history에 저장한 후 사용하시기 바랍니다.
 
-        state = 0
-        for _, e in enumerate(detection_result['results']):  # json 파일의 검출 객체 목록
-            if e['label'][0]['description'] in self.target and e['label'][0]['score'] >= self.threshold:  # 객체 목록 중 보행장애물(target)이 있을 경우 리스트에 추가
+        state = False
+        for _, e in enumerate(detection_result['results'][0]['detection_result']):  # json 파일의 검출 객체 목록
+            if e['label'][0]['description'] in self.target and e['label'][0][
+                'score'] >= self.threshold:  # 객체 목록 중 보행장애물(target)이 있을 경우 리스트에 추가
                 state = 1
 
         if len(self.history) == self.max_history:

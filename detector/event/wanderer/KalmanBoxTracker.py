@@ -1,5 +1,5 @@
 from filterpy.kalman import KalmanFilter
-from wanderer.utils import *
+from detector.event.wanderer.utils import *
 
 class KalmanBoxTracker(object):
   """

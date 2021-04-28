@@ -18,8 +18,7 @@ class AssaultEvent(Event):
         self.result = 0
         self.analysis_time = 0
 
-    
-    def inference(self,detection_result):
+    def inference(self, frame, detection_result):
         self.result = "safe"
         start = 0
         end = 0

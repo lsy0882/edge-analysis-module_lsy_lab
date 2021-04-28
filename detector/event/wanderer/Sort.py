@@ -1,6 +1,6 @@
 import numpy as np
-from wanderer.utils import *
-from wanderer.KalmanBoxTracker import KalmanBoxTracker
+from detector.event.wanderer.utils import *
+from detector.event.wanderer.KalmanBoxTracker import KalmanBoxTracker
 
 class Sort(object):
   def __init__(self, max_age=2, min_hits=3):

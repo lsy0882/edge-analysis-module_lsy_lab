@@ -17,20 +17,23 @@ class FalldownEvent(Event):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.model_name = "falldown"
+        self.people_max = 100
+        
         self.analysis_time = 0
         self.debug = debug
         self.history = []
         self.result = False
 
+        for i in range(self.people_max):
+            self.history.append(0)
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-        self.people_max = 100
+
         
-        for i in range(self.people_max):
-            self.history.append(0)
+
 
         self.people_locate = []
         for i in range(self.people_max):
@@ -41,7 +44,7 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
 
-    def inference(self, od_result):
+    def inference(self, frame, od_result):
         start = 0
         end = 0
 
@@ -63,7 +66,7 @@ class FalldownEvent(Event):
         for info_ in detection_result:
             #print(info_['position'])
             #dets =[]
-            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) > 0.5:
+            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) >= 0.5:
                 #dets.append(int(info_['position']['x']))
                 #dets.append(int(info_['position']['y']))
                 #dets.append(int(info_['position']['x']+info_['position']['w']))
@@ -93,28 +96,28 @@ class FalldownEvent(Event):
                     
                 else:
                     if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
-                        self.before_falldown_count[count] += 1
-                    elif  self.before_falldown_count[count] > 0:
+                        if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
+                            pass
+                        else:
+                            self.before_falldown_count[count] += 1
+                    elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
                         self.before_falldown_count[count] -= 1
-                        
-                    #print("before_falldown_count : ", self.before_falldown_count[count])
-                    
                 count += 1 # person count 
-                
-        #print("history : ", self.history)
-        
+
+        ## count 개수가 len(before_falldown_count)보다 작은 경우 그 index이상의 원소들([count:])에 -1씩 해줌
+        x = np.array(self.before_falldown_count)
+        x = np.concatenate((x[:count],np.where(x[count:] > 0, x[count:]-1, x[count:])))
+        self.before_falldown_count = x.tolist()
+
         if self.tracking_method == True:
             for i in range(self.people_max):
                 if self.history[i] > 3:
-                    #print("Fall down!, ", self.people_locate[i])
                     self.result = True
         else:
             for i in range(self.people_max):
-                if self.before_falldown_count[i] > 2 :
-                    #print("Fall down!, ", self.before_falldown_count[i])
+                if self.before_falldown_count[i] > 35 : ## threshold : fps*1.5 --> falldown아닌 부분에서 falldown값이 나오는 현상 방지
                     self.result = True
-                    break
-        #print("self.result :", self.result )    
+                    break  
 
         # TODO: analysis(끝 지점)
         if self.debug :

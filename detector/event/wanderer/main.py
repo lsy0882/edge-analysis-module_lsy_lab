@@ -1,8 +1,8 @@
 import os
 import time
-from template.main import Event
-from wanderer.utils import *
-from wanderer.Sort import Sort
+from detector.event.template.main import Event
+from detector.event.wanderer.utils import *
+from detector.event.wanderer.Sort import Sort
 
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
@@ -20,6 +20,8 @@ class WandererEvent(Event):
         self.debug = debug
         self.history = []
         self.result = False
+        self.tracking_threshold = 200
+        self.wander_check_point = [-150,-100,-50]
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -31,7 +33,7 @@ class WandererEvent(Event):
         self.temp_frame = 1
 
 
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
             start = 0
             end = 0
             if self.debug :
@@ -44,7 +46,7 @@ class WandererEvent(Event):
             # - 이전 프레임의 결과를 사용해야하는 모듈들의 경우 self.history에 저장한 후 사용하시기 바랍니다.
             # - self.result에는 True 또는 False 값으로 이벤트 검출 결과를 저장해주시기 바랍니다.
 
-            frame = detection_result["frame_num"]
+            frame = detection_result["frame_number"]
             detection_result = detection_result["results"][0]["detection_result"]
             result = {}
             det_list = []
@@ -64,9 +66,9 @@ class WandererEvent(Event):
             # print('%d,%d,%.2f,%.2f,%.2f,%.2f'%(frame,trackers[4],trackers[0],trackers[1],trackers[2]-trackers[0],trackers[3]-trackers[1]))
             # print(trackers[:,4])
             # rule 1
-            self.result = 0
+            self.result = False
             for d in trackers:
-                print("id : {}".format(d[4]))
+                # print("id : {}".format(d[4]))
                 while len(self.id_stack) <= d[4]:
                     self.id_stack.append(0)
                 # previous_id_stack = copy.deepcopy(self.id_stack)
@@ -75,16 +77,28 @@ class WandererEvent(Event):
                 # detect Wander
                 result["frame"]= int(frame)
                 result["event"] = "no"
-                if self.id_stack[int(d[4])] >= 10:
+                list_check = True
+                count50 = 0
+                if self.id_stack[int(d[4])] >= self.tracking_threshold:
                     # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
                     result["event"] = "wander"
                     # result["frame"] = int(frame)
                     result["id_num"] = int(d[4])
                     result["id_count"] = self.id_stack[int(d[4])]
                     # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
-                
-                    if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander":
-                        self.result = True
+                    
+                    for i in self.wander_check_point:
+                        if self.history[i]["event"] != "wander":
+                            list_check = False
+                            break
+                    
+                    for i in range(1,60):
+                        if self.history[-i]["event"] == "wander":
+                            count50 +=1                    
+#                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
+#                         self.result = True
+                if list_check == True and count50>=50:
+                    self.result = True
                     # print(self.result)
                 self.history.append(result)
             # TODO: analysis(끝 지점)

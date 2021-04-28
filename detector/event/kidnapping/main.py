@@ -19,10 +19,10 @@ class KidnappingEvent(Event):
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.max_history = 5
+        self.max_history = 10
         self.frame = None
         
-    def inference(self, detection_result):
+    def inference(self, frame, detection_result):
         start = 0
         end = 0
         if self.debug :
@@ -31,7 +31,7 @@ class KidnappingEvent(Event):
         eventFlag = 0
         result = OrderedDict()
         detected_person = []
-        for i, e in enumerate(detection_result['results']):
+        for i, e in enumerate(detection_result['results'][0]['detection_result']):
             if e['label'][0]['description'] in ['person']:
                 detected_person.append(
                     ((e['position']['x'] + e['position']['w'] / 2), (e['position']['y'] + e['position']['h'] / 2)))
@@ -42,13 +42,15 @@ class KidnappingEvent(Event):
         result["center_coordinates"] = detected_person
 
         # kidnapping detection module
-        if num_of_person >= 2 and num_of_person <= 8 :
+        if num_of_person >= 2 :
+            self.pre_detected_person = num_of_person
             pair_of_center_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
             if len(pair_of_center_coordinates) >= 1 :
                 for i in range(len(pair_of_center_coordinates)) :
                     dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
-                    if dist < 60 :
+                    if dist < 100 :
                         eventFlag = 1
+            
 
         if len(self.history) >= self.max_history :
             self.history.pop(0)
@@ -61,8 +63,11 @@ class KidnappingEvent(Event):
                 if self.history[i] == 1 :
                     sum += 1
 
-        if sum >= (self.max_history * 0.4) :
-            state = True
+        if sum >= (self.max_history * 0.6):
+            if self.history[7] == 1 and self.history[8] == 1 and self.history[9] == 1:
+                state = True
+            else:
+                state = False
         else :
             state = False
 

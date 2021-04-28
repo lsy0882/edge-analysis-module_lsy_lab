@@ -9,10 +9,12 @@ from detector.object_detection.yolov4 import YOLOv4
 
 class MainConsole:
 
-    def __init__(self, cam_address, server_address, analysis_fps, object_detection_model, object_detection_dataset):
+    def __init__(self, cam_address, server_address, analysis_fps, object_detection_model, object_detection_dataset, object_detection_threshold):
         self.cam_address = cam_address
         self.server_address = server_address
         self.analysis_fps = analysis_fps
+        self.score_threshold = object_detection_threshold["score_threshold"]
+        self.nms_threshold = object_detection_threshold["nms_threshold"]
 
         self.frame_info_pool = []
         self.object_detection_result_pool = []
@@ -45,7 +47,8 @@ class MainConsole:
 
         # Load Object Detector
         try:
-            self.object_detector = YOLOv4(self.frame_info_pool, self.object_detection_result_pool, self.final_result_pool,model=self.object_detection_model, dataset=self.object_detection_dataset, )
+            self.object_detector = YOLOv4(self.frame_info_pool, self.object_detection_result_pool, self.final_result_pool,model=self.object_detection_model,
+                                          dataset=self.object_detection_dataset, score_threshold=self.score_threshold, nms_threshold=self.nms_threshold)
         except:
             return False, PrintLog.e("Object detector failed to load.")
 

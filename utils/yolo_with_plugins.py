@@ -299,7 +299,7 @@ class TrtYOLO(object):
         del self.inputs
         del self.stream
 
-    def detect(self, img, conf_th=0.3, letter_box=None):
+    def detect(self, img, conf_th=0.5, nms_th=0.3, letter_box=None):
         """Detect objects in the input image."""
         letter_box = self.letter_box if letter_box is None else letter_box
         img_resized = _preprocess_yolo(img, self.input_shape, letter_box)
@@ -320,7 +320,7 @@ class TrtYOLO(object):
 
         boxes, scores, classes = _postprocess_yolo(
             trt_outputs, img.shape[1], img.shape[0], conf_th,
-            nms_threshold=0.5, input_shape=self.input_shape,
+            nms_threshold=nms_th, input_shape=self.input_shape,
             letter_box=letter_box)
 
         # clip x1, y1, x2, y2 within original image
