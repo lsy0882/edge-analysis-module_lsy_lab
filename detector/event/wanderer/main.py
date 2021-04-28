@@ -20,7 +20,8 @@ class WandererEvent(Event):
         self.debug = debug
         self.history = []
         self.result = False
-        self.tracking_threshold = 400
+        self.tracking_threshold = 200
+        self.wander_check_point = [-150,-100,-50]
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -76,6 +77,8 @@ class WandererEvent(Event):
                 # detect Wander
                 result["frame"]= int(frame)
                 result["event"] = "no"
+                list_check = True
+                count50 = 0
                 if self.id_stack[int(d[4])] >= self.tracking_threshold:
                     # if previous_id_stack[int(d[4])]!=self.id_stack[int(d[4])]:
                     result["event"] = "wander"
@@ -83,9 +86,19 @@ class WandererEvent(Event):
                     result["id_num"] = int(d[4])
                     result["id_count"] = self.id_stack[int(d[4])]
                     # print("wander frame : {}, id_num : {}, id_count {}".format(frame,int(d[4]), self.id_stack[int(d[4])]))
-                
-                    if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander":
-                        self.result = True
+                    
+                    for i in self.wander_check_point:
+                        if self.history[i]["event"] != "wander":
+                            list_check = False
+                            break
+                    
+                    for i in range(1,60):
+                        if self.history[-i]["event"] == "wander":
+                            count50 +=1                    
+#                     if self.history[-3]["event"]=="wander" and self.history[-2]["event"]=="wander" and self.history[-1]["event"]=="wander" and self.history[-50]["event"]=="wander":
+#                         self.result = True
+                if list_check == True and count50>=50:
+                    self.result = True
                     # print(self.result)
                 self.history.append(result)
             # TODO: analysis(끝 지점)
