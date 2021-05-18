@@ -31,10 +31,6 @@ class FalldownEvent(Event):
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-
-        
-
-
         self.people_locate = []
         for i in range(self.people_max):
             self.people_locate.append([0,0])
@@ -44,7 +40,9 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
 
-    def inference(self, frame, od_result):
+    def inference(self, frame_info, od_result):
+        frame = frame_info["frame"]
+        frame_number = frame_info["frame_number"]
         start = 0
         end = 0
 

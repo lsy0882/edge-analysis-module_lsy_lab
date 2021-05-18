@@ -3,6 +3,8 @@ from collections import OrderedDict
 import os
 import json
 import time
+from typing import List
+
 import numpy as np
 import math
 from itertools import combinations
@@ -14,6 +16,7 @@ from detector.event.template.main import Event
 
 def event_checker(vector_combi):
     eventFlag = 0
+    List
     for i in range(vector_combi.shape[0]):
         norm1, norm2 = np.linalg.norm(vector_combi[i][0]), np.linalg.norm(vector_combi[i][1])
         dot = float(np.dot(vector_combi[i][0], vector_combi[i][1]))
@@ -64,7 +67,10 @@ class TailingEvent(Event):
         self.max_history = 5
         self.frame = None
 
-    def inference(self, frame, detection_result):
+    def inference(self, frame_info, detection_result):
+        frame = frame_info["frame"]
+        frame_number = frame_info["frame_number"]
+
         start = 0
         end = 0
         if self.debug :

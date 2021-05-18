@@ -127,7 +127,7 @@ def run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bb
     for i, frame_name in enumerate(frame_path_list):
         frame_number += 1
         frame = cv2.imread(os.path.join(frame_dir, frame_name))
-
+        frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
         results = od_model.inference_by_image(frame)
 
         frame_bbox = bbox_visualization.draw_bboxes(frame, results)
@@ -150,7 +150,7 @@ def run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bb
         event_result["event_result"] = dict()
 
         for event_detector in event_detectors:
-            event_result["event_result"][event_detector.model_name] = event_detector.inference(frame, dict_result)
+            event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
         event_results.append(event_result)
         print("\rframe number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
               .format(frame_number, len(frame_path_list), int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
