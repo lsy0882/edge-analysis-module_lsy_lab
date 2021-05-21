@@ -6,6 +6,7 @@ import csv
 
 import pycuda.autoinit
 
+from decoder.FFmpegDecoder import FFmpegDecoder
 from detector.event.assault.main import AssaultEvent
 from detector.event.falldown.main import FalldownEvent
 from detector.event.kidnapping.main import KidnappingEvent
@@ -25,7 +26,7 @@ def split_model_names(model_names):
 
 def load_video(video_path, extract_fps):
     capture = cv2.VideoCapture(video_path)
-    frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    framecount = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(round(capture.get(cv2.CAP_PROP_FPS)))
 
     PrintLog.i("Extract information\n"
@@ -34,8 +35,8 @@ def load_video(video_path, extract_fps):
                "\tvideo framecount: {}\n"
                "\textract fps: {}\n"
                "\textract frame number: {}"
-               .format(video_path, fps, frame_count, extract_fps, int(frame_count/(fps/extract_fps))))
-    return capture, frame_count, fps
+               .format(video_path, fps, framecount, extract_fps, int(framecount/(fps/extract_fps))))
+    return capture, framecount, fps
 
 
 def load_models(od_model_name="yolov4-416", score_threshold=0.5, nms_threshold=0.3, event_model_names="all"):
@@ -103,30 +104,30 @@ def make_result_dir(result_dir, video_name):
 
     return frame_dir, fram_bbox_dir, json_dir, event_dir
 
+def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path):
+    decoder = FFmpegDecoder('videos/1_360p.mp4')
+    decoder.load()
 
-def run_ffmpeg(video_path, extract_fps, frame_dir):
-    try:
-        command = "ffmpeg -y -hide_banner -loglevel panic -i {} -vsync 2 -q:v 0 -vf fps={} {}/%04d.jpg".format(video_path, extract_fps, frame_dir)
-        os.system(command)
-        frame_path_list = sorted(os.listdir(frame_dir))
-        PrintLog.i("Frame extraction is successfully completed(path: {}, framecount: {})".format(frame_dir, len(frame_path_list)))
-        return frame_path_list
-    except:
-        PrintLog.e("Frame extraction is failed")
-        exit(0)
-
-
-def run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bbox_dir, json_dir, bbox_video_path):
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     video_writer = cv2.VideoWriter(bbox_video_path, fourcc, 20, (640, 360))
 
+    framecount = video_info["framecount"]
+    fps = video_info["fps"]
+    extract_fps = video_info["extract_fps"]
+
+    expected_framecount = int(framecount / extract_fps * fps)
     frame_number = 0
     event_results = []
     cls_dict = get_cls_dict(15)
     bbox_visualization = BBoxVisualization(cls_dict)
-    for i, frame_name in enumerate(frame_path_list):
+
+    while True:
+        ret, frame = decoder.read()
+        if ret == False:
+            break
+
         frame_number += 1
-        frame = cv2.imread(os.path.join(frame_dir, frame_name))
+        frame_name = "{0:06d}.jpg".format(frame_number)
         frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
         results = od_model.inference_by_image(frame)
 
@@ -153,7 +154,7 @@ def run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bb
             event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
         event_results.append(event_result)
         print("\rframe number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
-              .format(frame_number, len(frame_path_list), int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
+              .format(frame_number, expected_framecount, int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
 
         json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
         json.dump(dict_result, json_result_file, indent=4)
@@ -226,7 +227,7 @@ if __name__ == '__main__':
                "\tbbox video path: {}".format(video_path, extract_fps, score_threshold, nms_threshold, od_model_name, event_model_names, result_dir, bbox_video_path))
 
     # Load Video
-    capture, frame_count, fps = load_video(video_path, extract_fps)
+    capture, framecount, fps = load_video(video_path, extract_fps)
 
     # Load Object Detection & Event Detection models
     od_model, event_detectors = load_models(od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold, event_model_names=event_model_names)
@@ -235,10 +236,11 @@ if __name__ == '__main__':
     frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name)
 
     # Run FFmpeg
-    frame_path_list = run_ffmpeg(video_path, extract_fps, frame_dir)
+    # frame_path_list = run_ffmpeg(video_path, extract_fps, frame_dir)
 
     # Run detection
-    event_results = run_detection(od_model, event_detectors, frame_dir, frame_path_list, fram_bbox_dir, json_dir, bbox_video_path)
+    video_info = {"video_path": video_path, "fps": fps, "framecount": framecount, 'extract_fps': extract_fps}
+    event_results = run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path)
 
     # Extract event result as csv
     extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results)
