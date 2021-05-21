@@ -13,7 +13,10 @@ Jetson Nano 및 Jetson Xavier NX에 설치될 예정이기 때문에 Ubuntu 18.0
 설치 방법은 Jetson Nano & Jetson Xavier NX에서 진행하는 방법과 docker-compose 상에서 실행하는 방법으로 구성됩니다.
 
 분석 모델에서 필요한 python requirement가 있을 경우 __관련 이슈__([링크](https://github.com/JinhaSong/EdgeAnalysisModule/issues/1))에 명시된 예시와 같이 코멘트를 추가해주시기 바랍니다. 
- 
+
+추가적으로 FFmpeg이 requeirements에 추가되었으니 아래 링크를 참고하여 ffmpeg 4.2를 설치해주시기 바랍니다.
+
+* [FFmpeg](https://velog.io/@jinhasong/Install-FFmpeg-4)
 * [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_jetson.md)
 * [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_docker-compose.md)
 
