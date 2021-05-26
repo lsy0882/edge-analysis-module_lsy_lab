@@ -105,7 +105,7 @@ def make_result_dir(result_dir, video_name):
     return frame_dir, fram_bbox_dir, json_dir, event_dir
 
 def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path):
-    decoder = FFmpegDecoder('videos/1_360p.mp4')
+    decoder = FFmpegDecoder(video_info["video_path"])
     decoder.load()
 
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
