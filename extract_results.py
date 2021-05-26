@@ -105,17 +105,17 @@ def make_result_dir(result_dir, video_name):
     return frame_dir, fram_bbox_dir, json_dir, event_dir
 
 def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path):
-    decoder = FFmpegDecoder(video_info["video_path"])
+    fps = video_info["fps"]
+    framecount = video_info["framecount"]
+    extract_fps = video_info["extract_fps"]
+
+    decoder = FFmpegDecoder(video_info["video_path"], fps=extract_fps)
     decoder.load()
 
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    video_writer = cv2.VideoWriter(bbox_video_path, fourcc, 20, (640, 360))
+    video_writer = cv2.VideoWriter(bbox_video_path, fourcc, fps, (640, 360))
 
-    framecount = video_info["framecount"]
-    fps = video_info["fps"]
-    extract_fps = video_info["extract_fps"]
-
-    expected_framecount = int(framecount / extract_fps * fps)
+    expected_framecount = int(framecount / fps * extract_fps)
     frame_number = 0
     event_results = []
     cls_dict = get_cls_dict(15)
@@ -176,7 +176,7 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
         if type(event_model_names) == list:
             event_names = event_model_names
         elif event_model_names == "all":
-            event_names = ["assault", "falldown", "kidnapping", "obstacle", "tailing", "wanderer"]
+            event_names = ["assault", "falldown", "kidnapping", "tailing", "wanderer"]
         else :
             event_names = [event_model_names]
         name = [""]
@@ -197,7 +197,7 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--video_path", type=str, default="videos/1_360p.mp4", help="Video path")
+    parser.add_argument("--video_path", type=str, default="videos/360p_01.mp4", help="Video path")
     parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
     parser.add_argument("--score_threshold", type=float, default=0.5, help="Object detection score threshold")
