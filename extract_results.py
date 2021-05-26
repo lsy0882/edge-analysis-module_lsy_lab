@@ -170,13 +170,13 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
 
 
 def extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results):
-    event_csv_file_path = os.path.join(event_dir, video_name.split(".mp4")[0] + ".csv")
+    event_csv_file_path = os.path.join(event_dir, "..", video_name.split(".mp4")[0] + ".csv")
     with open(event_csv_file_path, "w") as event_file:
         csv_writer = csv.writer(event_file)
         if type(event_model_names) == list:
             event_names = event_model_names
         elif event_model_names == "all":
-            event_names = ["assault", "falldown", "kidnapping", "tailing", "wanderer"]
+            event_names = ["assault", "falldown", "obstacle", "kidnapping", "tailing", "wanderer"]
         else :
             event_names = [event_model_names]
         name = [""]
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
     parser.add_argument("--score_threshold", type=float, default=0.5, help="Object detection score threshold")
-    parser.add_argument("--nms_threshold", type=float, default=0.3, help="Object detection nms threshold")
+    parser.add_argument("--nms_threshold", type=float, default=0.1, help="Object detection nms threshold")
     parser.add_argument("--event_model", type=str, default="all", help="Event model names")
     parser.add_argument("--result_dir", type=str, default="./result", help="Directory path of results and frame")
 
@@ -243,4 +243,4 @@ if __name__ == '__main__':
     event_results = run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path)
 
     # Extract event result as csv
-    extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results)
+    extract_event_results(split_model_names(event_model_names), event_dir, video_name, event_detectors, event_results)
