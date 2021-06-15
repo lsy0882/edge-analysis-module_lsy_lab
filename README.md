@@ -1,4 +1,4 @@
-# EdgeAnalysisModule
+# edge-analysis-module
 
 ## Introduce
 본 프로젝트는 Jetson Nano 및 Jetson Xavier NX에서 object detection 결과를 입력으로 받아 각 분석 엔진의 결과를 종합하여 관제 서버에 전송하는 서비스를 제공합니다.
