@@ -99,7 +99,7 @@ model = Event()              # --> model = AssaultEvent()
 cd ${PROJECT_DIR}
 python3 Modules/ModuleTest.py --json_path ${json_path}
 ```
-### EdgeAnalysisModule 전체 실행 방법
+### edge-analysis-module 전체 실행 방법
 ```shell script
 python3 main.py --mode=console --cam_address=rtsp://localhost:8554/1_360p --analysis_fps=4 # single video
 python3 main.py --mode=console --cam_address=rtsp://localhost:8554/1_360p,rtsp://localhost/2_360p --analysis_fps=4 # single video
