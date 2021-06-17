@@ -57,10 +57,9 @@ class FalldownEvent(Event):
         # - self.result에는 True 또는 False 값으로 이벤트 검출 결과를 저장해주시기 바랍니다.
 
         # rule 1  
-        count = 0
+        count = 0 ## people count
         detection_result = od_result['results'][0]['detection_result']
         self.result = False #init 
-            
         for info_ in detection_result:
             #print(info_['position'])
             #dets =[]
@@ -100,7 +99,12 @@ class FalldownEvent(Event):
                             self.before_falldown_count[count] += 1
                     elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
                         self.before_falldown_count[count] -= 1
-                count += 1 # person count 
+                count += 1 # person count
+                ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
+                if count > 3:
+                    return self.result #self.result = False
+                ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
+
 
         ## count 개수가 len(before_falldown_count)보다 작은 경우 그 index이상의 원소들([count:])에 -1씩 해줌
         x = np.array(self.before_falldown_count)
