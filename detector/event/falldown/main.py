@@ -101,7 +101,7 @@ class FalldownEvent(Event):
                         self.before_falldown_count[count] -= 1
                 count += 1 # person count
                 ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
-                if count > 3:
+                if count > 2:
                     return self.result #self.result = False
                 ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
 
