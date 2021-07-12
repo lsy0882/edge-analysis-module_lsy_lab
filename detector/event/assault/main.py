@@ -100,11 +100,15 @@ class AssaultEvent(Event):
                              height_len = abs(y_co - self.prev_frame[i+1][1])
                              co.append(x_co)
                              co.append(y_co)
-                             tans = height_len/width_len
-                             mus = ((4*tans*tans)+4)/(4+(tans*tans))
-                             mus = np.sqrt(mus)
-                             
-                             dist_list.append(mus*(np.linalg.norm(self.prev_frame[i+1] - co)))
+
+                             if width_len != 0:
+                                tans = height_len/width_len
+                                mus = ((4*tans*tans)+4)/(4+(tans*tans))
+                                mus = np.sqrt(mus)
+                                dist_list.append(mus*(np.linalg.norm(self.prev_frame[i+1] - co)))
+
+                             else:
+                                dist_list.append(np.linalg.norm(self.prev_frame[i+1] - co))
 
                          if person_num != 0 and prev_person_num != 0:
                             velo.append(min(dist_list))
@@ -123,11 +127,17 @@ class AssaultEvent(Event):
   
                          for j in range (prev_person_num):
                               width_len = abs(x_co - self.prev_frame[j+1][0])               
-                              height_len = abs(y_co - self.prev_frame[j+1][1]) 
-                              tans = height_len/width_len
-                              mus = ((4*tans*tans)+4)/(4+(tans*tans))                      
-                              mus = np.sqrt(mus) 
-                              dist_list.append(mus*np.linalg.norm(self.prev_frame[j+1] - co2))
+                              height_len = abs(y_co - self.prev_frame[j+1][1])
+                              
+                              if width_len != 0:
+                                 tans = height_len/width_len
+                                 mus = ((4*tans*tans)+4)/(4+(tans*tans))                      
+                                 mus = np.sqrt(mus) 
+                                 dist_list.append(mus*(np.linalg.norm(self.prev_frame[j+1] - co2)))
+
+                              else:
+                                 dist_list.append(np.linalg.norm(self.prev_frame[j+1] - co2))
+
                          if person_num != 0 and prev_person_num != 0:
                              velo.append(min(dist_list))
                          else:
@@ -153,7 +163,7 @@ class AssaultEvent(Event):
                       self.history.append(0)
                       self.result = False
                       return self.result
-                
+
               velo = []
               self.prev_frame = []
               self.prev_frame.append(person_num)
@@ -175,7 +185,9 @@ class AssaultEvent(Event):
                     self.history.append(1)  # return true
                     self.result = True
                     return self.result
-                       
+               
+
+        
         #dist_thres =  (bbox_size_avg/100) * dist_sum
 
         # Rule 2) Simple smoothing
