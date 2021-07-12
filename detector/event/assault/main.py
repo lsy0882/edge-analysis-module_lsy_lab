@@ -136,7 +136,6 @@ class AssaultEvent(Event):
               velo_count = 0
               velo_thres = 50
 
-              
               for i in range (len(velo)):
                   if velo[i] >= velo_thres:
                      velo_count = velo_count + 1
@@ -144,7 +143,6 @@ class AssaultEvent(Event):
               if len(velo) == 2 or len(velo) == 3:
                   if velo_count >= 2:
                       velo_count = 0
-                      print("ok\n")
                       self.history.append(0)
                       self.result = False
                       return self.result
@@ -155,9 +153,7 @@ class AssaultEvent(Event):
                       self.history.append(0)
                       self.result = False
                       return self.result
-
                 
-
               velo = []
               self.prev_frame = []
               self.prev_frame.append(person_num)
@@ -179,9 +175,7 @@ class AssaultEvent(Event):
                     self.history.append(1)  # return true
                     self.result = True
                     return self.result
-               
-
-        
+                       
         #dist_thres =  (bbox_size_avg/100) * dist_sum
 
         # Rule 2) Simple smoothing
