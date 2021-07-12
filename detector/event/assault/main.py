@@ -46,7 +46,6 @@ class AssaultEvent(Event):
         dist_ = 99999999
 
         detection_result = detection_result['results'][0]['detection_result']  
-        #pos_res = detection_result['results'][0]['detection_result'][1]
         person_num = 0
         for info_ in detection_result:
 
@@ -71,7 +70,6 @@ class AssaultEvent(Event):
             self.distance_sum.append(dist_sum)
     
         self.result = False
-        #self.prev_frame.append(-1)
 
         if person_num > 4:
             self.history.append(0)
@@ -91,26 +89,15 @@ class AssaultEvent(Event):
             
                  if prev_person_num <= person_num:
                      for i in range (prev_person_num):
-                        # x_co = detection_result[i]['position']['x'] + detection_result[i]['position']['w'] / 2
-                        # y_co = detection_result[i]['position']['y'] + detection_result[i]['position']['h'] / 2
                          for j in range(person_num):
                              co = []
 
                              x_co = detection_result[j]['position']['x'] + detection_result[j]['position']['w'] / 2
                              y_co = detection_result[j]['position']['y'] + detection_result[j]['position']['h'] / 2
-                             #print(self.prev_frame[i+1][0])
+                            
+                             
                              width_len = abs(x_co - self.prev_frame[i+1][0])
                              height_len = abs(y_co - self.prev_frame[i+1][1])
-                             #print("giwolgi:")
-                             #print(height_len/width_len)
-                             #print("x_co:")
-                             #print(x_co)
-                             #print("y_co:")
-                             #print(y_co)
-                             #print("prev_x_co:")
-                             #print(self.prev_frame[i+1][0])
-                             #print("prev_y_co:")
-                             #print(self.prev_frame[i+1][1])
                              co.append(x_co)
                              co.append(y_co)
                              tans = height_len/width_len
@@ -133,17 +120,19 @@ class AssaultEvent(Event):
                          y_co = detection_result[i]['position']['y'] + detection_result[i]['position']['h'] / 2
                          co2.append(x_co)
                          co2.append(y_co)
+  
                          for j in range (prev_person_num):
-                             dist_list.append(np.linalg.norm(self.prev_frame[j+1] - co2))
+                              width_len = abs(x_co - self.prev_frame[j+1][0])               
+                              height_len = abs(y_co - self.prev_frame[j+1][1]) 
+                              tans = height_len/width_len
+                              mus = ((4*tans*tans)+4)/(4+(tans*tans))                      
+                              mus = np.sqrt(mus) 
+                              dist_list.append(mus*np.linalg.norm(self.prev_frame[j+1] - co2))
                          if person_num != 0 and prev_person_num != 0:
                              velo.append(min(dist_list))
                          else:
                              velo=[]
                              
-
-              #print("\n")
-              #print(velo)
-              
               velo_count = 0
               velo_thres = 50
 
