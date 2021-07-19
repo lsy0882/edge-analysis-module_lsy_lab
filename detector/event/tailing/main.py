@@ -182,14 +182,16 @@ class TailingEvent(Event):
                         self.history = self.history[5:]
                         if sum(self.history) >= 3:
                             tmp = 1
+                            # self.result = True
                         else :
                             tmp = 0
+                            # self.result = False
 
                         if len(self.smoothBox) == 50:
                             self.smoothBox.pop(0)
                         self.smoothBox.append(tmp)                            
 
-                        if sum(self.smoothBox) >= 15:
+                        if sum(self.smoothBox) >= 20:
                             self.result = True
                         else :
                             self.result = False

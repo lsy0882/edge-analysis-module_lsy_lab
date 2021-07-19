@@ -43,9 +43,9 @@ class KidnappingEvent(Event):
         self.debug = debug
         self.history = []
         self.prev_frame = []
-        self.target = []
+        # self.target = []
 
-    def opticalFlow(self, frame):
+    def opticalFlow(self, frame, targets):
 
         prvs = cv2.cvtColor(self.prev_frame['frame'], cv2.COLOR_BGR2GRAY)
         next = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -56,11 +56,15 @@ class KidnappingEvent(Event):
         mag = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
         ang = cv2.normalize((ang*180/np.pi/2), None, 0, 255, cv2.NORM_MINMAX)
 
+        print()
+        print(f'origin targets : {targets}')
+        targets = list(set([tuple(target) for target in targets]))
+        print(f'setted targets : {targets}')
         grid = np.zeros(shape=(360, 640))
-        for i in range(len(self.target)):
-            for j in range(self.target[i][3]):
-                for k in range(self.target[i][2]):
-                    grid[self.target[i][1]+j][self.target[i][0]+k] = 1
+        for i in range(len(targets)):
+            for j in range(targets[i][3]):
+                for k in range(targets[i][2]):
+                    grid[targets[i][1]+j][targets[i][0]+k] = 1
                 
         mag_sum, activ = 0, 0
         for i in range(360):
@@ -86,56 +90,63 @@ class KidnappingEvent(Event):
         boxOverlapFlag = 0
         detected_person, detected_vehicles = [], []
         for i, e in enumerate(detection_result['results'][0]['detection_result']):
-            if e['label'][0]['description'] in ['person'] and e['label'][0]['score'] > 0.8:
+            if e['label'][0]['description'] in ['person'] and e['label'][0]['score'] > 0.65:
                 detected_person.append(
                     (e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h'])
                     )
         for i, e in enumerate(detection_result['results'][0]['detection_result']):
-            if e['label'][0]['description'] in ['car'] and e['label'][0]['score'] > 0.8:
+            if e['label'][0]['description'] in ['car'] and e['label'][0]['score'] > 0.5:
                 detected_vehicles.append(
                     (e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h'])
                     )                    
         num_of_person = len(detected_person)
         num_of_vehicles = len(detected_vehicles)
 
+        combi, target = [], []
         if num_of_person >= 2 and num_of_person <= 6 and num_of_vehicles >= 1:
-            pair_of_coordinates = np.array(list(product(detected_person, detected_vehicles)), dtype=int)
-            if len(pair_of_coordinates) >= 1 :
-                for i in range(len(pair_of_coordinates)) :
-                    ## 각 조합별 박스 겹침 확인
-                    # pair_of_coordinates : (num of combination, 2, 4)
-                    # 2 : each person (index 0 or 1)
-                    # 4 : x, y, w, h (coordinates)
-
-                    boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1])
+            pair_of_person_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
+            if len(pair_of_person_coordinates) >= 1:
+                for i in range(len(pair_of_person_coordinates)) :
+                    boxOverlapFlag = boxOverlapCheck(pair_of_person_coordinates[i][0], pair_of_person_coordinates[i][1])
                     if boxOverlapFlag == 1:
-                        if len(self.target) == 15:
-                            self.target.pop(0)
-                        self.target.append(pair_of_coordinates[i][0])
-
-            if num_of_person >= 2 and num_of_person <= 6 :
-                pair_of_center_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
-                if len(pair_of_center_coordinates) >= 1:
-                    for i in range(len(pair_of_center_coordinates)) :
-                        boxOverlapFlag = boxOverlapCheck(pair_of_center_coordinates[i][0], pair_of_center_coordinates[i][1])
+                        combi.append(pair_of_person_coordinates[i][0])
+                        combi.append(pair_of_person_coordinates[i][1])
+            if len(combi) >= 1:
+                pair_of_coordinates = np.array(list(product(detected_person, detected_vehicles)), dtype=int)
+                if len(pair_of_coordinates) >= 1 :
+                    for i in range(len(pair_of_coordinates)) :
+                        boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1])
                         if boxOverlapFlag == 1:
-                            if len(self.target) == 15:
-                                self.target.pop(0)
-                            self.target.append(pair_of_center_coordinates[i][0])                        
+                            target.append(pair_of_coordinates[i][0])
 
-        ret = self.opticalFlow(frame['frame'])
+        ret = 0
+        if len(target) >= 1:
+            ret = self.opticalFlow(frame['frame'], target)
 
-        if len(self.history) == 30 :
+        if len(self.history) == 60 :
             self.history.pop(0)
-        if ret >= 35:
+
+        if ret != 0 :            
             self.history.append(1)
         else :
             self.history.append(0)
 
-        if sum(self.history) >= 10:
+        if sum(self.history) >= 2 :
             self.result = True
         else :
             self.result = False
+
+        # if len(self.history) == 30 :
+        #     self.history.pop(0)
+        # if ret >= 35:
+        #     self.history.append(1)
+        # else :
+        #     self.history.append(0)
+
+        # if sum(self.history) >= 10:
+        #     self.result = True
+        # else :
+        #     self.result = False
 
         if self.debug :
             end = time.time()
