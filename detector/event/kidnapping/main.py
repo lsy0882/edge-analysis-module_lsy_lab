@@ -43,7 +43,6 @@ class KidnappingEvent(Event):
         self.debug = debug
         self.history = []
         self.prev_frame = []
-        # self.target = []
 
     def opticalFlow(self, frame, targets):
 
@@ -56,10 +55,7 @@ class KidnappingEvent(Event):
         mag = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
         ang = cv2.normalize((ang*180/np.pi/2), None, 0, 255, cv2.NORM_MINMAX)
 
-        print()
-        print(f'origin targets : {targets}')
         targets = list(set([tuple(target) for target in targets]))
-        print(f'setted targets : {targets}')
         grid = np.zeros(shape=(360, 640))
         for i in range(len(targets)):
             for j in range(targets[i][3]):
@@ -135,18 +131,6 @@ class KidnappingEvent(Event):
             self.result = True
         else :
             self.result = False
-
-        # if len(self.history) == 30 :
-        #     self.history.pop(0)
-        # if ret >= 35:
-        #     self.history.append(1)
-        # else :
-        #     self.history.append(0)
-
-        # if sum(self.history) >= 10:
-        #     self.result = True
-        # else :
-        #     self.result = False
 
         if self.debug :
             end = time.time()
