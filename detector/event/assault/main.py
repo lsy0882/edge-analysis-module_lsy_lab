@@ -30,6 +30,7 @@ class AssaultEvent(Event):
         self.result = "safe"
         start = 0
         end = 0
+        bb_box = 0
 
         if self.frame_count == 1:
             self.prev_frame.append(-1)
@@ -81,7 +82,7 @@ class AssaultEvent(Event):
         else:
          if person_num > 1:
               velo = []
-              dist_list = []
+              dist_list2 = []
 
               if self.prev_frame[0] != -1:
                 
@@ -94,105 +95,146 @@ class AssaultEvent(Event):
 
                              x_co = detection_result[j]['position']['x'] + detection_result[j]['position']['w'] / 2
                              y_co = detection_result[j]['position']['y'] + detection_result[j]['position']['h'] / 2
-                            
-                             
+
                              width_len = abs(x_co - self.prev_frame[i+1][0])
                              height_len = abs(y_co - self.prev_frame[i+1][1])
                              co.append(x_co)
                              co.append(y_co)
-
                              if width_len != 0:
-                                tans = height_len/width_len
-                                mus = ((4*tans*tans)+4)/(4+(tans*tans))
-                                mus = np.sqrt(mus)
-                                dist_list.append(mus*(np.linalg.norm(self.prev_frame[i+1] - co)))
 
+                               tans = height_len/width_len
+                               mus = ((4*tans*tans)+4)/(4+(tans*tans))
+                               mus = np.sqrt(mus)
+                             
+                               dist_list2.append(mus*(np.linalg.norm(self.prev_frame[i+1] - co)))
                              else:
-                                dist_list.append(np.linalg.norm(self.prev_frame[i+1] - co))
-
+                               dist_list2.append(np.linalg.norm(self.prev_frame[i+1] - co))
+                         
                          if person_num != 0 and prev_person_num != 0:
-                            velo.append(min(dist_list))
-                            dist_list = []
+                            velo.append(min(dist_list2))
+                            dist_list2 = []
                          else:
-                             dist_list = []
+                             dist_list2 = []
                              velo=[]
+                             
 
                  elif prev_person_num > person_num: 
                      for i in range (person_num):
                          co2 = []
+                
                          x_co = detection_result[i]['position']['x'] + detection_result[i]['position']['w'] / 2
                          y_co = detection_result[i]['position']['y'] + detection_result[i]['position']['h'] / 2
                          co2.append(x_co)
                          co2.append(y_co)
-  
-                         for j in range (prev_person_num):
-                              width_len = abs(x_co - self.prev_frame[j+1][0])               
-                              height_len = abs(y_co - self.prev_frame[j+1][1])
-                              
-                              if width_len != 0:
-                                 tans = height_len/width_len
-                                 mus = ((4*tans*tans)+4)/(4+(tans*tans))                      
-                                 mus = np.sqrt(mus) 
-                                 dist_list.append(mus*(np.linalg.norm(self.prev_frame[j+1] - co2)))
 
-                              else:
-                                 dist_list.append(np.linalg.norm(self.prev_frame[j+1] - co2))
+                         for j in range (prev_person_num):
+                             width_len = abs(x_co - self.prev_frame[j+1][0])
+                             height_len = abs(y_co - self.prev_frame[j+1][1])
+
+                             if width_len != 0:
+                                 tans = height_len/width_len
+                                 mus = ((4*tans*tans)+4)/(4+(tans*tans))
+                                 mus = np.sqrt(mus)
+                                 dist_list2.append(mus*(np.linalg.norm(self.prev_frame[j+1] - co2)))
+                             else:
+                                 dist_list2.append(np.linalg.norm(self.prev_frame[j+1] - co2))
 
                          if person_num != 0 and prev_person_num != 0:
-                             velo.append(min(dist_list))
+                             velo.append(min(dist_list2))
                          else:
                              velo=[]
-                             
+                            
               velo_count = 0
-              velo_thres = 50
+              bb_box = 0
+              
+              for i in range (person_num):
+                  bb_box = bb_box + detection_result[i]['position']['h']
+                  bb_box = bb_box + detection_result[i]['position']['w']
 
+              bb_box = bb_box / 10
+              velo_thres = 1
+              bb_box = 0
+              
               for i in range (len(velo)):
                   if velo[i] >= velo_thres:
                      velo_count = velo_count + 1
 
-              if len(velo) == 2 or len(velo) == 3:
-                  if velo_count >= 2:
+              if len(velo) == 2:
+                  if velo_count >= 1:
                       velo_count = 0
+                      velo = []
+                      self.prev_frame = []
+                      self.prev_frame.append(person_num)
+
+                      for m in range (person_num):
+                          pos_np = np.asarray([detection_result[m]['position']['x'] + detection_result[m]['position']['w'] / 2 , detection_result[m]['position']['y'] + detection_result[m]['position']['h'] / 2])
+                          self.prev_frame.append(pos_np)
+
                       self.history.append(0)
                       self.result = False
                       return self.result
+
+              elif len(velo) == 3:
+                if velo_count >= 2: 
+                    velo_count = 0
+                    velo = []
+                    self.prev_frame = []
+                    self.prev_frame.append(person_num)
+
+                    for m in range (person_num):
+                        pos_np = np.asarray([detection_result[m]['position']['x'] + detection_result[m]['position']['w'] / 2 , detection_result[m]['position']['y'] + detection_result[m]['position']['h'] / 2])
+                        self.prev_frame.append(pos_np)
+
+                    self.history.append(0)
+                    self.result = False
+                    return self.result  
+
               
               elif len(velo) == 4:
                    if velo_count >= 3:
                       velo_count = 0
+                      velo = []
+                      self.prev_frame = []
+                      self.prev_frame.append(person_num)
+
+                      for m in range (person_num):
+                          pos_np = np.asarray([detection_result[m]['position']['x'] + detection_result[m]['position']['w'] / 2 , detection_result[m]['position']['y'] + detection_result[m]['position']['h'] / 2])
+                          self.prev_frame.append(pos_np)
+
                       self.history.append(0)
                       self.result = False
                       return self.result
 
+                
+
               velo = []
+              velo_count=0
               self.prev_frame = []
               self.prev_frame.append(person_num)
-
+              bbsize = 0
+              
               for i in range (person_num):
                   pos_np = np.asarray([detection_result[i]['position']['x'] + detection_result[i]['position']['w'] / 2 , detection_result[i]['position']['y'] + detection_result[i]['position']['h'] / 2])
                   self.prev_frame.append(pos_np) 
+                  
+                  bbsize = bbsize + detection_result[i]['position']['h']
+                  bbsize = bbsize + detection_result[i]['position']['w']
 
+              bbsize = bbsize / (2 *person_num)
 
-        #if person_num > 4:
-       # print("\naaaa")
-       # print(self.prev_frame)
-          
         # Rule 1) If two people are close to each other
         if dist_list:
             for dist_ in dist_list:
-                if dist_ < 40:
-                 # if frame_dist > 3:
+                if dist_ < bbsize:
+                    bbsize = 0
                     self.history.append(1)  # return true
                     self.result = True
                     return self.result
                
-
+        bbsize = 0
         
-        #dist_thres =  (bbox_size_avg/100) * dist_sum
-
         # Rule 2) Simple smoothing
         if sum(self.history[-60:]) > 3:
-         # if self.history[-3:] == True and self.history[-2:] == True and self.history[-1:] == True:
             self.history.append(0)
             self.result = True
             return self.result
