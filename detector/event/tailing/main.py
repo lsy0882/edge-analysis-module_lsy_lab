@@ -189,7 +189,7 @@ class TailingEvent(Event):
                             self.smoothBox.pop(0)
                         self.smoothBox.append(tmp)                            
 
-                        if sum(self.smoothBox) >= 15:
+                        if sum(self.smoothBox) >= 20:
                             self.result = True
                         else :
                             self.result = False
