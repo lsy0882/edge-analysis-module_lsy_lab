@@ -152,8 +152,6 @@ class AssaultEvent(Event):
                   bb_box = bb_box + detection_result[i]['position']['w']
 
               bb_box = bb_box / 10
-              print("\nthres:\n")
-              print
               velo_thres = 1
               bb_box = 0
               
