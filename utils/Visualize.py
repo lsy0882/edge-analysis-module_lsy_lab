@@ -8,6 +8,7 @@ TEXT_SCALE = 1.0
 TEXT_THICKNESS = 1
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+RED = (0, 0, 255)
 
 def gen_colors(num_colors):
     """Generate different colors.
@@ -67,6 +68,13 @@ class BBoxVisualization():
     def __init__(self, cls_dict):
         self.cls_dict = cls_dict
         self.colors = gen_colors(len(cls_dict))
+        self.event_colors = {
+            "assault": (196, 114, 68),
+            "falldown": (49, 125, 237),
+            "kidnapping": (167, 167, 167),
+            "tailing": (0, 192, 255),
+            "wanderer": (211, 151, 84),
+        }
 
     def draw_bboxes(self, img, detection_results):
         for detection_result in detection_results:
@@ -83,4 +91,34 @@ class BBoxVisualization():
             txt_loc = (max(x_min+2, 0), max(y_min+2, 0))
             txt = '{} {:.2f}'.format(cls_name, score)
             img = draw_boxed_text(img, txt, txt_loc, color)
+        return img
+
+    def put_text(self, img, event_result):
+        event_names = ["wanderer", "tailing", "kidnapping", "falldown", "assault"]
+        img_h, img_w, _ = img.shape
+        for i, event_name in enumerate(event_names):
+            color = self.event_colors[event_name]
+            text = "{}:{}".format(event_name, str(event_result[event_name]))
+            if event_result[event_name]:
+                font_color = RED
+            else:
+                font_color = BLACK
+            margin = 3
+            topleft = (40, 40 + 80 * (i))
+            text_scale = 4.0
+            text_size = 6
+            text_thickness = 2
+            size = cv2.getTextSize(text, FONT, text_size, text_thickness)
+            w = size[0][0] + margin * 2
+            h = size[0][1] + margin * 2
+            patch = np.zeros((h, w, 3), dtype=np.uint8)
+            patch[...] = color
+            cv2.putText(patch, text, (margin + 1, h - margin - 2), FONT, text_scale,
+                        font_color, thickness=text_thickness, lineType=cv2.LINE_8)
+            cv2.rectangle(patch, (0, 0), (w - 1, h - 1), BLACK, thickness=1)
+            w = min(w, img_w - topleft[0])  # clip overlay at image boundary
+            h = min(h, img_h - topleft[1])
+            # Overlay the boxed text onto region of interest (roi) in img
+            roi = img[topleft[1]:topleft[1] + h, topleft[0]:topleft[0] + w, :]
+            cv2.addWeighted(patch[0:h, 0:w, :], ALPHA, roi, 1 - ALPHA, 0, roi)
         return img

@@ -131,10 +131,6 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
         frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
         results = od_model.inference_by_image(frame)
 
-        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
-        cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
-        video_writer.write(frame_bbox)
-
         dict_result = dict()
         dict_result["image_path"] = os.path.join(frame_dir, frame_name)
         dict_result["cam_address"] = video_path
@@ -153,6 +149,11 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
         for event_detector in event_detectors:
             event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
         event_results.append(event_result)
+        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
+        bbox_visualization.put_text(frame_bbox, event_result["event_result"])
+        cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
+        video_writer.write(frame_bbox)
+        
         print("\rframe number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
               .format(frame_number, expected_framecount, int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
 
