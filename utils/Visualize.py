@@ -103,11 +103,11 @@ class BBoxVisualization():
                 font_color = RED
             else:
                 font_color = BLACK
-            margin = 3
-            topleft = (40, 40 + 80 * (i))
-            text_scale = 4.0
-            text_size = 6
-            text_thickness = 2
+            margin = 1
+            topleft = (10, 10 + 20 * (i))
+            text_scale = 1.0
+            text_size = 1.5
+            text_thickness = 1
             size = cv2.getTextSize(text, FONT, text_size, text_thickness)
             w = size[0][0] + margin * 2
             h = size[0][1] + margin * 2
