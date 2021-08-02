@@ -180,14 +180,14 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
             event_names = ["assault", "falldown", "obstacle", "kidnapping", "tailing", "wanderer"]
         else :
             event_names = [event_model_names]
-        name = [""]
+        name = ["", ""]
         for i, event_detector in enumerate(event_detectors):
             name.append(event_detector.model_name)
 
         csv_writer.writerow(name)
 
         for event_result in event_results:
-            row = ["{:>10}".format(event_result["frame_number"])]
+            row = ["{:>10}".format(event_result["frame_number"]), str(convert_framenumber2timestamp(event_result["frame_number"], 30))]
             for i, event_name in enumerate(event_names):
                 if event_result["event_result"][event_name]:
                     row.append(i+1)
