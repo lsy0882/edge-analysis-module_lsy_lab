@@ -153,8 +153,6 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
             event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
             sequence_result["event_sequence"][event_detector.model_name] = event_detector.merge_sequence(frame_info)
         event_results.append(event_result)
-        #print(sequence_result)
-        #print(event_result)
         frame_bbox = bbox_visualization.draw_bboxes(frame, results)
         bbox_visualization.put_text(frame_bbox, event_result["event_result"])
         cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
