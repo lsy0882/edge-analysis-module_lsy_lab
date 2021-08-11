@@ -10,12 +10,16 @@ class Event:
         self.analysis_time = 0
         self.debug = debug
         self.result = False
+        self.frameseq = []
+        self.r_value = False
+        self.frameseq_info = {"start": 0, "end": 1}
         self.model_name = "dummy"
+
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
-        # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
+        # - 위의 7개 변수(model_name, analysis_time, debug, result, frameseq, r_value, frameseq_info) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
     def inference(self, frame_info, detection_result):
         frame = frame_info["frame"]
@@ -39,5 +43,21 @@ class Event:
 
         return self.result
 
-    def merge_sequence(self):
-        pass
+    def merge_sequence(self, frame_info):
+        frame_number = frame_info["frame_number"]
+        if self.result is True:
+            if self.r_value is True:  # TT인 경우
+                self.frameseq_info["end"] = frame_number
+            else:  # FT인 경우
+                self.frameseq_info["start"] = frame_number
+                self.frameseq_info["end"] = frame_number
+
+        else:
+            if self.r_value is True:  # TF인경우
+                self.frameseq.append(self.frameseq_info)
+                self.frameseq_info = {"start": 0, "end": 0}
+            if self.r_value is False:  # FF인경우
+                pass
+
+        self.r_value = self.result
+        return self.frameseq
