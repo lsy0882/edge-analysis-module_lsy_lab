@@ -123,7 +123,7 @@ class WandererEvent(Event):
             front_start = wanderer_frame_seq[-2]['start']
             front_end = wanderer_frame_seq[-2]['end']
             gap = back_start - front_end
-            if gap < 400:
+            if gap < 200:
                 del wanderer_frame_seq[-2:]
                 merged_seq = {}
                 merged_seq['start'] = front_start
