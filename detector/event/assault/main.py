@@ -20,6 +20,10 @@ class AssaultEvent(Event):
         self.distance_sum = []
         self.prev_frame = []
         self.frame_count = 0
+        self.frameseq = []
+        self.r_value = False
+        self.frameseq_info = {"start": 0, "end": 1}
+        self.seq_count = 0
 
     def inference(self, frame_info, detection_result):
         frame = frame_info["frame"]
@@ -152,6 +156,7 @@ class AssaultEvent(Event):
                   bb_box = bb_box + detection_result[i]['position']['w']
 
               bb_box = bb_box / 10
+
               velo_thres = 1
               bb_box = 0
               
@@ -249,3 +254,30 @@ class AssaultEvent(Event):
 
 
         return self.result
+
+    def merge_sequence(self, frame_info):
+        frame_number = frame_info["frame_number"]
+        if self.result is True:
+             if self.r_value is True:  # TT
+                 self.frameseq_info["end"] = frame_number
+             else:  # FT
+                 self.frameseq_info["start"] = frame_number
+                 self.frameseq_info["end"] = frame_number
+
+        else:
+            if self.r_value is True:              
+                self.seq_count = self.seq_count + 1
+
+                if self.seq_count < 40:
+                    self.result = True
+                    self.frameseq_info["end"] = frame_number
+                else:
+                    self.seq_count = 0
+                    self.frameseq.append(self.frameseq_info)
+                    self.frameseq_info = {"start": 0, "end": 0}
+            if self.r_value is False:  # FF
+                pass
+
+        self.r_value = self.result
+        return self.frameseq
+
