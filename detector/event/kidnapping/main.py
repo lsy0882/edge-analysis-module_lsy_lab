@@ -9,7 +9,12 @@ import copy
 from itertools import combinations, product
 from detector.event.template.main import Event
 
-def boxOverlapCheck(coord1, coord2):
+def boxOverlapCheck(coord1, coord2, type):
+    
+    if type == 2:
+        if (coord1[2] * coord1[3]) >= (coord2[2] * coord2[3]):
+            return 0
+
     coord = []
     coord.append(coord1)
     coord.append(coord2)
@@ -99,19 +104,19 @@ class KidnappingEvent(Event):
         num_of_vehicles = len(detected_vehicles)
 
         combi, target = [], []
-        if num_of_person >= 2 and num_of_person <= 6 and num_of_vehicles >= 1:
+        if num_of_person >= 2 and num_of_person <= 4 and num_of_vehicles >= 1:
             pair_of_person_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
             if len(pair_of_person_coordinates) >= 1:
                 for i in range(len(pair_of_person_coordinates)) :
-                    boxOverlapFlag = boxOverlapCheck(pair_of_person_coordinates[i][0], pair_of_person_coordinates[i][1])
+                    boxOverlapFlag = boxOverlapCheck(pair_of_person_coordinates[i][0], pair_of_person_coordinates[i][1], type=1)
                     if boxOverlapFlag == 1:
                         combi.append(pair_of_person_coordinates[i][0])
                         combi.append(pair_of_person_coordinates[i][1])
             if len(combi) >= 1:
-                pair_of_coordinates = np.array(list(product(detected_person, detected_vehicles)), dtype=int)
+                pair_of_coordinates = np.array(list(product(combi, detected_vehicles)), dtype=int)
                 if len(pair_of_coordinates) >= 1 :
                     for i in range(len(pair_of_coordinates)) :
-                        boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1])
+                        boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1], type=2)
                         if boxOverlapFlag == 1:
                             target.append(pair_of_coordinates[i][0])
 
@@ -119,10 +124,10 @@ class KidnappingEvent(Event):
         if len(target) >= 1:
             ret = self.opticalFlow(frame['frame'], target)
 
-        if len(self.history) == 60 :
+        if len(self.history) == 80 :
             self.history.pop(0)
 
-        if ret != 0 :            
+        if ret >= 15 :            
             self.history.append(1)
         else :
             self.history.append(0)

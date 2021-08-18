@@ -92,6 +92,7 @@ class TailingEvent(Event):
         # tailing detection module
         # 시작 5frame은 0인 상태
         eventFlag = [0, ] * 5
+        tmp = 0
         result["center_coordinates"] = sorted(result["center_coordinates"])
         
         if self.frame != None:
@@ -176,25 +177,31 @@ class TailingEvent(Event):
                     self.frechet_dl = np.zeros(shape=(6, 6, 2), dtype=np.float32)
                     self.frame_cnt = 0
                     
-                    tmp = 0
                     self.history.extend(eventFlag)
                     if len(self.history) >= self.max_history:
                         self.history = self.history[5:]
                         if sum(self.history) >= 3:
                             tmp = 1
+
                         else :
                             tmp = 0
 
-                        if len(self.smoothBox) == 50:
-                            self.smoothBox.pop(0)
-                        self.smoothBox.append(tmp)                            
-
-                        if sum(self.smoothBox) >= 20:
-                            self.result = True
-                        else :
-                            self.result = False
                     else :
-                        self.result = False
+                        tmp = 0
+
+        else :
+            tmp = 0
+
+        if len(self.smoothBox) == 100:
+            self.smoothBox.pop(0)
+        self.smoothBox.append(tmp)                            
+
+
+        if sum(self.smoothBox) >= 9:
+            self.result = True
+        else :
+            self.result = False
+
         
         self.frame_cnt += 1
         self.frame = result
