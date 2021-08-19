@@ -130,7 +130,6 @@ class FalldownEvent(Event):
     def merge_sequence(self,frame_info):
         self.frameseq = super().merge_sequence(frame_info)
         falldown_frame_seq = self.frameseq
-        print(falldown_frame_seq)
         if len(falldown_frame_seq) >= 2:
             back_start = falldown_frame_seq[-1]['start']
             back_end = falldown_frame_seq[-1]['end']
