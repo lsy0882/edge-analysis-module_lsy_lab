@@ -17,8 +17,8 @@ Jetson Nano 및 Jetson Xavier NX에 설치될 예정이기 때문에 Ubuntu 18.0
 추가적으로 FFmpeg이 requeirements에 추가되었으니 아래 링크를 참고하여 ffmpeg 4.2를 설치해주시기 바랍니다.
 
 * [FFmpeg](https://velog.io/@jinhasong/Install-FFmpeg-4)
-* [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_jetson.md)
-* [docker-compose](https://github.com/JinhaSong/EdgeAnalysisModule/blob/master/docs/building_on_docker-compose.md)
+* [Jetson Nano & Jetson Xavier NX](https://github.com/JinhaSong/edge-analysis-module/blob/master/docs/building_on_jetson.md)
+* [docker-compose](https://github.com/JinhaSong/edge-analysis-module/blob/master/docs/building_on_docker-compose.md)
 
 ## 분석 모델 정의
 모든 설치가 끝났다면 이벤트 검출기 모델을 정의하기위해 detector/event/ 디렉토리로 이동합니다.
