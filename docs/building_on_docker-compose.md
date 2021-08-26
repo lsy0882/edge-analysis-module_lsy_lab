@@ -30,6 +30,7 @@ python3 get-pip.py --force-reinstall
 ```
 ### Install python requirements
 ```shell script
+cd /workspace
 pip3 install -r requirements.txt 
 ``` 
 
