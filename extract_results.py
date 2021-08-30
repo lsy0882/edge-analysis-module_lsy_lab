@@ -127,6 +127,8 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
         ret, frame = decoder.read()
         if ret == False:
             end_flag =1
+            for event_detector in event_detectors:
+                sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
             break
 
         frame_number += 1
