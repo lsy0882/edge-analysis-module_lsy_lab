@@ -121,10 +121,12 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
     cls_dict = get_cls_dict(15)
     bbox_visualization = BBoxVisualization(cls_dict)
     sequence_result = dict()
+    end_flag =0
 
     while True:
         ret, frame = decoder.read()
         if ret == False:
+            end_flag =1
             break
 
         frame_number += 1
@@ -149,7 +151,7 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
 
         for event_detector in event_detectors:
             event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
-            sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info)
+            sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
         event_results.append(event_result)
         frame_bbox = bbox_visualization.draw_bboxes(frame, results)
         bbox_visualization.put_text(frame_bbox, event_result["event_result"])

@@ -43,11 +43,13 @@ class Event:
 
         return self.result
 
-    def merge_sequence(self, frame_info):
+    def merge_sequence(self, frame_info, end_flag):
         frame_number = frame_info["frame_number"]
         if self.result is True:
             if self.r_value is True:  # TT인 경우
                 self.frameseq_info["end"] = frame_number
+                if end_flag is 1:
+                    self.frameseq.append(self.frameseq_info)
             else:  # FT인 경우
                 self.frameseq_info["start"] = frame_number
                 self.frameseq_info["end"] = frame_number
