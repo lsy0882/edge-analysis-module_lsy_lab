@@ -2,7 +2,7 @@
 #
 # Reference for installing 'pycuda': https://wiki.tiker.net/PyCuda/Installation/Linux/Ubuntu
 
-rm -rf ${HOME}/src/pycuda-2019.1.2/siteconf.py
+rm -rf ./src/pycuda-2019.1.2/siteconf.py
 set -e
 
 if ! which nvcc > /dev/null; then
@@ -11,7 +11,7 @@ if ! which nvcc > /dev/null; then
 fi
 
 arch=$(uname -m)
-folder=${HOME}/src
+folder=./src
 mkdir -p $folder
 
 echo "** Install requirements"
