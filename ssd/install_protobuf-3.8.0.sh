@@ -2,7 +2,7 @@
 
 set -e
 
-folder=${HOME}/src
+folder=./src
 mkdir -p $folder
 
 echo "** Install requirements"
