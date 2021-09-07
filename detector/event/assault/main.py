@@ -286,4 +286,3 @@ class AssaultEvent(Event):
         self.r_value = self.result
 
         return self.frameseq
-

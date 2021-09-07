@@ -111,3 +111,24 @@ class WandererEvent(Event):
                 self.analysis_time = end - start
 
             return self.result
+
+
+    def merge_sequence(self,frame_info):
+        self.frameseq = super().merge_sequence(frame_info)
+        wanderer_frame_seq = self.frameseq
+        if len(wanderer_frame_seq) >= 2:
+            back_start = wanderer_frame_seq[-1]['start']
+            back_end = wanderer_frame_seq[-1]['end']
+            front_start = wanderer_frame_seq[-2]['start']
+            front_end = wanderer_frame_seq[-2]['end']
+            gap = back_start - front_end
+            if gap < 200:
+                del wanderer_frame_seq[-2:]
+                merged_seq = {}
+                merged_seq['start'] = front_start
+                merged_seq['end'] = back_end
+                wanderer_frame_seq.append(merged_seq)
+            else: 
+                pass
+        self.frameseq = wanderer_frame_seq
+        return self.frameseq

@@ -120,20 +120,21 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
     event_results = []
     cls_dict = get_cls_dict(15)
     bbox_visualization = BBoxVisualization(cls_dict)
+    sequence_result = dict()
+    end_flag =0
 
     while True:
         ret, frame = decoder.read()
         if ret == False:
+            end_flag =1
+            for event_detector in event_detectors:
+                sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
             break
 
         frame_number += 1
         frame_name = "{0:06d}.jpg".format(frame_number)
         frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
         results = od_model.inference_by_image(frame)
-
-        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
-        cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
-        video_writer.write(frame_bbox)
 
         dict_result = dict()
         dict_result["image_path"] = os.path.join(frame_dir, frame_name)
@@ -152,7 +153,13 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
 
         for event_detector in event_detectors:
             event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
+            sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
         event_results.append(event_result)
+        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
+        bbox_visualization.put_text(frame_bbox, event_result["event_result"])
+        cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
+        video_writer.write(frame_bbox)
+        
         print("\rframe number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
               .format(frame_number, expected_framecount, int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
 
@@ -166,7 +173,7 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
         PrintLog.i("BBox video is successfully generated(path: {})".format(bbox_video_path))
     else :
         PrintLog.i("BBox video is failed to generated.")
-    return event_results
+    return event_results, sequence_result
 
 
 def extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results):
@@ -179,14 +186,14 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
             event_names = ["assault", "falldown", "obstacle", "kidnapping", "tailing", "wanderer"]
         else :
             event_names = [event_model_names]
-        name = [""]
+        name = ["", ""]
         for i, event_detector in enumerate(event_detectors):
             name.append(event_detector.model_name)
 
         csv_writer.writerow(name)
 
         for event_result in event_results:
-            row = ["{:>10}".format(event_result["frame_number"])]
+            row = ["{:>10}".format(event_result["frame_number"]), str(convert_framenumber2timestamp(event_result["frame_number"], 30))]
             for i, event_name in enumerate(event_names):
                 if event_result["event_result"][event_name]:
                     row.append(i+1)
@@ -195,9 +202,18 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
             csv_writer.writerow(row)
     PrintLog.i("Event result file is successfully extracted.(path: {})".format(event_csv_file_path))
 
+
+def extract_sequence_results(event_dir, video_name, sequence_results):
+    sequence_json_file_path = os.path.join(event_dir, "..", video_name.split(".mp4")[0] + ".json")
+    with open(sequence_json_file_path, "w") as sequence_file:
+        json.dump(sequence_results, sequence_file, indent='\t')
+
+    PrintLog.i("Sequence result file is successfully extracted.(path: {})".format(sequence_json_file_path))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--video_path", type=str, default="videos/360p_01.mp4", help="Video path")
+    parser.add_argument("--video_path", type=str, default="videos/001_360.mp4", help="Video path")
     parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
     parser.add_argument("--score_threshold", type=float, default=0.5, help="Object detection score threshold")
@@ -240,7 +256,10 @@ if __name__ == '__main__':
 
     # Run detection
     video_info = {"video_path": video_path, "fps": fps, "framecount": framecount, 'extract_fps': extract_fps}
-    event_results = run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path)
+    event_results, sequence_results = run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path)
 
     # Extract event result as csv
     extract_event_results(split_model_names(event_model_names), event_dir, video_name, event_detectors, event_results)
+
+    # Extract sequence result as json
+    extract_sequence_results(event_dir, video_name, sequence_results)

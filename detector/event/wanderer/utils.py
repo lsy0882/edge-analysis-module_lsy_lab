@@ -1,9 +1,9 @@
 import numpy as np
-try:
-  from numba import jit
-except:
-  def jit(func):
-    return func
+# try:
+#   from numba import jit
+# except:
+#   def jit(func):
+#     return func
 
 def linear_assignment(cost_matrix):
   try:
@@ -16,7 +16,7 @@ def linear_assignment(cost_matrix):
     return np.array(list(zip(x, y)))
 
 
-@jit
+# @jit
 def iou(bb_test, bb_gt):
   """
   Computes IUO between two bboxes in the form [x1,y1,x2,y2]
