@@ -160,7 +160,11 @@ def run_detection(video_info, od_model, event_detectors):
     return event_results, sequence_result
 
 if __name__ == '__main__':
-    video_path = "videos/360p_01.mp4"
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("--video_path", type=str, default="videos/360p_01.mp4", help="Video path")
+    option = parser.parse_known_args()[0]
+
+    video_path = option.video_path
     video_name = video_path.split("/")[-1]
     extract_fps = 20
     score_threshold = 0.5
