@@ -3,8 +3,6 @@ from collections import OrderedDict
 import os
 import time
 import numpy as np
-import cv2
-import copy
 
 from itertools import combinations, product
 from detector.event.template.main import Event
@@ -14,6 +12,18 @@ def boxOverlapCheck(coord1, coord2, type):
     if type == 2:
         if (coord1[2] * coord1[3]) >= (coord2[2] * coord2[3]):
             return 0
+    elif type == 1:
+        p1 = coord1[2] * coord1[3]
+        p2 = coord2[2] * coord2[3]
+        if p1 != p2:
+            if p1 > p2:
+                bigger = p1
+                smaller = p2
+            else :
+                bigger = p2
+                smaller = p1                
+            if bigger > 3 * smaller:
+                return 0
 
     coord = []
     coord.append(coord1)
@@ -47,37 +57,6 @@ class KidnappingEvent(Event):
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.prev_frame = []
-
-    def opticalFlow(self, frame, targets):
-
-        prvs = cv2.cvtColor(self.prev_frame['frame'], cv2.COLOR_BGR2GRAY)
-        next = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        flow = cv2.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-        mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
-
-        mag = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
-        ang = cv2.normalize((ang*180/np.pi/2), None, 0, 255, cv2.NORM_MINMAX)
-
-        targets = list(set([tuple(target) for target in targets]))
-        grid = np.zeros(shape=(360, 640))
-        for i in range(len(targets)):
-            for j in range(targets[i][3]):
-                for k in range(targets[i][2]):
-                    grid[targets[i][1]+j][targets[i][0]+k] = 1
-                
-        mag_sum, activ = 0, 0
-        for i in range(360):
-            for j in range(640):
-                if grid[i][j] == 1:
-                    activ += 1
-                    mag_sum += mag[i][j]
-        
-        if activ == 0:
-            activ = 1
-
-        return (mag_sum/activ)
 
     def inference(self, frame, detection_result):
         start = 0
@@ -85,9 +64,7 @@ class KidnappingEvent(Event):
         if self.debug :
             start = time.time()
 
-        if frame['frame_number'] % 5 == 1:
-            self.prev_frame = copy.deepcopy(frame)
-
+        ret = 0
         boxOverlapFlag = 0
         detected_person, detected_vehicles = [], []
         for i, e in enumerate(detection_result['results'][0]['detection_result']):
@@ -118,19 +95,12 @@ class KidnappingEvent(Event):
                     for i in range(len(pair_of_coordinates)) :
                         boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1], type=2)
                         if boxOverlapFlag == 1:
-                            target.append(pair_of_coordinates[i][0])
-
-        ret = 0
-        if len(target) >= 1:
-            ret = self.opticalFlow(frame['frame'], target)
+                            ret = 1
 
         if len(self.history) == 80 :
             self.history.pop(0)
 
-        if ret >= 15 :            
-            self.history.append(1)
-        else :
-            self.history.append(0)
+        self.history.append(ret)
 
         if sum(self.history) >= 2 :
             self.result = True
