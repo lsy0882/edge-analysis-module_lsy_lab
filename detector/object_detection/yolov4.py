@@ -1,6 +1,8 @@
+import gc
+
 from utils.yolo_with_plugins import TrtYOLO
 from utils.yolo_classes import get_cls_dict
-from utils import PrintLog
+from utils import Logging
 
 class YOLOv4:
     def __init__(self, frame_info_pool=None, detection_result_pool=None, final_result_pool=None, model='yolov4-416', dataset='obstacle', score_threshold=0.5, nms_threshold=0.3):
@@ -35,7 +37,7 @@ class YOLOv4:
 
         self.model = TrtYOLO(model, (h, w), category_num)
 
-        PrintLog.i("Object detection model is loaded - {}\t{}".format(model, dataset))
+        print(Logging.i("Object detection model is loaded - {}\t{}".format(model, dataset)))
 
     def inference_by_image(self, image):
         """
@@ -62,21 +64,10 @@ class YOLOv4:
                         "h": int(box[3] - box[1])
                     }
                 })
+        del image
+        del boxes
+        del scores
+        del classes
+        gc.collect()
 
         return results
-
-    def run(self, ):
-        PrintLog.i("Frame Number\tTimestamp")
-        while True:
-            if len(self.frame_info_pool) > 0:
-                frame_info = self.frame_info_pool.pop(0)
-                result = self.inference_by_image(frame_info["frame"])
-                detection_result = dict()
-                detection_result["cam_address"] = frame_info["cam_address"]
-                detection_result["frame"] = frame_info["frame"]
-                detection_result["timestamp"] = frame_info["timestamp"]
-                detection_result["frame_number"] = frame_info["frame_number"]
-                detection_result["results"] = []
-                detection_result["results"].append({"detection_result": result})
-                self.detection_result_pool.append(detection_result)
-                # PrintLog.i("{}\t{}\t{}\t{}".format(detection_result["frame_number"], len(self.frame_info_pool), len(self.detection_result_pool), len(self.final_result_pool)))
