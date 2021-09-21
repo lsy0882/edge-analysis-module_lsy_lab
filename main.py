@@ -2,7 +2,6 @@ import datetime
 import json
 import os
 import time
-
 from decoder.FFmpegDecoder import FFmpegDecoder
 from detector.event.assault.main import AssaultEvent
 from detector.event.falldown.main import FalldownEvent
@@ -11,31 +10,41 @@ from detector.event.obstacle.main import ObstacleEvent
 from detector.event.tailing.main import TailingEvent
 from detector.event.wanderer.main import WandererEvent
 from detector.object_detection.yolov4 import YOLOv4
-
+from communicator.communicator import Communicator
 from utils import Logging
+
 import pycuda.autoinit
 
-path = os.path.dirname(os.path.abspath(__file__))
 
+class EdgeModule:
+    path = os.path.dirname(os.path.abspath(__file__))
+    event_model_class = {
+        "assault": AssaultEvent,
+        "falldown": FalldownEvent,
+        "kidnapping": KidnappingEvent,
+        "tailing": TailingEvent,
+        "wanderer": WandererEvent,
+        "obstacle": ObstacleEvent
+    }
 
-class Main:
     def __init__(self):
         ret = self.load_settings()
         ret = self.load_models()
+        self.message_poll = []
+        self.communicator = Communicator(self.communication_info, self.streaming_url, self.message_poll)
 
     def load_settings(self):
         try:
-            setting_path = os.path.join(path, "settings.json")
+            setting_path = os.path.join(self.path, "settings.json")
             with open(setting_path, 'r') as setting_file:
                 dict_settings = json.load(setting_file)
                 setting_file.close()
-            streaming_url, fps, server_url, od_option, event_option, reset_duration = self.__parse_settings(dict_settings)
+            streaming_url, fps, communication_info, od_option, event_option = self.__parse_settings(dict_settings)
             self.streaming_url = streaming_url
             self.fps = fps
-            self.server_url = server_url
+            self.communication_info = communication_info
             self.od_option = od_option
             self.event_option = event_option
-            self.reset_duration = reset_duration
 
             return True
         except :
@@ -45,16 +54,16 @@ class Main:
     def __parse_settings(self, dict_settings):
         streaming_url = dict_settings['streaming_url']
         fps = dict_settings['fps']
-        server_url = dict_settings['server_url']
+        communication_info = dict_settings['communication_info']
         od_option = dict_settings['model']['object_detection']
         event_option = dict_settings['model']['event']
-        reset_duration = dict_settings['reset_duration']
 
         print(Logging.i("Settings INFO"))
         print(Logging.s("Streaming URL\t\t\t: {}".format(streaming_url)))
         print(Logging.s("Extract FPS\t\t\t: {}".format(fps)))
-        print(Logging.s("Server URL\t\t\t: {}:{}".format(server_url['ip'], server_url['port'])))
-        print(Logging.s("Reset duration\t\t\t: {} days").format(reset_duration))
+        print(Logging.s("Communication info:"))
+        print(Logging.s("\tServer URL\t\t\t: {}:{}".format(communication_info['server_url']['ip'], communication_info['server_url']['port'])))
+        print(Logging.s("\tMessage Size\t\t\t: {}".format(communication_info['message_size'])))
         print(Logging.s("Object detection model INFO: "))
         print(Logging.s("\tModel name\t\t: {}".format(od_option['model_name'])))
         print(Logging.s("\tScore Threshold\t\t: {}".format(od_option['score_thresh'])))
@@ -62,7 +71,7 @@ class Main:
         print(Logging.s("Event model INFO: "))
         print(Logging.s("\tModels\t\t\t: {}".format(event_option)))
 
-        return streaming_url, fps, server_url, od_option, event_option, reset_duration
+        return streaming_url, fps, communication_info, od_option, event_option
 
 
     def load_models(self):
@@ -80,17 +89,10 @@ class Main:
             exit(0)
 
         event_models = []
-        event_model_class = {
-            "assault": AssaultEvent,
-            "falldown": FalldownEvent,
-            "kidnapping": KidnappingEvent,
-            "tailing": TailingEvent,
-            "wanderer": WandererEvent,
-            "obstacle": ObstacleEvent}
         event_model_names = self.event_option
         for event_model_name in event_model_names:
             try:
-                event_model = event_model_class[event_model_name](debug=True)
+                event_model = self.event_model_class[event_model_name](debug=True)
                 event_models.append(event_model)
                 print(Logging.i("{} model is loaded".format(event_model.model_name)))
             except:
@@ -117,12 +119,10 @@ class Main:
             if ret == False:
                 break
 
-            frame_name = "{0:06d}.jpg".format(frame_number)
             frame_info = {"frame": frame, "frame_number": frame_number}
             results = self.od_model.inference_by_image(frame)
 
             dict_result = dict()
-            dict_result["image_path"] = frame_name
             dict_result["frame_number"] = frame_number
             dict_result["results"] = []
             dict_result["results"].append({"detection_result": results})
@@ -132,25 +132,24 @@ class Main:
                 event_model.merge_sequence(frame_info, 0)
 
             for event_model in self.event_models:
+                now = datetime.datetime.now()
                 if event_model.new_seq_flag == True:
-                    # print("{}: start sequence".format(event_model.model_name), end='')
                     event_model.new_seq_flag = False
-                    print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, datetime.datetime.now())))
-                    # Send start time of sequence
+                    print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
+                    self.communicator.send_event(event_model.model_name, now, "start")
                 if len(event_model.frameseq) > 0:
                     sequence = event_model.frameseq.pop()
-                    # print(" / {}: {}".format(event_model.model_name, sequence), end='')
-                    print(Logging.d("Send end time of {} event sequence({})".format(event_model.model_name, datetime.datetime.now())))
-                    # Send end time of sequence
+                    print(Logging.d("Send end time of {} event sequence({})".format(event_model.model_name, now)))
+                    self.communicator.send_event(event_model.model_name, now, "end")
+
             frame_number += 1
 
             end_time = time.time()
             process_time += (end_time - start_time)
             process_framecount += 1
 
-            print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t"
-                  .format(frame_number,
-                          round(process_framecount / process_time), 3)), end='')
+            print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tobject:{}\t"
+                  .format(frame_number, round(process_framecount / process_time, 3), len(results))), end='')
             print("({:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5})"
                 .format(
                 self.event_models[0].model_name, round(self.event_models[0].analysis_time, 3),
@@ -162,6 +161,5 @@ class Main:
 
 
 if __name__ == '__main__':
-    main = Main()
-
+    main = EdgeModule()
     main.run_detection()

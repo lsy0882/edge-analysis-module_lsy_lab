@@ -1,9 +1,12 @@
 {
   "streaming_url": "rtsp://163.239.25.86:8554/cam1",
   "fps": 22,
-  "server_url": {
-    "ip": "163.239.25.86",
-    "port": "8777"
+  "communication_info": {
+    "server_url": {
+      "ip": "163.239.25.25",
+      "port": 8776
+    },
+    "message_size": 1024
   },
   "model": {
     "object_detection": {
