@@ -5,7 +5,10 @@ from utils.yolo_classes import get_cls_dict
 from utils import Logging
 
 class YOLOv4:
-    def __init__(self, frame_info_pool=None, detection_result_pool=None, final_result_pool=None, model='yolov4-416', dataset='obstacle', score_threshold=0.5, nms_threshold=0.3):
+    def __init__(self, model='yolov4-416',
+                 dataset='obstacle',
+                 score_threshold=0.5,
+                 nms_threshold=0.3):
         """
         :param model: model name
         :param category_num:
@@ -13,9 +16,6 @@ class YOLOv4:
         self.results = dict()
         self.model_name = model
         self.dataset = dataset
-        self.frame_info_pool = frame_info_pool
-        self.detection_result_pool = detection_result_pool
-        self.final_result_pool = final_result_pool
         self.score_threshold = score_threshold
         self.nms_threshold = nms_threshold
         if dataset == "coco":
@@ -36,8 +36,6 @@ class YOLOv4:
             raise SystemExit('ERROR: bad yolo_dim (%s)!' % yolo_dim)
 
         self.model = TrtYOLO(model, (h, w), category_num)
-
-        print(Logging.i("Object detection model is loaded - {}\t{}".format(model, dataset)))
 
     def inference_by_image(self, image):
         """
