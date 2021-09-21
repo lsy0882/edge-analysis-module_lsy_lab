@@ -1,3 +1,5 @@
+import gc
+
 from decoder.Decoder import Decoder
 import numpy
 import subprocess
@@ -28,9 +30,17 @@ class FFmpegDecoder(Decoder):
 
             uint8_image = numpy.frombuffer(raw_image, dtype='uint8')
             if uint8_image.shape[0] == 0:
+                del raw_image
+                del uint8_image
+                gc.collect()
+
                 return False, None
             else:
                 frame = uint8_image.reshape((self.height, self.width, 3))
+                del raw_image
+                del uint8_image
+                gc.collect()
+
                 return True, frame
         except:
             return False, None
