@@ -266,11 +266,12 @@ class AssaultEvent(Event):
                  if end_flag is 1:
                      self.frameseq.append(self.frameseq_info)
              else:  # FT
+                 new_seq_flag = True
                  self.frameseq_info["start"] = frame_number
                  self.frameseq_info["end"] = frame_number
 
         else:
-            if self.r_value is True:              
+            if self.r_value is True:
                 self.seq_count = self.seq_count + 1
 
                 if self.seq_count < 80:
