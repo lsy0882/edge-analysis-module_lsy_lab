@@ -38,7 +38,7 @@ pip3 install -r requirements.txt
 ### Install Protobuf, PyCUDA and ONNX
 * Jetson Nano에서 해당 소스 코드를 사용하기 위해서는 protobuf-3.8.0 이 필요하며 apt를 이용해 기본으로 설치할 수 있는 protobuf는 이보다 하위 버전이기 때문에 별도의 빌드 및 설치가 필요합니다.
 ```shell script
-cd ${WORKSPACE}/EdgeAnalysisModule/ssd
+cd ${WORKSPACE}/EdgeAnalysisModule/scripts
 chmod +x ./install_protobuf-3.8.0.sh
 chmod +x ./install_pycuda.sh
 ./install_protobuf-3.8.0.sh
