@@ -22,8 +22,8 @@ class Communicator:
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((self.host, self.port))
         self.client_socket.sendall(str({
-            "message_type": "init",
             "id": self.streaming_url,
+            "message_type": "init",
             "time": str(datetime.datetime.now())
         }).encode())
         received_data = self.client_socket.recv(self.message_size)
@@ -35,18 +35,22 @@ class Communicator:
         print("test")
 
 
-    def send_event(self, event_name, event_time, event_type):
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.client_socket.connect((self.host, self.port))
-        self.client_socket.send(str({
-            "id": self.streaming_url,
-            "event_name": event_name,
-            "message_type": event_type,
-            "event_time": str(event_time)
-        }).encode())
-        received_data = self.client_socket.recv(self.message_size)
-        print(Logging.d((received_data.decode())))
-        self.client_socket.close()
+    def send_event(self, event_name, event_time, event_type, message):
+        try:
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect((self.host, self.port))
+            self.client_socket.send(str({
+                "id": self.streaming_url,
+                "event_name": event_name,
+                "message_type": event_type,
+                "event_time": str(event_time),
+                "message": message
+            }).encode())
+            received_data = self.client_socket.recv(self.message_size)
+            print(Logging.d((received_data.decode())))
+            self.client_socket.close()
+        except:
+            print(Logging.e("Failed to send message"))
 
     def __delete__(self, instance):
         self.client_socket.close()
