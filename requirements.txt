@@ -1,6 +1,4 @@
-PyQt5
-opencv-python
 filterpy
-numba
 onnx==1.4.1
 similaritymeasures
+wget
