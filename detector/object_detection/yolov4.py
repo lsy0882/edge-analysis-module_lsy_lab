@@ -1,4 +1,3 @@
-import gc
 
 from utils.yolo_with_plugins import TrtYOLO
 from utils.yolo_classes import get_cls_dict
@@ -8,7 +7,7 @@ class YOLOv4:
     def __init__(self, model='yolov4-416',
                  dataset='obstacle',
                  score_threshold=0.5,
-                 nms_threshold=0.3):
+                 nms_threshold=0.5):
         """
         :param model: model name
         :param category_num:
@@ -62,10 +61,5 @@ class YOLOv4:
                         "h": int(box[3] - box[1])
                     }
                 })
-        del image
-        del boxes
-        del scores
-        del classes
-        gc.collect()
 
         return results
