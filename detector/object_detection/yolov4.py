@@ -35,7 +35,7 @@ class YOLOv4:
         if h % 32 != 0 or w % 32 != 0:
             raise SystemExit('ERROR: bad yolo_dim (%s)!' % yolo_dim)
 
-        self.model = TrtYOLO(model, (h, w), category_num)
+        self.model = TrtYOLO(model, category_num)
 
     def inference_by_image(self, image):
         """

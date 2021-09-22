@@ -175,6 +175,19 @@ class HostDeviceMem(object):
         return self.__str__()
 
 
+def get_input_shape(engine):
+    """Get input shape of the TensorRT YOLO engine."""
+    binding = engine[0]
+    assert engine.binding_is_input(binding)
+    binding_dims = engine.get_binding_shape(binding)
+    if len(binding_dims) == 4:
+        return tuple(binding_dims[2:])
+    elif len(binding_dims) == 3:
+        return tuple(binding_dims[1:])
+    else:
+        raise ValueError('bad dims of binding %s: %s' % (binding, str(binding_dims)))
+
+
 def allocate_buffers(engine):
     """Allocates all host/device in/out buffers required for an engine."""
     inputs = []
@@ -182,10 +195,16 @@ def allocate_buffers(engine):
     bindings = []
     output_idx = 0
     stream = cuda.Stream()
-    assert 3 <= len(engine) <= 4  # expect 1 input, plus 2 or 3 outpus
     for binding in engine:
-        size = trt.volume(engine.get_binding_shape(binding)) * \
-               engine.max_batch_size
+        binding_dims = engine.get_binding_shape(binding)
+        if len(binding_dims) == 4:
+            # explicit batch case (TensorRT 7+)
+            size = trt.volume(binding_dims)
+        elif len(binding_dims) == 3:
+            # implicit batch case (TensorRT 6 or older)
+            size = trt.volume(binding_dims) * engine.max_batch_size
+        else:
+            raise ValueError('bad dims of binding %s: %s' % (binding, str(binding_dims)))
         dtype = trt.nptype(engine.get_binding_dtype(binding))
         # Allocate host and device buffers
         host_mem = cuda.pagelocked_empty(size, dtype)
@@ -201,6 +220,8 @@ def allocate_buffers(engine):
             assert size % 7 == 0
             outputs.append(HostDeviceMem(host_mem, device_mem))
             output_idx += 1
+    assert len(inputs) == 1
+    assert len(outputs) == 1
     return inputs, outputs, bindings, stream
 
 
@@ -243,22 +264,6 @@ def do_inference_v2(context, bindings, inputs, outputs, stream):
     return [out.host for out in outputs]
 
 
-def get_yolo_grid_sizes(model_name, h, w):
-    """Get grid sizes (w*h) for all yolo layers in the model."""
-    if 'yolov3' in model_name:
-        if 'tiny' in model_name:
-            return [(h // 32) * (w // 32), (h // 16) * (w // 16)]
-        else:
-            return [(h // 32) * (w // 32), (h // 16) * (w // 16), (h // 8) * (w // 8)]
-    elif 'yolov4' in model_name:
-        if 'tiny' in model_name:
-            return [(h // 32) * (w // 32), (h // 16) * (w // 16)]
-        else:
-            return [(h // 8) * (w // 8), (h // 16) * (w // 16), (h // 32) * (w // 32)]
-    else:
-        raise ValueError('ERROR: unknown model (%s)!' % args.model)
-
-
 class TrtYOLO(object):
     """TrtYOLO class encapsulates things needed to run TRT YOLO."""
 
@@ -267,11 +272,9 @@ class TrtYOLO(object):
         with open(TRTbin, 'rb') as f, trt.Runtime(self.trt_logger) as runtime:
             return runtime.deserialize_cuda_engine(f.read())
 
-    def __init__(self, model, input_shape, category_num=80, letter_box=False,
-                 cuda_ctx=None):
+    def __init__(self, model, category_num=80, letter_box=False, cuda_ctx=None):
         """Initialize TensorRT plugins, engine and conetxt."""
         self.model = model
-        self.input_shape = input_shape
         self.category_num = category_num
         self.letter_box = letter_box
         self.cuda_ctx = cuda_ctx
@@ -282,6 +285,8 @@ class TrtYOLO(object):
                                          else do_inference_v2
         self.trt_logger = trt.Logger(trt.Logger.INFO)
         self.engine = self._load_engine()
+
+        self.input_shape = get_input_shape(self.engine)
 
         try:
             self.context = self.engine.create_execution_context()

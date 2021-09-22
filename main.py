@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import threading
 import time
 from decoder.FFmpegDecoder import FFmpegDecoder
 from detector.event.assault.main import AssaultEvent
@@ -30,8 +31,9 @@ class EdgeModule:
     def __init__(self):
         ret = self.load_settings()
         ret = self.load_models()
-        self.message_poll = []
-        self.communicator = Communicator(self.communication_info, self.streaming_url, self.message_poll)
+        self.message_pool = []
+        self.frame_buffer = []
+        self.communicator = Communicator(self.communication_info, self.streaming_url, self.message_pool)
 
     def load_settings(self):
         try:
@@ -45,7 +47,7 @@ class EdgeModule:
             self.communication_info = communication_info
             self.od_option = od_option
             self.event_option = event_option
-
+            self.load_decoder()
             return True
         except :
             print(Logging.e("Cannot load setting.json"))
@@ -62,8 +64,8 @@ class EdgeModule:
         print(Logging.s("Streaming URL\t\t\t: {}".format(streaming_url)))
         print(Logging.s("Extract FPS\t\t\t: {}".format(fps)))
         print(Logging.s("Communication info:"))
-        print(Logging.s("\tServer URL\t\t\t: {}:{}".format(communication_info['server_url']['ip'], communication_info['server_url']['port'])))
-        print(Logging.s("\tMessage Size\t\t\t: {}".format(communication_info['message_size'])))
+        print(Logging.s("\tServer URL\t\t: {}:{}".format(communication_info['server_url']['ip'], communication_info['server_url']['port'])))
+        print(Logging.s("\tMessage Size\t\t: {}".format(communication_info['message_size'])))
         print(Logging.s("Object detection model INFO: "))
         print(Logging.s("\tModel name\t\t: {}".format(od_option['model_name'])))
         print(Logging.s("\tScore Threshold\t\t: {}".format(od_option['score_thresh'])))
@@ -73,6 +75,17 @@ class EdgeModule:
 
         return streaming_url, fps, communication_info, od_option, event_option
 
+    def load_decoder(self):
+        self.decoder = FFmpegDecoder(self.streaming_url, fps=self.fps)
+        self.decoder.load()
+
+    def run_decoder(self):
+        while True:
+            ret, frame = self.decoder.read()
+            if ret == False:
+                break
+            else:
+                self.frame_buffer.append(frame)
 
     def load_models(self):
         od_model_name = self.od_option["model_name"]
@@ -109,55 +122,60 @@ class EdgeModule:
         process_time = 0
 
         frame_number = 1
-
-        decoder = FFmpegDecoder(self.streaming_url, fps=self.fps)
-        decoder.load()
+        self.decoder_thread = threading.Thread(target=self.run_decoder,)
+        self.decoder_thread.start()
 
         while True:
-            start_time = time.time()
-            ret, frame = decoder.read()
-            if ret == False:
-                break
+            if len(self.frame_buffer) > 0 :
+                frame = self.frame_buffer.pop(0)
+                start_time = time.time()
 
-            frame_info = {"frame": frame, "frame_number": frame_number}
-            results = self.od_model.inference_by_image(frame)
+                frame_info = {"frame": frame, "frame_number": frame_number}
+                results = self.od_model.inference_by_image(frame)
 
-            dict_result = dict()
-            dict_result["frame_number"] = frame_number
-            dict_result["results"] = []
-            dict_result["results"].append({"detection_result": results})
+                dict_result = dict()
+                dict_result["frame_number"] = frame_number
+                dict_result["results"] = []
+                dict_result["results"].append({"detection_result": results})
 
-            for event_model in self.event_models:
-                event_model.inference(frame_info, dict_result)
-                event_model.merge_sequence(frame_info, 0)
+                for event_model in self.event_models:
+                    event_model.inference(frame_info, dict_result)
+                    event_model.merge_sequence(frame_info, 0)
 
-            for event_model in self.event_models:
-                now = datetime.datetime.now()
-                if event_model.new_seq_flag == True:
-                    event_model.new_seq_flag = False
-                    print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
-                    self.communicator.send_event(event_model.model_name, now, "start")
-                if len(event_model.frameseq) > 0:
-                    sequence = event_model.frameseq.pop()
-                    print(Logging.d("Send end time of {} event sequence({})".format(event_model.model_name, now)))
-                    self.communicator.send_event(event_model.model_name, now, "end")
+                for event_model in self.event_models:
+                    now = datetime.datetime.now()
+                    if event_model.new_seq_flag == True:
+                        event_model.new_seq_flag = False
+                        print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
+                        self.communicator.send_event(event_model.model_name, now, "start")
+                    if len(event_model.frameseq) > 0:
+                        sequence = event_model.frameseq.pop()
+                        print(Logging.d("Send end time of {} event sequence({})".format(event_model.model_name, now)))
+                        self.communicator.send_event(event_model.model_name, now, "end")
 
-            frame_number += 1
+                frame_number += 1
 
-            end_time = time.time()
-            process_time += (end_time - start_time)
-            process_framecount += 1
+                end_time = time.time()
+                process_time += (end_time - start_time)
+                process_framecount += 1
 
-            print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tobject:{}\t"
-                  .format(frame_number, round(process_framecount / process_time, 3), len(results))), end='')
-            print("({:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5})"
-                .format(
-                self.event_models[0].model_name, round(self.event_models[0].analysis_time, 3),
-                self.event_models[1].model_name, round(self.event_models[1].analysis_time, 3),
-                self.event_models[2].model_name, round(self.event_models[2].analysis_time, 3),
-                self.event_models[3].model_name, round(self.event_models[3].analysis_time, 3),
-                self.event_models[4].model_name, round(self.event_models[4].analysis_time, 3),
-            ))
+                print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tinference time: {:<5}\t|\tframe buffer: {}"
+                    .format(
+                        frame_number,
+                        round(process_framecount / process_time, 3),
+                        round(end_time - start_time, 5),
+                        len(self.frame_buffer)
+                    )),
+                end='')
+                # print("({:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5})"
+                #     .format(
+                #     self.event_models[0].model_name, round(self.event_models[0].analysis_time, 3),
+                #     self.event_models[1].model_name, round(self.event_models[1].analysis_time, 3),
+                #     self.event_models[2].model_name, round(self.event_models[2].analysis_time, 3),
+                #     self.event_models[3].model_name, round(self.event_models[3].analysis_time, 3),
+                #     self.event_models[4].model_name, round(self.event_models[4].analysis_time, 3),
+                # ), end='')
+                print()
 
 
 if __name__ == '__main__':
