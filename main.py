@@ -48,6 +48,7 @@ class EdgeModule:
             self.od_option = od_option
             self.event_option = event_option
             self.load_decoder()
+            self.decoder_thread = None
             return True
         except :
             print(Logging.e("Cannot load setting.json"))
@@ -146,12 +147,14 @@ class EdgeModule:
                     now = datetime.datetime.now()
                     if event_model.new_seq_flag == True:
                         event_model.new_seq_flag = False
+                        self.communicator.send_event(event_model.model_name, now, "start", None)
                         print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
-                        self.communicator.send_event(event_model.model_name, now, "start")
                     if len(event_model.frameseq) > 0:
                         sequence = event_model.frameseq.pop()
-                        print(Logging.d("Send end time of {} event sequence({})".format(event_model.model_name, now)))
-                        self.communicator.send_event(event_model.model_name, now, "end")
+                        message = sequence
+                        message["duration"] = (sequence["end_frame"] - sequence["start_frame"])/self.fps
+                        self.communicator.send_event(event_model.model_name, now, "end", message)
+                        print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
 
                 frame_number += 1
 
@@ -159,23 +162,12 @@ class EdgeModule:
                 process_time += (end_time - start_time)
                 process_framecount += 1
 
-                print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tinference time: {:<5}\t|\tframe buffer: {}"
+                print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tframe buffer: {}\t|\t"
                     .format(
                         frame_number,
                         round(process_framecount / process_time, 3),
-                        round(end_time - start_time, 5),
                         len(self.frame_buffer)
-                    )),
-                end='')
-                # print("({:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5} / {:>10}: {:>5})"
-                #     .format(
-                #     self.event_models[0].model_name, round(self.event_models[0].analysis_time, 3),
-                #     self.event_models[1].model_name, round(self.event_models[1].analysis_time, 3),
-                #     self.event_models[2].model_name, round(self.event_models[2].analysis_time, 3),
-                #     self.event_models[3].model_name, round(self.event_models[3].analysis_time, 3),
-                #     self.event_models[4].model_name, round(self.event_models[4].analysis_time, 3),
-                # ), end='')
-                print()
+                    )))
 
 
 if __name__ == '__main__':
