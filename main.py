@@ -33,7 +33,7 @@ class EdgeModule:
         ret = self.load_models()
         self.message_pool = []
         self.frame_buffer = []
-        self.communicator = Communicator(self.communication_info, self.streaming_url, self.message_pool)
+        self.communicator = Communicator(self.communication_info, self.streaming_url, self.streaming_type, self.message_pool)
 
     def load_settings(self):
         try:
@@ -41,8 +41,9 @@ class EdgeModule:
             with open(setting_path, 'r') as setting_file:
                 dict_settings = json.load(setting_file)
                 setting_file.close()
-            streaming_url, fps, communication_info, od_option, event_option = self.__parse_settings(dict_settings)
+            streaming_url, streaming_type, fps, communication_info, od_option, event_option = self.__parse_settings(dict_settings)
             self.streaming_url = streaming_url
+            self.streaming_type = streaming_type
             self.fps = fps
             self.communication_info = communication_info
             self.od_option = od_option
@@ -55,7 +56,8 @@ class EdgeModule:
             exit(0)
 
     def __parse_settings(self, dict_settings):
-        streaming_url = dict_settings['streaming_url']
+        streaming_url = dict_settings['cctv_info']['streaming_url']
+        streaming_type = dict_settings['cctv_info']['streaming_type']
         fps = dict_settings['fps']
         communication_info = dict_settings['communication_info']
         od_option = dict_settings['model']['object_detection']
@@ -74,7 +76,7 @@ class EdgeModule:
         print(Logging.s("Event model INFO: "))
         print(Logging.s("\tModels\t\t\t: {}".format(event_option)))
 
-        return streaming_url, fps, communication_info, od_option, event_option
+        return streaming_url, streaming_type, fps, communication_info, od_option, event_option
 
     def load_decoder(self):
         self.decoder = FFmpegDecoder(self.streaming_url, fps=self.fps)

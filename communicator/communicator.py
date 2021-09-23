@@ -7,12 +7,13 @@ from utils import Logging
 
 
 class Communicator:
-    def __init__(self, communication_info, streaming_url, message_pool):
+    def __init__(self, communication_info, streaming_url, streaming_type, message_pool):
         self.client_socket = None
         self.message_pull = None
         self.host = communication_info["server_url"]["ip"]
         self.port = communication_info["server_url"]["port"]
         self.streaming_url = streaming_url
+        self.streaming_type = streaming_type
         self.message_size = communication_info["message_size"]
         self.message_pool = message_pool
         self.load_client()
@@ -22,7 +23,8 @@ class Communicator:
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((self.host, self.port))
         self.client_socket.sendall(str({
-            "id": self.streaming_url,
+            "streaming_url": self.streaming_url,
+            "streaming_type": self.streaming_type,
             "message_type": "connect",
             "time": str(datetime.datetime.now())
         }).encode())
@@ -36,7 +38,8 @@ class Communicator:
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.client_socket.connect((self.host, self.port))
             self.client_socket.send(str({
-                "id": self.streaming_url,
+                "streaming_url": self.streaming_url,
+                "streaming_type": self.streaming_type,
                 "event_name": event_name,
                 "message_type": event_type,
                 "event_time": str(event_time),
