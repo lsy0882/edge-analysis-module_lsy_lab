@@ -98,6 +98,7 @@ class EdgeModule:
             else:
                 od_model = YOLOv4(model=od_model_name, score_threshold=score_thresh, nms_threshold=nms_thresh)
             self.od_model = od_model
+            print(Logging.i("{} model is loaded".format(od_model_name)))
         except:
             print(Logging.e("Cannot load object detection model({})".format(od_model_name)))
             exit(0)
@@ -169,6 +170,10 @@ class EdgeModule:
                         len(self.frame_buffer)
                     )))
 
+
+    def __del__(self):
+        now = datetime.datetime.now()
+        self.communicator.send_event(None, now, "disconnect", None)
 
 if __name__ == '__main__':
     main = EdgeModule()
