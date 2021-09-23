@@ -36,6 +36,7 @@ class YOLOv4:
 
         self.model = TrtYOLO(model, category_num)
 
+
     def inference_by_image(self, image):
         """
         :param image: input image

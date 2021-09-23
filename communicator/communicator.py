@@ -23,7 +23,7 @@ class Communicator:
         self.client_socket.connect((self.host, self.port))
         self.client_socket.sendall(str({
             "id": self.streaming_url,
-            "message_type": "init",
+            "message_type": "connect",
             "time": str(datetime.datetime.now())
         }).encode())
         received_data = self.client_socket.recv(self.message_size)
