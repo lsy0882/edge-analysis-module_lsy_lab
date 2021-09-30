@@ -13,6 +13,7 @@ from detector.event.wanderer.main import WandererEvent
 from detector.object_detection.yolov4 import YOLOv4
 from communicator.communicator import Communicator
 from utils import Logging
+from config import DEBUG
 
 import pycuda.autoinit
 
@@ -151,13 +152,13 @@ class EdgeModule:
                     if event_model.new_seq_flag == True:
                         event_model.new_seq_flag = False
                         self.communicator.send_event(event_model.model_name, now, "start", None)
-                        print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
+                        print(Logging.i("Send start time of {} event sequence({})".format(event_model.model_name, now)))
                     if len(event_model.frameseq) > 0:
                         sequence = event_model.frameseq.pop()
                         message = sequence
                         message["duration"] = (sequence["end_frame"] - sequence["start_frame"])/self.fps
                         self.communicator.send_event(event_model.model_name, now, "end", message)
-                        print(Logging.d("Send start time of {} event sequence({})".format(event_model.model_name, now)))
+                        print(Logging.i("Send start time of {} event sequence({})".format(event_model.model_name, now)))
 
                 frame_number += 1
 
@@ -165,12 +166,13 @@ class EdgeModule:
                 process_time += (end_time - start_time)
                 process_framecount += 1
 
-                print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tframe buffer: {}\t|\t"
-                    .format(
-                        frame_number,
-                        round(process_framecount / process_time, 3),
-                        len(self.frame_buffer)
-                    )))
+                if DEBUG:
+                    print(Logging.d("frame number: {:>6}\t|\tprocess fps: {:>5}\t|\tframe buffer: {}\t|\t"
+                        .format(
+                            frame_number,
+                            round(process_framecount / process_time, 3),
+                            len(self.frame_buffer)
+                        )))
 
 
     def __del__(self):

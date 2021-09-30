@@ -4,7 +4,7 @@ import os
 import json
 
 from utils import Logging
-
+from config import DEBUG
 
 class Communicator:
     def __init__(self, communication_info, streaming_url, streaming_type, message_pool):
@@ -29,7 +29,8 @@ class Communicator:
             "time": str(datetime.datetime.now())
         }).encode())
         received_data = self.client_socket.recv(self.message_size)
-        print(Logging.d((received_data.decode())))
+        if DEBUG:
+            print(Logging.d((received_data.decode())))
         self.client_socket.close()
 
 
@@ -46,7 +47,8 @@ class Communicator:
                 "message": message
             }).encode())
             received_data = self.client_socket.recv(self.message_size)
-            print(Logging.d((received_data.decode())))
+            if DEBUG:
+                print(Logging.d((received_data.decode())))
             self.client_socket.close()
         except:
             print(Logging.e("Failed to send message"))
