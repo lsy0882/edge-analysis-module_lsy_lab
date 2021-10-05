@@ -21,11 +21,11 @@ class AssaultEvent(Event):
         self.prev_frame = []
         self.frame_count = 0
         self.frameseq = []
-        self.framefreqseq = []
         self.r_value = False
         self.frameseq_info = {"start": 0, "end": 1}
         self.seq_count = 0
-   
+        self.x_sum = 0
+        self.y_sum = 0
 
     def inference(self, frame_info, detection_result):
         frame = frame_info["frame"]
@@ -59,13 +59,52 @@ class AssaultEvent(Event):
             if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.5:
                 person_num = person_num + 1
                 if info_['position']['w'] > 0 and info_['position']['h'] > 0:
+                  self.x_sum = self.x_sum + info_['position']['x']
+                  self.y_sum = self.y_sum + info_['position']['y']
                   pt_ = np.asarray([info_['position']['x'] + info_['position']['w'] / 2,
                                     info_['position']['y'] + info_['position']['h'] / 2])
                   position_list.append(pt_)
-
+        print("\n")          
+        print(position_list)
         combinations_ = list(itertools.combinations(position_list, 2))
 
         dist_sum = 0
+  
+        if person_num != 0:
+
+         self.x_sum = self.x_sum / person_num
+         self.y_sum = self.y_sum / person_num
+
+         print("\n")
+         print(self.x_sum)
+         print("\n")
+         print(self.y_sum)
+         print("\n")
+
+        #self.x_sum = 0
+        #self.y_sum = 0
+
+
+        dist_many = 0
+
+        if person_num != 0:
+         for info_ in detection_result:
+            if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.5:
+                if info_['position']['w'] > 0 and info_['position']['h'] > 0:
+                    dist_many = dist_many + np.sqrt(((self.x_sum - info_['position']['x']) * (self.x_sum - info_['position']['x'])) + ((self.y_sum - info_['position']['y']) * (self.y_sum - info_['position']['y'])))
+
+
+
+         dist_many = dist_many / person_num
+   
+         print("\n\ndist many:\n")
+         print(dist_many)
+
+        #dist_many = 0
+
+        self.x_sum = 0
+        self.y_sum = 0
+
 
         for pt_ in combinations_:
             dist_ = np.linalg.norm(pt_[0] - pt_[1])
@@ -78,14 +117,16 @@ class AssaultEvent(Event):
     
         self.result = False
 
-        if person_num > 4:
+        if person_num > 4 and dist_many > 70:
+            dist_many = 0
             self.history.append(0)
             self.result = False
             self.prev_frame = []
             self.prev_frame.append(-1)
             return self.result
-
+ 
         else:
+         dist_many = 0
          if person_num > 1:
               velo = []
               dist_list2 = []
@@ -258,7 +299,6 @@ class AssaultEvent(Event):
         return self.result
 
     def merge_sequence(self, frame_info, end_flag):
-
         frame_number = frame_info["frame_number"]
         if self.result is True:
              if self.r_value is True:  # TT
@@ -270,7 +310,7 @@ class AssaultEvent(Event):
                  self.frameseq_info["end"] = frame_number
 
         else:
-            if self.r_value is True:              
+            if self.r_value is True:  
                 self.seq_count = self.seq_count + 1
 
                 if self.seq_count < 120:
@@ -284,5 +324,4 @@ class AssaultEvent(Event):
                 pass
 
         self.r_value = self.result
-
         return self.frameseq
