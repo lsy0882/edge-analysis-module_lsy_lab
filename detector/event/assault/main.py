@@ -273,7 +273,7 @@ class AssaultEvent(Event):
             if self.r_value is True:              
                 self.seq_count = self.seq_count + 1
 
-                if self.seq_count < 80:
+                if self.seq_count < 120:
                     self.result = True
                     self.frameseq_info["end"] = frame_number
                 else:
