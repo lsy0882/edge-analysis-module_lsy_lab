@@ -106,7 +106,7 @@ class TailingEvent(Event):
                 self.row_idx = 0
                 eventFlag = [0, ] * 5
 
-            elif 3 > result["num_of_person"] >= 2:
+            elif result["num_of_person"] >= 2:
                 self.frechet_dl[self.row_idx, :len(result["center_coordinates"])] = result["center_coordinates"]
                 if self.row_idx >= 5:
                     self.row_idx = 0
@@ -182,26 +182,21 @@ class TailingEvent(Event):
                         self.history = self.history[5:]
                         if sum(self.history) >= 3:
                             tmp = 1
-
                         else :
                             tmp = 0
-
                     else :
                         tmp = 0
-
         else :
             tmp = 0
 
-        if len(self.smoothBox) == 100:
+        if len(self.smoothBox) == 300:
             self.smoothBox.pop(0)
         self.smoothBox.append(tmp)                            
 
-
-        if sum(self.smoothBox) >= 9:
+        if sum(self.smoothBox) >= 5:
             self.result = True
         else :
             self.result = False
-
         
         self.frame_cnt += 1
         self.frame = result
