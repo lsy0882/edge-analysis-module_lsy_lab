@@ -95,7 +95,11 @@ class FalldownEvent(Event):
                         if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
                             pass
                         else:
-                            self.before_falldown_count[count] += 1
+                            if int(info_['position']['y']) > 3 and int(info_['position']['y']) + int(info_['position']['h']) < 356:
+                                self.before_falldown_count[count] += 1
+                            else:
+                                if self.before_falldown_count[count] > 0:
+                                    self.before_falldown_count[count] -= 1
                     elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
                         self.before_falldown_count[count] -= 1
                 count += 1 # person count
