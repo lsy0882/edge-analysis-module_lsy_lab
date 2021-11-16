@@ -1,0 +1,29 @@
+{
+  "cctv_info" : {
+    "streaming_url": "rtsp://163.239.25.41:8554/cam1/video1s1",
+    "streaming_type": "ffmpeg"
+  },
+  "fps": 20,
+  "communication_info": {
+    "server_url": {
+      "ip": "163.239.25.42",
+      "port": 8000
+    },
+    "message_size": 1024
+  },
+  "model": {
+    "object_detection": {
+      "model_name": "yolov4-416",
+      "score_thresh": 0.5,
+      "nms_thresh": 0.5
+    },
+    "event": [
+      "assault",
+      "falldown",
+      "kidnapping",
+      "tailing",
+      "wanderer"
+    ]
+  },
+  "reset_duration": 7
+}

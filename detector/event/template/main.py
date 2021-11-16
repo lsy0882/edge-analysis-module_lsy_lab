@@ -12,9 +12,10 @@ class Event:
         self.result = False
         self.frameseq = []
         self.r_value = False
-        self.frameseq_info = {"start": 0, "end": 1}
+        self.frameseq_info = {"start_frame": 0, "end_frame": 1}
         self.model_name = "dummy"
-
+        self.history_flag = False
+        self.new_seq_flag = False
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
@@ -40,26 +41,36 @@ class Event:
             end = time.time()
             self.analysis_time = end - start
 
-
         return self.result
+
 
     def merge_sequence(self, frame_info, end_flag):
         frame_number = frame_info["frame_number"]
         if self.result is True:
             if self.r_value is True:  # TT인 경우
-                self.frameseq_info["end"] = frame_number
+                self.frameseq_info["end_frame"] = frame_number
+                if self.history_flag == True:
+                    self.new_seq_flag = True
+                    self.history_flag = False
                 if end_flag is 1:
                     self.frameseq.append(self.frameseq_info)
             else:  # FT인 경우
-                self.frameseq_info["start"] = frame_number
-                self.frameseq_info["end"] = frame_number
+                self.history_flag = True
+                self.frameseq_info["start_frame"] = frame_number
+                self.frameseq_info["end_frame"] = frame_number
 
         else:
             if self.r_value is True:  # TF인경우
                 self.frameseq.append(self.frameseq_info)
-                self.frameseq_info = {"start": 0, "end": 0}
+                self.frameseq_info = {"start_frame": 0, "end_frame": 0}
             if self.r_value is False:  # FF인경우
                 pass
 
         self.r_value = self.result
         return self.frameseq
+
+    def get_new_seq_flag(self):
+        return self.new_seq_flag
+
+    def set_new_seq_flag(self, value):
+        self.new_seq_flag = value

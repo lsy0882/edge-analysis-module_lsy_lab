@@ -28,9 +28,15 @@ class FFmpegDecoder(Decoder):
 
             uint8_image = numpy.frombuffer(raw_image, dtype='uint8')
             if uint8_image.shape[0] == 0:
+                del raw_image
+                del uint8_image
+
                 return False, None
             else:
                 frame = uint8_image.reshape((self.height, self.width, 3))
+                del raw_image
+                del uint8_image
+
                 return True, frame
         except:
             return False, None

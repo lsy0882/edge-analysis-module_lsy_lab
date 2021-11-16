@@ -25,7 +25,7 @@ docker attach edgeanalysismodule_main_1
 ### Reinstall pip
 * 해당 이미지의 pip가 정상적으로 동작하지 않기 때문에 git-pip.py를 이용하여 재설치 해줍니다.
 ```shell script
-cd /workspace/ssd
+cd /workspace/scripts
 python3 get-pip.py --force-reinstall
 ```
 ### Install python requirements
@@ -37,7 +37,7 @@ pip3 install -r requirements.txt
 ### Install Protobuf, PyCUDA and ONNX
 * Jetson Nano에서 해당 소스 코드를 사용하기 위해서는 protobuf-3.8.0 이 필요하며 apt를 이용해 기본으로 설치할 수 있는 protobuf는 이보다 하위 버전이기 때문에 별도의 빌드 및 설치가 필요합니다.
 ```shell script
-cd /workspace/ssd
+cd /workspace/scripts
 chmod +x ./install_protobuf-3.8.0_root.sh
 chmod +x ./install_pycuda_root.sh
 ./install_protobuf-3.8.0_root.sh
