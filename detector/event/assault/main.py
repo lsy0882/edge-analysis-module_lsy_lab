@@ -55,8 +55,7 @@ class AssaultEvent(Event):
         detection_result = detection_result['results'][0]['detection_result']  
         person_num = 0
         for info_ in detection_result:
-
-            if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.5:
+            if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.5 and info_['position']['w'] > 20 and info_['position']['x'] > 30 and info_['position']['x'] < 580:
                 person_num = person_num + 1
                 if info_['position']['w'] > 0 and info_['position']['h'] > 0:
                   self.x_sum = self.x_sum + info_['position']['x']
@@ -64,8 +63,7 @@ class AssaultEvent(Event):
                   pt_ = np.asarray([info_['position']['x'] + info_['position']['w'] / 2,
                                     info_['position']['y'] + info_['position']['h'] / 2])
                   position_list.append(pt_)
-        print("\n")          
-        print(position_list)
+   
         combinations_ = list(itertools.combinations(position_list, 2))
 
         dist_sum = 0
@@ -74,16 +72,6 @@ class AssaultEvent(Event):
 
          self.x_sum = self.x_sum / person_num
          self.y_sum = self.y_sum / person_num
-
-         print("\n")
-         print(self.x_sum)
-         print("\n")
-         print(self.y_sum)
-         print("\n")
-
-        #self.x_sum = 0
-        #self.y_sum = 0
-
 
         dist_many = 0
 
@@ -96,11 +84,6 @@ class AssaultEvent(Event):
 
 
          dist_many = dist_many / person_num
-   
-         print("\n\ndist many:\n")
-         print(dist_many)
-
-        #dist_many = 0
 
         self.x_sum = 0
         self.y_sum = 0
