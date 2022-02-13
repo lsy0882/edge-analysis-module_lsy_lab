@@ -49,14 +49,16 @@ class TailingEvent(Event):
         self.model_name = "tailing"
         self.analysis_time = 0
         self.debug = debug
-        self.history = [0, ] * 5
+        self.history = [0, ] * 10
         self.result = False
 
-        self.frechet_dl = np.zeros(shape=(6,6, 2), dtype=np.float32)
-        self.max_history = 50
+        self.frechet_dl = np.zeros(shape=(11,11, 2), dtype=np.float32)
+        self.max_history = 10
         self.frame = None
         self.frame_cnt = 0
         self.row_idx = 0
+        self.prev_person = 0
+        self.prev_sim = 0.0
 
         self.mask = None
         self.prev_mask = None
@@ -80,7 +82,8 @@ class TailingEvent(Event):
         detected_person = []
         person_bbox = []
         for i, e in enumerate(detection_result['results'][0]["detection_result"]):
-            if e['label'][0]['description'] in ['person'] and e['label'][0]['score'] >= 0.60 and e['position']['x'] + (e['position']['w'] < e['position']['y'] + e['position']['h']):
+            if e['label'][0]['description'] in ['person'] and e['label'][0]['score'] >= 0.60 and (e['position']['w'] < e['position']['h']) and (e['position']['w'] / e['position']['h'])<0.9:
+                
                 detected_person.append(
                     ((e['position']['x'] + e['position']['w'] / 2), (e['position']['y'] + e['position']['h'] / 2)))
                 person_bbox.append([e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h']])
@@ -91,29 +94,30 @@ class TailingEvent(Event):
 
         # tailing detection module
         # 시작 5frame은 0인 상태
-        eventFlag = [0, ] * 5
+        eventFlag = [0, ] * 10
         tmp = 0
         result["center_coordinates"] = sorted(result["center_coordinates"])
         
         if self.frame != None:
-            if result["num_of_person"] != 2 and self.frame["num_of_person"] != 2:
+            if (result["num_of_person"] < 2 and result["num_of_person"] >=4) and (self.frame["num_of_person"] < 2 and self.frame["num_of_person"] >=4):
                 self.frechet_dl = np.zeros(shape=(11, 11, 2), dtype=np.float32)
-                self.max_history = 5
+                self.max_history = 10
                 self.frame = None
                 self.result = False
                 self.frame_cnt = 0
                 self.nonmove_cnt = 0
                 self.row_idx = 0
-                eventFlag = [0, ] * 5
+                eventFlag = [0, ] * 10
+                self.prev_person = 0
 
-            elif result["num_of_person"] >= 2:
+            elif 4 > result["num_of_person"] >= 2:
                 self.frechet_dl[self.row_idx, :len(result["center_coordinates"])] = result["center_coordinates"]
-                if self.row_idx >= 5:
+                if self.row_idx >= 10:
                     self.row_idx = 0
                 else:
                     self.row_idx += 1
 
-                if self.frame_cnt >= 5:
+                if self.frame_cnt >= 10:
                     each_person_cordinates = []  # 검출된 사람마다의 각 이동좌표를 하나의 열로 연결
                     combi_frechet = []
 
@@ -126,7 +130,6 @@ class TailingEvent(Event):
 
                     self.frechet_dl = np.delete(self.frechet_dl, r_list, axis=0)
                     self.frechet_dl = np.delete(self.frechet_dl, c_list, axis=1)
-
                     
                     
                     index_cnt = 0
@@ -134,15 +137,15 @@ class TailingEvent(Event):
                     for i in range(self.frechet_dl.shape[1]):
                         last_point = check_zeroValue(self.frechet_dl[:, index_cnt], ln)
                         point_movement = last_point - self.frechet_dl[:, index_cnt][0]
-                        if abs(point_movement[0]) < 1.5 and abs(point_movement[1]) < 1.5:
+                        if abs(point_movement[0]) < 2.0 and abs(point_movement[1]) < 2.0:
                             
                             self.frechet_dl = np.delete(self.frechet_dl, index_cnt, axis=1)
                             index_cnt = 0
                         else:
                             index_cnt += 1
 
-                    
-                    if 3 > self.frechet_dl.shape[1] >= 2:
+
+                    if 4 > self.frechet_dl.shape[1] >= 2:
                         transpose_frechet_dl = list(map(list, zip(*self.frechet_dl)))
                         each_person_comb = np.array(list(combinations(transpose_frechet_dl, 2)), dtype=float)
                         combi_frechet = np.array(
@@ -159,28 +162,32 @@ class TailingEvent(Event):
                             p2_sp, p2_ep = each_person_comb[min_idx][1][0], check_zeroValue(
                                 each_person_comb[min_idx][1], ln)
 
-    
+                            
                             dist = np.linalg.norm(p1_ep - p2_ep)
                             
                             movement = abs(np.linalg.norm(p1_ep - p1_sp) - np.linalg.norm(p2_ep - p2_sp))
-                            compare_simiarity = abs(combi_frechet[0] - dist)
+                            compare_simiarity = abs(combi_frechet[min_idx] - dist)
+                            
                             
 
-                            if 1.0 >= cos_sim(p1_sp, p1_ep, p2_sp, p2_ep) > 0.0 and dist > 100.0 and movement < 40.0 and compare_simiarity < 20.0:
-                                eventFlag = [1, ] * 5
+                            if ((1.0 >= cos_sim(p1_sp, p1_ep, p2_sp, p2_ep) > 0.3) or abs(cos_sim(p1_sp, p1_ep, p2_sp, p2_ep))>0.8) and 270.0 > dist > 80.0 and abs(compare_simiarity - movement)<10: 
+                            
+                                eventFlag = [1, ] * 10
+                                
                             else:
-                                eventFlag = [0, ] * 5
-
+                                eventFlag = [0, ] * 10
+                            self.prev_person = result["num_of_person"]
                     else:
-                        eventFlag = [0, ] * 5
+                        eventFlag = [0, ] * 10
 
-                    self.frechet_dl = np.zeros(shape=(6, 6, 2), dtype=np.float32)
+                    
+                    self.frechet_dl = np.zeros(shape=(11, 11, 2), dtype=np.float32)
                     self.frame_cnt = 0
                     
                     self.history.extend(eventFlag)
                     if len(self.history) >= self.max_history:
-                        self.history = self.history[5:]
-                        if sum(self.history) >= 3:
+                        self.history = self.history[10:]
+                        if sum(self.history) >= 7:
                             tmp = 1
                         else :
                             tmp = 0
@@ -189,11 +196,12 @@ class TailingEvent(Event):
         else :
             tmp = 0
 
-        if len(self.smoothBox) == 300:
+        if len(self.smoothBox) == 200:
             self.smoothBox.pop(0)
         self.smoothBox.append(tmp)                            
 
-        if sum(self.smoothBox) >= 5:
+        
+        if sum(self.smoothBox) >= 3:
             self.result = True
         else :
             self.result = False
