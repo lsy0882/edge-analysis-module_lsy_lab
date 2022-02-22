@@ -89,22 +89,23 @@ def load_models(od_model_name="yolov4-416", score_threshold=0.5, nms_threshold=0
     return od_model, event_detectors
 
 
-def make_result_dir(result_dir, video_name):
+def make_result_dir(result_dir, video_name, save_frame_result):
     frame_dir = os.path.join(result_dir, video_name.split(".mp4")[0], "frame")
     fram_bbox_dir = os.path.join(result_dir, video_name.split(".mp4")[0], "fram_bbox")
     json_dir = os.path.join(result_dir, video_name.split(".mp4")[0], "json")
-    event_dir = os.path.join(result_dir, video_name.split(".mp4")[0])
+    event_dir = os.path.join(result_dir)
 
-    if not os.path.exists(frame_dir):
-        os.makedirs(frame_dir)
-    if not os.path.exists(fram_bbox_dir):
-        os.makedirs(fram_bbox_dir)
-    if not os.path.exists(json_dir):
-        os.makedirs(json_dir)
+    if save_frame_result:
+        if not os.path.exists(frame_dir):
+            os.makedirs(frame_dir)
+        if not os.path.exists(fram_bbox_dir):
+            os.makedirs(fram_bbox_dir)
+        if not os.path.exists(json_dir):
+            os.makedirs(json_dir)
 
     return frame_dir, fram_bbox_dir, json_dir, event_dir
 
-def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path):
+def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path, save_frame_result):
     fps = video_info["fps"]
     framecount = video_info["framecount"]
     extract_fps = video_info["extract_fps"]
@@ -113,7 +114,7 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
     decoder.load()
 
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-    video_writer = cv2.VideoWriter(bbox_video_path, fourcc, fps, (640, 360))
+    video_writer = cv2.VideoWriter(bbox_video_path, fourcc, 20, (640, 360))
 
     expected_framecount = int(framecount / fps * extract_fps)
     frame_number = 0
@@ -125,6 +126,8 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
 
     while True:
         ret, frame = decoder.read()
+        # if frame_number == expected_framecount:
+        #     ret = False
         if ret == False:
             end_flag =1
             for event_detector in event_detectors:
@@ -151,21 +154,22 @@ def run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_di
         event_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
         event_result["event_result"] = dict()
 
+        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
+        video_writer.write(frame_bbox)
+
         for event_detector in event_detectors:
             event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result)
             sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
         event_results.append(event_result)
-        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
-        bbox_visualization.put_text(frame_bbox, event_result["event_result"])
-        cv2.imwrite(os.path.join(fram_bbox_dir, frame_name), frame_bbox)
-        video_writer.write(frame_bbox)
+
         
         print("\rframe number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
               .format(frame_number, expected_framecount, int(frame_number / extract_fps * fps), str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))), end='')
 
-        json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
-        json.dump(dict_result, json_result_file, indent=4)
-        json_result_file.close()
+        if save_frame_result:
+            json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
+            json.dump(dict_result, json_result_file, indent=4)
+            json_result_file.close()
     video_writer.release()
     print()
     PrintLog.i("Extraction is successfully completed(framecount: {})".format(frame_number))
@@ -204,7 +208,7 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
 
 
 def extract_sequence_results(event_dir, video_name, sequence_results):
-    sequence_json_file_path = os.path.join(event_dir, "..", video_name.split(".mp4")[0] + ".json")
+    sequence_json_file_path = os.path.join(event_dir, video_name.replace(".mp4", ".json"))
     with open(sequence_json_file_path, "w") as sequence_file:
         json.dump(sequence_results, sequence_file, indent='\t')
 
@@ -220,6 +224,7 @@ if __name__ == '__main__':
     parser.add_argument("--nms_threshold", type=float, default=0.1, help="Object detection nms threshold")
     parser.add_argument("--event_model", type=str, default="all", help="Event model names")
     parser.add_argument("--result_dir", type=str, default="./result", help="Directory path of results and frame")
+    parser.add_argument("--save_frame_result", action='store_true', help="Is save frame result")
 
     option = parser.parse_known_args()[0]
 
@@ -231,6 +236,7 @@ if __name__ == '__main__':
     od_model_name = option.od_model_name
     event_model_names = option.event_model
     result_dir = option.result_dir
+    save_frame_result = option.save_frame_result
     bbox_video_path = os.path.join(result_dir, video_name.split(".mp4")[0] + "_bbox.avi")
     PrintLog.i("Argument Info:\n"
                "\tinput video path: {}\n"
@@ -249,17 +255,18 @@ if __name__ == '__main__':
     od_model, event_detectors = load_models(od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold, event_model_names=event_model_names)
 
     # Result Directory info
-    frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name)
+    frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name, save_frame_result)
 
     # Run FFmpeg
     # frame_path_list = run_ffmpeg(video_path, extract_fps, frame_dir)
 
     # Run detection
     video_info = {"video_path": video_path, "fps": fps, "framecount": framecount, 'extract_fps': extract_fps}
-    event_results, sequence_results = run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path)
+    event_results, sequence_results = run_detection(video_info, od_model, event_detectors, frame_dir, fram_bbox_dir, json_dir, bbox_video_path, save_frame_result)
 
     # Extract event result as csv
-    extract_event_results(split_model_names(event_model_names), event_dir, video_name, event_detectors, event_results)
+    if save_frame_result:
+        extract_event_results(split_model_names(event_model_names), event_dir, video_name, event_detectors, event_results)
 
     # Extract sequence result as json
     extract_sequence_results(event_dir, video_name, sequence_results)
