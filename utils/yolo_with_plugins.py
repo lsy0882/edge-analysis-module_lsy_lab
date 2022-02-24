@@ -15,9 +15,9 @@ import pycuda.driver as cuda
 
 
 try:
-    ctypes.cdll.LoadLibrary('./plugins/libyolo_layer.so')
+    ctypes.cdll.LoadLibrary('detector/object_detection/yolov4/plugins/libyolo_layer.so')
 except OSError as e:
-    raise SystemExit('ERROR: failed to load ./plugins/libyolo_layer.so.  '
+    raise SystemExit('ERROR: failed to load detector/object_detection/yolov4/libyolo_layer.so.  '
                      'Did you forget to do a "make" in the "./plugins/" '
                      'subdirectory?') from e
 
@@ -111,7 +111,7 @@ def _postprocess_yolo(trt_outputs, img_w, img_h, conf_th, nms_threshold,
     # Returns
         boxes, scores, classes (after NMS)
     """
-    # filter low-conf detections and concatenate results of all yolo layers
+    # filter low-conf detections and concatenate results of all yolov4 layers
     detections = []
     for o in trt_outputs:
         dets = o.reshape((-1, 7))
@@ -268,7 +268,7 @@ class TrtYOLO(object):
     """TrtYOLO class encapsulates things needed to run TRT YOLO."""
 
     def _load_engine(self):
-        TRTbin = 'yolo/%s.trt' % self.model
+        TRTbin = 'yolov4/%s.trt' % self.model
         with open(TRTbin, 'rb') as f, trt.Runtime(self.trt_logger) as runtime:
             return runtime.deserialize_cuda_engine(f.read())
 

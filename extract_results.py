@@ -4,8 +4,6 @@ import os
 import cv2
 import csv
 
-import pycuda.autoinit
-
 from decoder.FFmpegDecoder import FFmpegDecoder
 from detector.event.assault.main import AssaultEvent
 from detector.event.falldown.main import FalldownEvent
@@ -13,7 +11,7 @@ from detector.event.kidnapping.main import KidnappingEvent
 from detector.event.obstacle.main import ObstacleEvent
 from detector.event.tailing.main import TailingEvent
 from detector.event.wanderer.main import WandererEvent
-from detector.object_detection.yolov4 import YOLOv4
+from detector.object_detection.yolov4.yolov4 import YOLOv4
 
 from utils.time_util import convert_framenumber2timestamp
 from utils import PrintLog
