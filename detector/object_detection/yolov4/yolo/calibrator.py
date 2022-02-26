@@ -59,7 +59,6 @@ import os
 
 import numpy as np
 import cv2
-import pycuda.autoinit
 import pycuda.driver as cuda
 import tensorrt as trt
 

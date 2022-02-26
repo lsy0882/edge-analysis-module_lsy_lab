@@ -19,5 +19,13 @@ def v(message):
 def i(message):
     return "[{}] -     INFO: {}".format(str(datetime.datetime.now()), message)
 
+
+def ir(message):
+    return "\r[{}] -     INFO: {}".format(str(datetime.datetime.now()), message)
+
+def inl(message):
+    return "\n[{}] -     INFO: {}".format(str(datetime.datetime.now()), message)
+
+
 def s(message):
     return "{:<41}{}".format(" ", message)

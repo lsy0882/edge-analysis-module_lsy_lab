@@ -1,3 +1,5 @@
+flask
+PyYaml
 filterpy
 onnx==1.4.1
 similaritymeasures

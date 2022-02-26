@@ -93,8 +93,7 @@ class BBoxVisualization():
             img = draw_boxed_text(img, txt, txt_loc, color)
         return img
 
-    def put_text(self, img, event_result):
-        event_names = ["wanderer", "tailing", "kidnapping", "falldown", "assault"]
+    def put_text(self, img, event_result, event_names):
         img_h, img_w, _ = img.shape
         for i, event_name in enumerate(event_names):
             color = self.event_colors[event_name]

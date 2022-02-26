@@ -7,6 +7,7 @@ Implementation of TrtYOLO class with the yolo_layer plugins.
 from __future__ import print_function
 
 import ctypes
+import os
 
 import numpy as np
 import cv2
@@ -268,7 +269,8 @@ class TrtYOLO(object):
     """TrtYOLO class encapsulates things needed to run TRT YOLO."""
 
     def _load_engine(self):
-        TRTbin = 'yolov4/%s.trt' % self.model
+        TRTbin = 'yolo/%s.trt' % self.model
+        TRTbin = os.path.join(os.getcwd(), "detector/object_detection/yolov4/", TRTbin)
         with open(TRTbin, 'rb') as f, trt.Runtime(self.trt_logger) as runtime:
             return runtime.deserialize_cuda_engine(f.read())
 
