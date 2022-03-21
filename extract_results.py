@@ -223,8 +223,8 @@ def draw_event(bbox_video_path, sequence_json_path, extract_fps, events):
     date = datetime.datetime.now().strftime("%Y%m%d")[2:]
 
     origin_video_path = bbox_video_path
-    event_video_path = sequence_json_path.replace(".json", "") + "_edge_" + str(extract_fps) + "fps_" + date + ".mp4"
-    json_file_path = sequence_json_path.replace(".json", "") + "_edge_" + str(extract_fps) + "fps_" + date + ".json"
+    event_video_path = bbox_video_path.replace("_bbox.avi", "") + "_edge_" + str(extract_fps) + "fps_" + date + ".mp4"
+    json_file_path = bbox_video_path.replace("_bbox.avi", "") + "_edge_" + str(extract_fps) + "fps_" + date + ".json"
     resolution = (640, 360)
 
     cls_dict = get_cls_dict(15)
@@ -260,13 +260,13 @@ def draw_event(bbox_video_path, sequence_json_path, extract_fps, events):
         else:
             frame_event = bbox_visualization.put_text(frame, results[frame_number], events)
             video_writer.write(frame_event)
-            print(Logging.ir("frame number: {}/{} - {}".format(frame_number, frame_count, results[frame_number])), end="")
+            print(Logging.ir("frame number: {:>6}/{} - {}".format(frame_number, frame_count, results[frame_number])), end="")
             frame_number += 1
     print()
 
     video_capture.release()
     video_writer.release()
-    os.rename(sequence_json_path, json_file_path.replace(".json", "_edge_" + str(fps) + "fps_" + date + ".json"))
+    os.rename(sequence_json_path, json_file_path)
     print(Logging.i("Sequence result video is successfully generated(path: {})".format(event_video_path)))
     print(Logging.i("Sequence json file is successfully generated(path: {})".format(json_file_path)))
 
