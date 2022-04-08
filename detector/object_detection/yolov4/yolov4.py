@@ -6,7 +6,7 @@ from utils import Logging
 class YOLOv4:
     def __init__(self, model='yolov4-416',
                  dataset='obstacle',
-                 score_threshold=0.5,
+                 score_threshold=0.0,
                  nms_threshold=0.5):
         """
         :param model: model name

@@ -33,7 +33,8 @@ class WandererEvent(Event):
         self.temp_frame = 1
 
 
-    def inference(self, frame_info, detection_result):
+    def inference(self, frame_info, detection_result, score_threshold=0.5):
+            detection_result = self.filter_object_result(detection_result, score_threshold)
             frame = frame_info["frame"]
             frame_number = frame_info["frame_number"]
 

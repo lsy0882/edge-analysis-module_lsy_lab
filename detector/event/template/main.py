@@ -14,15 +14,13 @@ class Event:
         self.r_value = False
         self.frameseq_info = {"start_frame": 0, "end_frame": 1}
         self.model_name = "dummy"
-        self.history_flag = False
-        self.new_seq_flag = False
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 7개 변수(model_name, analysis_time, debug, result, frameseq, r_value, frameseq_info) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-    def inference(self, frame_info, detection_result):
+    def inference(self, frame_info, detection_result, score_threshold=0.5):
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
         start = 0
@@ -30,6 +28,7 @@ class Event:
         if self.debug :
             start = time.time()
 
+        detection_result = self.filter_object_result(detection_result, score_threshold)
         # TODO: analysis
         # - 분석에 필요한 내용을 작성해주실 부분입니다.
         # - 마지막 라인(return self.result)는 테스트 코드에서 확인하기 위한 코드이며 실제로는 thread에서 사용하지 않습니다.
@@ -42,7 +41,6 @@ class Event:
             self.analysis_time = end - start
 
         return self.result
-
 
     def merge_sequence(self, frame_info, end_flag):
         frame_number = frame_info["frame_number"]
@@ -69,8 +67,11 @@ class Event:
         self.r_value = self.result
         return self.frameseq
 
-    def get_new_seq_flag(self):
-        return self.new_seq_flag
-
-    def set_new_seq_flag(self, value):
-        self.new_seq_flag = value
+    def filter_object_result(self, detection_result, score_threshold):
+        object_result = []
+        for obj in detection_result["results"][0]["detection_result"]:
+            score = obj["label"][0]["score"]
+            if score > score_threshold:
+                object_result.append(obj)
+        detection_result["results"][0]["detection_result"] = object_result
+        return detection_result

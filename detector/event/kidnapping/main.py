@@ -58,7 +58,8 @@ class KidnappingEvent(Event):
         self.debug = debug
         self.history = []
 
-    def inference(self, frame, detection_result):
+    def inference(self, frame_info, detection_result, score_threshold=0.5):
+        detection_result = self.filter_object_result(detection_result, score_threshold)
         start = 0
         end = 0
         if self.debug :

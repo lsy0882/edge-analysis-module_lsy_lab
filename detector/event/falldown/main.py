@@ -39,7 +39,8 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
 
-    def inference(self, frame_info, od_result):
+    def inference(self, frame_info, detection_result, score_threshold=0.5):
+        od_result = self.filter_object_result(detection_result, score_threshold)
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
         start = 0
