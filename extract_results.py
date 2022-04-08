@@ -276,7 +276,7 @@ if __name__ == '__main__':
     parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
     parser.add_argument("--nms_th", type=float, default=0.1, help="Object detection nms threshold")
-    parser.add_argument("--assault_score_th", type=float, default=0.1, help="Object score threshold of assault model")
+    parser.add_argument("--assault_score_th", type=float, default=0.5, help="Object score threshold of assault model")
     parser.add_argument("--falldown_score_th", type=float, default=0.5, help="Object score threshold of falldown model")
     parser.add_argument("--kidnapping_score_th", type=float, default=0.5, help="Object score threshold of kidnapping model")
     parser.add_argument("--tailing_score_th", type=float, default=0.5, help="Object score threshold of tailing model")
@@ -320,7 +320,7 @@ if __name__ == '__main__':
     capture, framecount, fps = load_video(video_path, extract_fps)
 
     # Load Object Detection & Event Detection models
-    od_model, event_detectors = load_models(od_model_name, score_threshold=0.0, nms_threshold=nms_threshold, event_model_names=event_model_names)
+    od_model, event_detectors = load_models(od_model_name, score_threshold=0.1, nms_threshold=nms_threshold, event_model_names=event_model_names)
 
     # Result Directory info
     frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name, save_frame_result)
