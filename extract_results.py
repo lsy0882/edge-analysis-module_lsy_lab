@@ -130,7 +130,7 @@ def run_detection(video_info, od_model, score_threshold, event_detectors, frame_
         if ret == False:
             end_flag =1
             for event_detector in event_detectors:
-                sequence_result[event_detector.model_name] = event_detector.merge_sequence(None, end_flag)
+                sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
             break
 
         frame_number += 1
