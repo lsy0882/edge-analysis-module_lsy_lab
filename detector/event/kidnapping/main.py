@@ -8,13 +8,13 @@ from itertools import combinations, product
 from detector.event.template.main import Event
 
 def boxOverlapCheck(coord1, coord2, type):
-    
+
     if type == 2:
         if (coord1[2] * coord1[3]) >= (coord2[2] * coord2[3]):
             return 0
     elif type == 1:
-        p1 = coord1[2] * coord1[3]
-        p2 = coord2[2] * coord2[3]
+        p1 = coord1[2] * coord1[3] # y*w
+        p2 = coord2[2] * coord2[3] # y*w
         if p1 != p2:
             if p1 > p2:
                 bigger = p1
@@ -29,38 +29,22 @@ def boxOverlapCheck(coord1, coord2, type):
     coord.append(coord1)
     coord.append(coord2)
     eventFlag = 0
-
-    if type == 1:
-        coord1_center = np.array([coord1[0] + coord1[2]/2 , coord1[1] + coord1[3]/2])
-        coord2_center = np.array([coord2[0] + coord2[2]/2 , coord2[1] + coord2[3]/2])
-        dist = np.linalg.norm(coord1_center - coord2_center)
-        if dist < 25:
-            eventFlag += 1
-
-    for target, _ in enumerate(coord):
+    for target in range(2):
         targetCoord = []
-        targetCoord = ((coord[target][0], coord[target][1]),
-            (coord[target][0], coord[target][1] + coord[target][3]),
-            (coord[target][0] + coord[target][2], coord[target][1]),
-            (coord[target][0] + coord[target][2], coord[target][1] + coord[target][3]))
+        targetCoord = ((coord[target][0], coord[target][1]), ### (x,y)
+            (coord[target][0], coord[target][1] + coord[target][3]), ### (x, y+h)
+            (coord[target][0] + coord[target][2], coord[target][1]), ### (x+w, y)
+            (coord[target][0] + coord[target][2], coord[target][1] + coord[target][3])) ### (x+w, y+h)
         if target < 1 :
             other = 1
         else :
             other = 0
-        
-        #box overlap
-        for i in range(4):
+        for i in range(4): 
             if targetCoord[i][0] >= coord[other][0] and targetCoord[i][0] <= (coord[other][0] + coord[other][2]):
                 if targetCoord[i][1] >= coord[other][1] and targetCoord[i][1] <= (coord[other][1] + coord[other][3]):
-                    eventFlag += 1
-    
-    
-    if eventFlag >= 1:
-        eventFlag = 1
+                    eventFlag = 1
 
-    
     return eventFlag
-
 
 class KidnappingEvent(Event):
     model = None
@@ -85,11 +69,13 @@ class KidnappingEvent(Event):
         detected_person, detected_vehicles = [], []
         for i, e in enumerate(detection_result['results'][0]['detection_result']):
             if e['label'][0]['description'] in ['person'] and e['label'][0]['score'] > 0.65 and (e['position']['w'] < e['position']['h']) and (e['position']['w'] / e['position']['h'])<0.9:
+             
                 detected_person.append(
                     (e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h'])
                     )
         for i, e in enumerate(detection_result['results'][0]['detection_result']):
-            if e['label'][0]['description'] in ['car'] and e['label'][0]['score'] > 0.6:
+            if e['label'][0]['description'] in ['car'] and e['label'][0]['score'] > 0.5:
+          
                 detected_vehicles.append(
                     (e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h'])
                     )                    
@@ -97,10 +83,7 @@ class KidnappingEvent(Event):
         num_of_vehicles = len(detected_vehicles)
 
         combi, target = [], []
-        vech_person_dist = np.array([])
-        flags = 0
-        dist_first, dist_sec = [], []
-        if num_of_person >= 2 and num_of_person <= 4 and 4 >= num_of_vehicles >= 1:
+        if num_of_person >= 2 and num_of_person <= 4 and num_of_vehicles >= 1: ### 보행자가 2인 이상, 차량이 1개 이상 검출
             pair_of_person_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
             if len(pair_of_person_coordinates) >= 1:
                 for i in range(len(pair_of_person_coordinates)) :
@@ -108,43 +91,23 @@ class KidnappingEvent(Event):
                     if boxOverlapFlag == 1:
                         combi.append(pair_of_person_coordinates[i][0])
                         combi.append(pair_of_person_coordinates[i][1])
-            
             if len(combi) >= 1:
                 pair_of_coordinates = np.array(list(product(combi, detected_vehicles)), dtype=int)
                 if len(pair_of_coordinates) >= 1 :
-                   
                     for i in range(len(pair_of_coordinates)) :
                         boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1], type=2)
-                        coord1_center = np.array([pair_of_coordinates[i][0][0] + pair_of_coordinates[i][0][2]/2 , pair_of_coordinates[i][0][1] + pair_of_coordinates[i][0][3]/2])
-                        coord2_center = np.array([pair_of_coordinates[i][1][0] + pair_of_coordinates[i][1][2]/2 , pair_of_coordinates[i][1][1] + pair_of_coordinates[i][1][3]/2])
-                        dist = np.linalg.norm(coord1_center - coord2_center)
-                        vech_person_dist = np.append(vech_person_dist, dist)
-                        flags += boxOverlapFlag
+                        if boxOverlapFlag == 1:
+                            ret = 1
 
-                    
-                    idx = int(len(pair_of_coordinates)/len(combi))
-                    dist_first = vech_person_dist[:idx]
-                    dist_sec = vech_person_dist[idx:]
 
-                    if flags >= 1:
-                        ret = 1
-                    
-
-                    if flags == 0:
-                        if len(dist_first) == len(dist_sec):
-                            if (abs(min(dist_first) - min(dist_sec)) < 25) and (min(dist_first) < 120 and min(dist_sec)<120):
-                                ret += 1
-                    
-                
-        if ret >= 1:
-            ret = 1
-            
+        
+        
         if len(self.history) == 80 :
             self.history.pop(0)
 
         self.history.append(ret)
 
-        if sum(self.history) >= 2:
+        if sum(self.history) >= 2 :
             self.result = True
         else :
             self.result = False
