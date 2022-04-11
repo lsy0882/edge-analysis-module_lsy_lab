@@ -275,7 +275,7 @@ if __name__ == '__main__':
     parser.add_argument("--video_path", type=str, default="videos/001_360.mp4", help="Video path")
     parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
-    parser.add_argument("--nms_th", type=float, default=0.1, help="Object detection nms threshold")
+    parser.add_argument("--nms_th", type=float, default=0.5, help="Object detection nms threshold")
     parser.add_argument("--assault_score_th", type=float, default=0.5, help="Object score threshold of assault model")
     parser.add_argument("--falldown_score_th", type=float, default=0.5, help="Object score threshold of falldown model")
     parser.add_argument("--kidnapping_score_th", type=float, default=0.5, help="Object score threshold of kidnapping model")
