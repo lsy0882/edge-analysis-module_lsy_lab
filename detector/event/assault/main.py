@@ -1,9 +1,65 @@
 import os
 import time
-import itertools
+from itertools import combinations, product
 import numpy as np
+import pdb
+import math
+
 from detector.event.template.main import Event
 from PIL import Image
+from .bytetrack.byte_tracker_custom import BYTETracker
+
+# Call BYTE Tracker
+tracker = BYTETracker(track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=20)
+
+# Code by LSY
+def det_to_trk_data_conversion(detection_result):
+    '''
+        architecture(detection_result): 
+            [
+                {'label': [{'description': 'class_name', 'score': float, 'class_idx': int}], 'position': {'x': int, 'y': int, 'w': int, 'h': int}}, ...}
+            ]
+    '''
+    detection_result = detection_result['results'][0]['detection_result']
+    boxes_tmp_list = []
+    boxes_list = []
+    scores_tmp_list = []
+    scores_list = []
+    classes_tmp_list = []
+    classes_list = []
+    for info_ in detection_result:
+        boxes_tmp_list.append(info_['position']['x'])
+        boxes_tmp_list.append(info_['position']['y'])
+        boxes_tmp_list.append(info_['position']['x'] + info_['position']['w'])
+        boxes_tmp_list.append(info_['position']['y'] + info_['position']['h'])
+        scores_tmp_list.append(info_['label'][0]['score'])
+        classes_tmp_list.append(info_['label'][0]['class_idx'])
+        boxes_list.append(boxes_tmp_list)
+        scores_list.append(scores_tmp_list)
+        classes_list.append(classes_tmp_list)
+        boxes_tmp_list = []
+        scores_tmp_list = []
+        classes_tmp_list = []
+    '''
+        arhitecture(boxes_list_array): array([[x0, y0, x1, y1], ... ])
+        arhitecture(scores_list_array): array([[score], ... ])
+        arhitecture(classes_list_array): array([[class], ... ])
+        
+        => boxes_list_array, scores_list_array, classes_list_array are detection results that exist in current frame
+    '''
+    boxes_list_array = np.array(boxes_list)
+    scores_list_array = np.array(scores_list)
+    classes_list_array = np.array(classes_list)
+
+    return boxes_list_array, scores_list_array, classes_list_array
+
+def is_not_boundary(xyah):
+        x = xyah[0]
+        y = xyah[1]
+        if 20 < x < 605 and 30 < y < 318:
+            return True
+        else:
+            return False
 
 
 class AssaultEvent(Event):
@@ -13,303 +69,169 @@ class AssaultEvent(Event):
     def __init__(self, debug=False):
         super().__init__(debug)
         self.model_name = "assault"
-        self.history = []
         self.debug = debug
-        self.result = 0
-        self.analysis_time = 0
-        self.distance_sum = []
-        self.prev_frame = []
-        self.frame_count = 0
-        self.frameseq = []
-        self.r_value = False
-        self.frameseq_info = {"start_frame": 0, "end_frame": 1}
-        self.seq_count = 0
-        self.x_sum = 0
-        self.y_sum = 0
 
-    def inference(self, frame_info, detection_result, score_threshold=0.5):
+        self.result = False
+        self.frame_count = 0
+        self.analysis_time = 0
+
+        self.impact_history = []
+        self.merge_history = []
+        self.start_assault_true_alarm_frame = 9999999
+
+    def inference(self, frame_info, detection_result, score_threshold=0.1): 
+        '''
+            architecture(frame_info):
+                {
+                    'frame': array[ [[], ..., []], ...] => shape: (360, 640, 3),
+                    'frame_number': int
+                }
+            architecture(detection_result):
+                {
+                    'image_path': 'jpg_path', 'cam_address': 'avi_path', 'module': 'yolov4-416', 'frame_number': int, 'timestamp': '0:00:00:000000',
+                    'results': [{'detection result': [{'label': [{'description': 'class_name', 'score': float, 'class_idx': int}], 'position': {'x': int, 'y': int, 'w': int, 'h': int}}, ... ]  }]        
+                }
+        '''
         detection_result = self.filter_object_result(detection_result, score_threshold)
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
-        pix_sum = np.sum(frame)
-        pix_sum = pix_sum/(frame.size)
-        self.frame_count = self.frame_count + 1
-        self.result = "safe"
+        self.result = False
+        self.frame_count += 1
         start = 0
         end = 0
-        bb_box = 0
 
-        if self.frame_count == 1:
-            self.prev_frame.append(-1)
-
-        if self.debug :
+        if self.debug:
             start = time.time()
 
-        if len(self.history) >= 10000:
-            self.history = []
+        boxes_list_array, scores_list_array, classes_list_array = det_to_trk_data_conversion(detection_result)
+        tracked_stracks_history = tracker.update(boxes_list_array, scores_list_array, classes_list_array)
 
-        position_list = []
-        dist_list = []
-        dist_flag = 0
-        dist_ = 99999999
+        '''
+            architecture(tracked_stracks_history):
+                [
+                    { 
+                        'frame_id': frame_id, 'tracked_stracks_list': [current_ids, ...], 'appear_tracked_stracks_list': [appear_ids, ...], 'disap_tracked_stracks_list': [disap_ids, ...],
+                        'switch_tracks': [switch_ids, ...], 'separation_stracks': [separation_ids, ...], 'merge_stracks': [merge_ids, ...]'
+                    }, ...
+                ]
+        '''
 
-        detection_result = detection_result['results'][0]['detection_result']  
-        person_num = 0
-        for info_ in detection_result:
-            if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.5 and info_['position']['w'] > 20 and info_['position']['x'] > 30 and info_['position']['x'] < 580:
-                person_num = person_num + 1
-                if info_['position']['w'] > 0 and info_['position']['h'] > 0:
-                  self.x_sum = self.x_sum + info_['position']['x']
-                  self.y_sum = self.y_sum + info_['position']['y']
-                  pt_ = np.asarray([info_['position']['x'] + info_['position']['w'] / 2,
-                                    info_['position']['y'] + info_['position']['h'] / 2])
-                  position_list.append(pt_)
-   
-        combinations_ = list(itertools.combinations(position_list, 2))
+        # Judge Assaults
+        if 2 <= len(tracked_stracks_history):
 
-        dist_sum = 0
-  
-        if person_num != 0:
+            ''' Step 1. Initialize variables '''
+            human_stracks = [strack for strack in tracked_stracks_history[-1]['tracked_stracks_list'] if strack.cls == 0 and is_not_boundary(strack.xyah) == True and 800 < strack.tlwh[2] * strack.tlwh[3]]
+            current_strack_cp = []
+            previous_strack_cp = []
+            impact_stracks_list = []
+            merge_stracks_list = []
 
-         self.x_sum = self.x_sum / person_num
-         self.y_sum = self.y_sum / person_num
+            ''' Step 2. Only focus on Overlap situations. '''
+            for human_strack in human_stracks:
 
-        dist_many = 0
+                ''' Step 3. Obtain "CLOSE" when center point exceeds a threshold that depends on the size of width and height. '''
+                if len(human_strack.overlap) != 0:
+                    overlaped_human_stracks = human_strack.overlap
+                    for overlaped_human_strack in overlaped_human_stracks:
+                        close_y_threshold = ((human_strack.tlwh[3] + overlaped_human_strack.tlwh[3]) / 2) / 5.2
+                        close_y = abs(human_strack.xyah[1] - overlaped_human_strack.xyah[1])
+                        if close_y < close_y_threshold:
+                            close_x_threshold = ((human_strack.tlwh[2] + overlaped_human_strack.tlwh[2]) / 2) / 1.26
+                            close_x = abs(human_strack.xyah[0] - overlaped_human_strack.xyah[0])
+                            if close_x < close_x_threshold:
+                                human_strack.action_state = "C" # C is an abbreviation of "CLOSE"
 
-        if person_num != 0:
-         for info_ in detection_result:
-            if info_['label'][0]['description'] == 'person' and info_['label'][0]['score'] > 0.5:
-                if info_['position']['w'] > 0 and info_['position']['h'] > 0:
-                    dist_many = dist_many + np.sqrt(((self.x_sum - info_['position']['x']) * (self.x_sum - info_['position']['x'])) + ((self.y_sum - info_['position']['y']) * (self.y_sum - info_['position']['y'])))
+                ''' Step 4. Obtain "IMPACT" state when acceleration exceeds a threshold that depends on the size of the box. '''
+                if human_strack.action_state == "C":
+                    if 3 <= len(human_strack.cp) and human_strack.cp[-1]['frame_id'] - human_strack.cp[-3]['frame_id'] == 2:
+                        pre_previous_cp = human_strack.cp[-3]['center_point']
+                        previous_cp = human_strack.cp[-2]['center_point']
+                        current_cp = human_strack.cp[-1]['center_point']
+                        previous_velocity = np.linalg.norm(previous_cp - pre_previous_cp)
+                        current_velocity = np.linalg.norm(current_cp - previous_cp)
+                        current_acceleration = np.linalg.norm(current_velocity - previous_velocity)
+                        acceleration_threshold = (human_strack.tlwh[2] * human_strack.tlwh[3]) * 0.0005115
+                        if acceleration_threshold < current_acceleration < acceleration_threshold * 1.387 and current_acceleration < 5.66 or acceleration_threshold * 3.34 < current_acceleration:
+                            human_strack.action_state = "I" # I is an abbreviation of "IMPACT"
+                        # exceptive situation (uses weapons ...)
+                        if current_velocity < 0.262 and acceleration_threshold / 0.00052 > 4610 and 70 < current_cp[1] < 280:
+                            self.start_assault_true_alarm_frame = self.frame_count
 
-
-
-         dist_many = dist_many / person_num
-
-        self.x_sum = 0
-        self.y_sum = 0
-
-
-        for pt_ in combinations_:
-            dist_ = np.linalg.norm(pt_[0] - pt_[1])
-            dist_list.append(dist_)
-
-            dist_sum = dist_sum + dist_
-            frame_dist = abs(sum(self.distance_sum[-1:]) - dist_sum)
-
-            self.distance_sum.append(dist_sum)
-    
-        self.result = False
-
-        if person_num > 4 and dist_many > 70:
-            dist_many = 0
-            self.history.append(0)
-            self.result = False
-            self.prev_frame = []
-            self.prev_frame.append(-1)
-            return self.result
- 
-        else:
-         dist_many = 0
-         if person_num > 1:
-              velo = []
-              dist_list2 = []
-
-              if self.prev_frame[0] != -1:
-                
-                 prev_person_num = self.prev_frame[0]
+                ''' Step 5. Obtain impact & merge strack list to make history. '''
+                if human_strack.action_state == "I":
+                    impact_stracks_list.append(human_strack)
+                if 2 <= human_strack.meta_label:
+                    merge_stracks_list.append(human_strack)
             
-                 if prev_person_num <= person_num:
-                     for i in range (prev_person_num):
-                         for j in range(person_num):
-                             co = []
+            ''' Step 6. Record impact & merge history for judging "ASSAULT". '''
+            if len(impact_stracks_list) != 0:
+                self.impact_history.append({'frame_count': self.frame_count, 'impact_locations': []})
+                for impact_strack in impact_stracks_list:
+                    self.impact_history[-1]['impact_locations'].append(impact_strack.xyah[:2])
 
-                             x_co = detection_result[j]['position']['x'] + detection_result[j]['position']['w'] / 2
-                             y_co = detection_result[j]['position']['y'] + detection_result[j]['position']['h'] / 2
+            if len(merge_stracks_list) != 0:
+                self.merge_history.append({'frame_count': self.frame_count, 'merge_locations': [], 'merge_box_sizes': []})
+                for merge_strack in merge_stracks_list:
+                    self.merge_history[-1]['merge_locations'].append(merge_strack.xyah[:2])
+                    self.merge_history[-1]['merge_box_sizes'].append(float(merge_strack.tlwh[2] * merge_strack.tlwh[3]))
 
-                             width_len = abs(x_co - self.prev_frame[i+1][0])
-                             height_len = abs(y_co - self.prev_frame[i+1][1])
-                             co.append(x_co)
-                             co.append(y_co)
-                             if width_len != 0:
-
-                               tans = height_len/width_len
-                               mus = ((4*tans*tans)+4)/(4+(tans*tans))
-                               mus = np.sqrt(mus)
-                             
-                               dist_list2.append(mus*(np.linalg.norm(self.prev_frame[i+1] - co)))
-                             else:
-                               dist_list2.append(np.linalg.norm(self.prev_frame[i+1] - co))
-                         
-                         if person_num != 0 and prev_person_num != 0:
-                            velo.append(min(dist_list2))
-                            dist_list2 = []
-                         else:
-                             dist_list2 = []
-                             velo=[]
-                             
-
-                 elif prev_person_num > person_num: 
-                     for i in range (person_num):
-                         co2 = []
-                
-                         x_co = detection_result[i]['position']['x'] + detection_result[i]['position']['w'] / 2
-                         y_co = detection_result[i]['position']['y'] + detection_result[i]['position']['h'] / 2
-                         co2.append(x_co)
-                         co2.append(y_co)
-
-                         for j in range (prev_person_num):
-                             width_len = abs(x_co - self.prev_frame[j+1][0])
-                             height_len = abs(y_co - self.prev_frame[j+1][1])
-
-                             if width_len != 0:
-                                 tans = height_len/width_len
-                                 mus = ((4*tans*tans)+4)/(4+(tans*tans))
-                                 mus = np.sqrt(mus)
-                                 dist_list2.append(mus*(np.linalg.norm(self.prev_frame[j+1] - co2)))
-                             else:
-                                 dist_list2.append(np.linalg.norm(self.prev_frame[j+1] - co2))
-
-                         if person_num != 0 and prev_person_num != 0:
-                             velo.append(min(dist_list2))
-                         else:
-                             velo=[]
-                            
-              velo_count = 0
-              bb_box = 0
-              
-              for i in range (person_num):
-                  bb_box = bb_box + detection_result[i]['position']['h']
-                  bb_box = bb_box + detection_result[i]['position']['w']
-
-              bb_box = bb_box / 10
-
-              velo_thres = 1
-              bb_box = 0
-              
-              for i in range (len(velo)):
-                  if velo[i] >= velo_thres:
-                     velo_count = velo_count + 1
-
-              if len(velo) == 2:
-                  if velo_count >= 1:
-                      velo_count = 0
-                      velo = []
-                      self.prev_frame = []
-                      self.prev_frame.append(person_num)
-
-                      for m in range (person_num):
-                          pos_np = np.asarray([detection_result[m]['position']['x'] + detection_result[m]['position']['w'] / 2 , detection_result[m]['position']['y'] + detection_result[m]['position']['h'] / 2])
-                          self.prev_frame.append(pos_np)
-
-                      self.history.append(0)
-                      self.result = False
-                      return self.result
-
-              elif len(velo) == 3:
-                if velo_count >= 2: 
-                    velo_count = 0
-                    velo = []
-                    self.prev_frame = []
-                    self.prev_frame.append(person_num)
-
-                    for m in range (person_num):
-                        pos_np = np.asarray([detection_result[m]['position']['x'] + detection_result[m]['position']['w'] / 2 , detection_result[m]['position']['y'] + detection_result[m]['position']['h'] / 2])
-                        self.prev_frame.append(pos_np)
-
-                    self.history.append(0)
+            ''' Step 7-1. Judge Assault : Preliminary assault signal -> Assault signal '''
+            if len(self.impact_history) != 0 and self.impact_history[-1]['frame_count'] == self.frame_count:
+                if len(self.impact_history) == 1:
                     self.result = False
-                    return self.result  
+                else:
+                    current_impact_frame = self.impact_history[-1]['frame_count']
+                    previous_impact_frame = self.impact_history[-2]['frame_count']
+                    if current_impact_frame - previous_impact_frame <= 40: # fps * 2
+                        self.start_assault_true_alarm_frame = self.frame_count
+                    else:
+                        self.result = False
 
-              
-              elif len(velo) == 4:
-                   if velo_count >= 3:
-                      velo_count = 0
-                      velo = []
-                      self.prev_frame = []
-                      self.prev_frame.append(person_num)
+            ''' Step 7-2. Judge Assault : Preliminary assault signal -> Merge '''
+            if len(self.impact_history) != 0 and len(self.merge_history) != 0 and self.merge_history[-1]['frame_count'] == self.frame_count:
+                current_merge_frame = self.merge_history[-1]['frame_count']
+                current_merge_locations = self.merge_history[-1]['merge_locations']
+                current_merge_box_sizes = self.merge_history[-1]['merge_box_sizes']
+                recent_impact_frame = self.impact_history[-1]['frame_count']
+                recent_impact_locations = self.impact_history[-1]['impact_locations']
+                for current_merge_location_idx in range(len(current_merge_locations)):
+                    for recent_impact_location in recent_impact_locations:
+                        distance = np.linalg.norm(current_merge_locations[current_merge_location_idx] - recent_impact_location)
+                        distance_threshold = current_merge_box_sizes[current_merge_location_idx] * 0.003
+                        if current_merge_frame - recent_impact_frame <= 40 and distance <= distance_threshold:
+                            self.start_assault_true_alarm_frame = self.frame_count
+                        else:
+                            self.result = False
 
-                      for m in range (person_num):
-                          pos_np = np.asarray([detection_result[m]['position']['x'] + detection_result[m]['position']['w'] / 2 , detection_result[m]['position']['y'] + detection_result[m]['position']['h'] / 2])
-                          self.prev_frame.append(pos_np)
+            ''' Step 8. A True alarm occurs for 40 frames from the attack signal. ''' # fps * 2
+            if 0 <= self.frame_count - self.start_assault_true_alarm_frame <= 40:
+                self.result = True
 
-                      self.history.append(0)
-                      self.result = False
-                      return self.result
-
-                
-
-              velo = []
-              velo_count=0
-              self.prev_frame = []
-              self.prev_frame.append(person_num)
-              bbsize = 0
-              
-              for i in range (person_num):
-                  pos_np = np.asarray([detection_result[i]['position']['x'] + detection_result[i]['position']['w'] / 2 , detection_result[i]['position']['y'] + detection_result[i]['position']['h'] / 2])
-                  self.prev_frame.append(pos_np) 
-                  
-                  bbsize = bbsize + detection_result[i]['position']['h']
-                  bbsize = bbsize + detection_result[i]['position']['w']
-
-              bbsize = bbsize / (2 *person_num)
-
-        # Rule 1) If two people are close to each other
-        if dist_list:
-            for dist_ in dist_list:
-                if dist_ < bbsize:
-                    bbsize = 0
-                    self.history.append(1)  # return true
-                    self.result = True
-                    return self.result
-               
-        bbsize = 0
-        
-        # Rule 2) Simple smoothing
-        if sum(self.history[-60:]) > 3:
-            self.history.append(0)
-            self.result = True
-            return self.result
-
-        self.history.append(0)
-        self.result = False
     
-
-        if self.debug :
+        if self.debug:
             end = time.time()
             self.analysis_time = end - start
 
-
         return self.result
 
+    # Thx you falldown and wanderer
     def merge_sequence(self, frame_info, end_flag):
-        frame_number = frame_info["frame_number"]
-        if self.result is True:
-             if self.r_value is True:  # TT
-                 self.frameseq_info["end_frame"] = frame_number
-                 if self.history_flag == True:
-                     self.new_seq_flag = True
-                     self.history_flag = False
-                 if end_flag is 1:
-                     self.frameseq.append(self.frameseq_info)
-             else:  # FT
-                 self.history_flag = True
-                 self.frameseq_info["start_frame"] = frame_number
-                 self.frameseq_info["end_frame"] = frame_number
-
-        else:
-            if self.r_value is True:  
-                self.seq_count = self.seq_count + 1
-
-                if self.seq_count < 120:
-                    self.result = True
-                    self.frameseq_info["end_frame"] = frame_number
-                else:
-                    self.seq_count = 0
-                    self.frameseq.append(self.frameseq_info)
-                    self.frameseq_info = {"start_frame": 0, "end_frame": 0}
-            if self.r_value is False:  # FF
+        self.frameseq = super().merge_sequence(frame_info,end_flag)
+        assault_frame_seq = self.frameseq
+        if len(assault_frame_seq) >= 2:
+            back_start = assault_frame_seq[-1]['start_frame']
+            back_end = assault_frame_seq[-1]['end_frame']
+            front_start = assault_frame_seq[-2]['start_frame']
+            front_end = assault_frame_seq[-2]['end_frame']
+            gap = back_start - front_end
+            if gap <= 40:
+                del assault_frame_seq[-2:]
+                merged_seq = {}
+                merged_seq['start_frame'] = front_start
+                merged_seq['end_frame'] = back_end
+                assault_frame_seq.append(merged_seq)
+            else: 
                 pass
-
-        self.r_value = self.result
+        self.frameseq = assault_frame_seq
+        
         return self.frameseq
