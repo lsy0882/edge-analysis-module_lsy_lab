@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import scipy
 import lap
@@ -6,7 +5,6 @@ from scipy.spatial.distance import cdist
 
 from cython_bbox import bbox_overlaps as bbox_ious
 from . import kalman_filter
-import time
 
 def merge_matches(m1, m2, shape):
     O,P,Q = shape
@@ -51,13 +49,6 @@ def linear_assignment(cost_matrix, thresh):
 
 
 def ious(atlbrs, btlbrs):
-    """
-    Compute cost based on IoU
-    :type atlbrs: list[tlbr] | np.ndarray
-    :type atlbrs: list[tlbr] | np.ndarray
-
-    :rtype ious np.ndarray
-    """
     ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float)
     if ious.size == 0:
         return ious
@@ -66,19 +57,10 @@ def ious(atlbrs, btlbrs):
         np.ascontiguousarray(atlbrs, dtype=np.float),
         np.ascontiguousarray(btlbrs, dtype=np.float)
     )
-
     return ious
 
 
 def iou_distance(atracks, btracks):
-    """
-    Compute cost based on IoU
-    :type atracks: list[STrack]
-    :type btracks: list[STrack]
-
-    :rtype cost_matrix np.ndarray
-    """
-
     if (len(atracks)>0 and isinstance(atracks[0], np.ndarray)) or (len(btracks) > 0 and isinstance(btracks[0], np.ndarray)):
         atlbrs = atracks
         btlbrs = btracks
@@ -87,18 +69,10 @@ def iou_distance(atracks, btracks):
         btlbrs = [track.tlbr for track in btracks]
     _ious = ious(atlbrs, btlbrs)
     cost_matrix = 1 - _ious
-
     return cost_matrix
 
+
 def v_iou_distance(atracks, btracks):
-    """
-    Compute cost based on IoU
-    :type atracks: list[STrack]
-    :type btracks: list[STrack]
-
-    :rtype cost_matrix np.ndarray
-    """
-
     if (len(atracks)>0 and isinstance(atracks[0], np.ndarray)) or (len(btracks) > 0 and isinstance(btracks[0], np.ndarray)):
         atlbrs = atracks
         btlbrs = btracks
@@ -107,17 +81,10 @@ def v_iou_distance(atracks, btracks):
         btlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in btracks]
     _ious = ious(atlbrs, btlbrs)
     cost_matrix = 1 - _ious
-
     return cost_matrix
 
-def embedding_distance(tracks, detections, metric='cosine'):
-    """
-    :param tracks: list[STrack]
-    :param detections: list[BaseTrack]
-    :param metric:
-    :return: cost_matrix np.ndarray
-    """
 
+def embedding_distance(tracks, detections, metric='cosine'):
     cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float)
     if cost_matrix.size == 0:
         return cost_matrix
