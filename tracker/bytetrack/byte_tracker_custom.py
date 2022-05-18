@@ -1,25 +1,15 @@
 import numpy as np
-from collections import deque
-import os
-import os.path as osp
 import copy
-import torch
-import torch.nn.functional as F
-
-from itertools import combinations
 
 from .kalman_filter import KalmanFilter
 from . import matching
 from .basetrack import BaseTrack, TrackState
-
-import pdb
+from itertools import combinations
 
 
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
     def __init__(self, tlwh, score, cls):
-        ''' wait activate. In this step, STrack is just detection box'''
-        # wait activate
         self._tlwh = np.asarray(tlwh, dtype=np.float)
         self.score = score
         self.cls=cls
@@ -28,11 +18,11 @@ class STrack(BaseTrack):
         self.is_activated = False
         self.tracklet_len = 0
         self.cp = []
-        self.overlap = [] # Code by LSY
-        self.merge = [] # Code by LSY
-        self.meta_label = 1 # Code by LSY
-        self.switch_state = False # Code by LSY
-        self.action_state = None # Code by LSY
+        self.overlap = []
+        self.merge = []
+        self.meta_label = 1
+        self.switch_state = False 
+        self.action_state = None
 
     def record_center_point(frame, stracks):
         for strack in stracks:
@@ -83,7 +73,6 @@ class STrack(BaseTrack):
                 stracks[i].covariance = cov
 
     def activate(self, kalman_filter, frame_id):
-        """Start a new tracklet"""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
         self.mean, self.covariance = self.kalman_filter.initiate(self.tlwh_to_xyah(self._tlwh))
@@ -92,7 +81,6 @@ class STrack(BaseTrack):
         self.state = TrackState.Tracked
         if frame_id == 1:
             self.is_activated = True
-        # self.is_activated = True
         self.frame_id = frame_id
         self.start_frame = frame_id
 
@@ -107,13 +95,6 @@ class STrack(BaseTrack):
         self.score = new_track.score
 
     def update(self, new_track, frame_id):
-        """
-        Update a matched track
-        :type new_track: STrack
-        :type frame_id: int
-        :type update_feature: bool
-        :return:
-        """
         self.frame_id = frame_id
         self.tracklet_len += 1
 
@@ -125,11 +106,7 @@ class STrack(BaseTrack):
         self.score = new_track.score
 
     @property
-    # @jit(nopython=True)
     def tlwh(self):
-        """Get current position in bounding box format `(top left x, top left y,
-                width, height)`.
-        """
         if self.mean is None:
             return self._tlwh.copy()
         ret = self.mean[:4].copy()
@@ -138,28 +115,19 @@ class STrack(BaseTrack):
         return ret
 
     @property
-    # @jit(nopython=True)
     def tlbr(self):
-        """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
-        `(top left, bottom right)`.
-        """
         ret = self.tlwh.copy()
         ret[2:] += ret[:2]
         return ret
 
     @property
-    # @jit(nopython=True)
     def xyah(self):
-        """Convert bounding box to format `(center x, center y, aspect ratio,
-        height)`, where the aspect ratio is `width / height`.
-        """
         ret = self.tlwh.copy()
         ret[:2] += ret[2:] / 2
         ret[2] /= ret[3]
         return ret
 
     @staticmethod
-    # @jit(nopython=True)
     def tlwh_to_xyah(tlwh):
         ret = np.asarray(tlwh).copy()
         ret[:2] += ret[2:] / 2
@@ -167,14 +135,12 @@ class STrack(BaseTrack):
         return ret
 
     @staticmethod
-    # @jit(nopython=True)
     def tlbr_to_tlwh(tlbr):
         ret = np.asarray(tlbr).copy()
         ret[2:] -= ret[:2]
         return ret
 
     @staticmethod
-    # @jit(nopython=True)
     def tlwh_to_tlbr(tlwh):
         ret = np.asarray(tlwh).copy()
         ret[2:] += ret[:2]
@@ -186,10 +152,10 @@ class STrack(BaseTrack):
 
 class BYTETracker(object):
     def __init__(self, track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=30):
-        self.tracked_stracks_history = [] # code by LSY
-        self.tracked_stracks = []  # type: list[STrack]
-        self.lost_stracks = []  # type: list[STrack]
-        self.removed_stracks = []  # type: list[STrack]
+    
+        self.tracked_stracks = []
+        self.lost_stracks = []
+        self.removed_stracks = []
         self.min_box_area=min_box_area
 
         self.frame_id = 0
@@ -202,30 +168,17 @@ class BYTETracker(object):
         self.kalman_filter = KalmanFilter()
 
     def update(self, bboxes, scores, classes):
-        '''
-            <Step1. Get detection boxes from detector
-                    & Sort out detection boxes using detection score and thresholds>
-
-            architecture(bboxes, scores, classes): array([ [int], ... ])
-            bboxes.shape = (n, 4), scores.shape = (n, 1), classes.shape = (n, 1)
-            len(bboxes) = len(scores) = len(classes)
-
-            architecture(*_stracks): [STrack, ...]
-            architecture(det_low_idxes, det_high_idxes): array([boolean, ... ])
-        '''
-        # Initialize variables
         self.frame_id += 1
-        scores=scores.reshape(-1) # scores.shape = (n,)
-        classes=classes.reshape(-1) # classes.shape = (n,)
+        scores=scores.reshape(-1)
+        classes=classes.reshape(-1)
 
-        tracked_stracks = []  # tracked stracks in current frame
-        lost_stracks = []  # lost stracks in current frame
-        removed_stracks = []  # removed stracks in current frame
+        tracked_stracks = []
+        lost_stracks = []
+        removed_stracks = []
         unconfirmed_stracks = []
         activated_starcks = []
         refind_stracks = []
 
-        # Add newly detected tracklets to tracked_stracks
         for track in self.tracked_stracks:
             if not track.is_activated:
                 unconfirmed_stracks.append(track)
@@ -233,7 +186,6 @@ class BYTETracker(object):
                 tracked_stracks.append(track)
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
 
-        # Sort out
         is_human = classes == 0
         low_idxes_low_limit = 0.1 < scores
         low_idxes_high_limit = scores <= self.track_thresh
@@ -242,28 +194,18 @@ class BYTETracker(object):
         det_high_idxes = scores > self.track_thresh
         det_high_human_idxes = np.logical_and(det_high_idxes, is_human)
 
-        # High detection threshold results
         bboxes_high = bboxes[det_high_human_idxes]
         scores_high = scores[det_high_human_idxes]
         classes_high = classes[det_high_human_idxes]
 
-        # Low detection threshold results
         bboxes_low = bboxes[det_low_human_idxes]
         scores_low = scores[det_low_human_idxes]
         classes_low = classes[det_low_human_idxes]
 
 
-        ''' <Step 2: Predict new locations of tracks> '''
         STrack.multi_predict(strack_pool)
 
 
-        ''' 
-            <Step 3: First association, with high score detection boxes>
-
-            architecture(detections_high)
-            architecture(dists_first): array([ [iou_distance, ...], ... ]) | dists_first.shape() = (n, n)
-        '''
-        # Detections | Stracks are __init__ step. So, STrack is just detection
         if len(bboxes_high) > 0:
             detections_high = [STrack(STrack.tlbr_to_tlwh(tlbr), s, cls) for (tlbr, s, cls) in zip(bboxes_high, scores_high, classes_high)]
         else:
@@ -284,8 +226,6 @@ class BYTETracker(object):
                 refind_stracks.append(matched_track_high)
 
 
-        ''' <Step 4: Second association, with low score detection boxes> '''
-        # Detections | Stracks are __init__ step. So, STrack is just detection
         if len(bboxes_low) > 0:
             detections_low = [STrack(STrack.tlbr_to_tlwh(tlbr), s, cls) for (tlbr, s, cls) in zip(bboxes_low, scores_low, classes_low)]
         else:
@@ -312,15 +252,12 @@ class BYTETracker(object):
                 lost_stracks.append(track_re_remain)
 
 
-        ''' <Step 5: Delete unmatched tracks> '''
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:
                 track.mark_removed()
                 removed_stracks.append(track)
 
 
-        ''' Step 6: Initialize new tracks '''
-        # Deal with unconfirmed tracks, usually tracks with only one beginning frame'''
         detections_remain = [detections_high[idx] for idx in detection_remain_idxes]
         dists_unconfirm = matching.iou_distance(unconfirmed_stracks, detections_remain)
         dists_unconfirm = matching.fuse_score(dists_unconfirm, detections_remain)
@@ -357,124 +294,8 @@ class BYTETracker(object):
         STrack.init_switch_action_state(self.tracked_stracks)
         STrack.init_overlap(self.tracked_stracks)
         STrack.check_overlap(self.tracked_stracks)
-        
-        # Create tracked_stracks_history
-        '''
-            architecture(tracked_stracks_history):
-                [
-                    { 
-                        'frame_id': frame_id, 'tracked_stracks_list': [current_ids, ...], 'appear_tracked_stracks_list': [appear_ids, ...], 'disap_tracked_stracks_list': [disap_ids, ...],
-                        'switch_tracks': [switch_ids, ...], 'separation_stracks': [separation_ids, ...], 'merge_stracks': [merge_ids, ...]'
-                    }, ...
-                ]
-        '''
-        self.tracked_stracks_history.append({'frame_id': self.frame_id, 'tracked_stracks_list': self.tracked_stracks, 'appear_tracked_stracks_list': [],
-                                            'disap_tracked_stracks_list': [], 'switch_stracks': [], 'separation_stracks': [], 'merge_stracks': []})
 
-        if 2 <= self.frame_id:
-            # Find appeared stracks in central area
-            appear_tracked_stracks_list = list(set(self.tracked_stracks) - set(self.tracked_stracks_history[-2]['tracked_stracks_list']))
-            appear_tracked_stracks_list = [
-                appear_tracked_strack for appear_tracked_strack in appear_tracked_stracks_list 
-                if (appear_tracked_strack.cls == 0
-                    and is_not_boundary(appear_tracked_strack.xyah) == True)
-                ]
-            self.tracked_stracks_history[-1]['appear_tracked_stracks_list'] = appear_tracked_stracks_list
-
-            # Find disappeared stracks in central area
-            disap_tracked_stracks_list = list(set(self.tracked_stracks_history[-2]['tracked_stracks_list']) - set(self.tracked_stracks))
-            disap_tracked_stracks_list = [
-                disap_tracked_strack for disap_tracked_strack in disap_tracked_stracks_list 
-                if (disap_tracked_strack.cls == 0
-                    and is_not_boundary(disap_tracked_strack.xyah) == True)
-                ]
-            self.tracked_stracks_history[-1]['disap_tracked_stracks_list'] = disap_tracked_stracks_list
-            
-            # Judge ID switching & Separation using appeared tracks 
-            for appear_tracked_strack in self.tracked_stracks_history[-1]['appear_tracked_stracks_list']:
-                appear_tracked_strack_cp = (appear_tracked_strack.xyah[0], appear_tracked_strack.xyah[1])
-
-                # ID switching 
-                if 1 <= len(self.tracked_stracks_history[-1]['disap_tracked_stracks_list']):
-                    appear_vs_disap_disatances_list = []
-                    for disap_tracked_strack in self.tracked_stracks_history[-1]['disap_tracked_stracks_list']:
-                        disap_tracked_strack_cp = (disap_tracked_strack.xyah[0], disap_tracked_strack.xyah[1])
-                        appear_vs_disap_distance = np.sqrt((appear_tracked_strack_cp[0] - disap_tracked_strack_cp[0])**2
-                                                            + (appear_tracked_strack_cp[1] - disap_tracked_strack_cp[1])**2)
-                        appear_vs_disap_disatances_list.append(appear_vs_disap_distance)
-                    if len(appear_vs_disap_disatances_list) != 0:
-                        appear_vs_disap_min_distance = min(appear_vs_disap_disatances_list)
-                        appear_vs_disap_min_distance_idx = appear_vs_disap_disatances_list.index(appear_vs_disap_min_distance)
-                        if appear_vs_disap_min_distance < 100 * (appear_tracked_strack_cp[1] / 360)**2:
-                            id_switched_strack = self.tracked_stracks_history[-1]['disap_tracked_stracks_list'][appear_vs_disap_min_distance_idx]
-                            self.tracked_stracks_history[-1]['switch_stracks'].append(id_switched_strack)
-                            appear_tracked_strack.meta_label = id_switched_strack.meta_label
-                            appear_tracked_strack.switch_state = True
-                            id_switched_strack.meta_label = 1
-                            id_switched_strack.switch_state = True
-
-                # Separation
-                if appear_tracked_strack.switch_state == False:
-                    appear_vs_total_distances_list = []
-                    tracked_stracks_list_except_appear_strack = [
-                        tracked_strack for tracked_strack in self.tracked_stracks_history[-1]['tracked_stracks_list'] 
-                        if tracked_strack is not appear_tracked_strack
-                        ]
-                    merge_strack = None
-                    for tracked_strack_except_appear_strack in tracked_stracks_list_except_appear_strack:
-                        if appear_tracked_strack in tracked_strack_except_appear_strack.merge:
-                            merge_strack = tracked_strack_except_appear_strack
-                            merge_strack.merge.remove(appear_tracked_strack)
-                        tracked_strack_except_appear_strack_cp = (tracked_strack_except_appear_strack.xyah[0], tracked_strack_except_appear_strack.xyah[1])
-                        appear_vs_total_distance = np.sqrt((appear_tracked_strack_cp[0] - tracked_strack_except_appear_strack_cp[0])**2
-                                                            + (appear_tracked_strack_cp[1] - tracked_strack_except_appear_strack_cp[1])**2)
-                        appear_vs_total_distances_list.append(appear_vs_total_distance)
-                    if len(appear_vs_total_distances_list) != 0:
-                        appear_vs_total_min_distance = min(appear_vs_total_distances_list)
-                        appear_vs_total_min_distance_idx = appear_vs_total_distances_list.index(appear_vs_total_min_distance)
-
-                    if merge_strack is not None:
-                        self.tracked_stracks_history[-1]['separation_stracks'].append(merge_strack)
-                        merge_strack.meta_label -= 1
-                    elif merge_strack is None and len(appear_vs_total_distances_list) != 0:
-                        if appear_vs_total_min_distance < 200 * (appear_tracked_strack_cp[1] / 360)**2:
-                            separated_strack = tracked_stracks_list_except_appear_strack[appear_vs_total_min_distance_idx]
-                            if separated_strack.cls == 0 and 2 <= separated_strack.meta_label:
-                                self.tracked_stracks_history[-1]['separation_stracks'].append(separated_strack)
-                                separated_strack.meta_label -= 1
-            
-            # Judge Merge using disappeared tracks
-            for disap_tracked_strack in self.tracked_stracks_history[-1]['disap_tracked_stracks_list']:
-                disap_tracked_strack_cp = (disap_tracked_strack.xyah[0], disap_tracked_strack.xyah[1])
-                if disap_tracked_strack.switch_state == False:
-                    disap_vs_total_distances_list = []
-                    for tracked_strack in self.tracked_stracks_history[-1]['tracked_stracks_list']:
-                        tracked_strack_cp = (tracked_strack.xyah[0], tracked_strack.xyah[1])
-                        disap_vs_total_distance = np.sqrt((disap_tracked_strack_cp[0] - tracked_strack_cp[0])**2 
-                                                           + (disap_tracked_strack_cp[1] - tracked_strack_cp[1])**2)
-                        disap_vs_total_distances_list.append(disap_vs_total_distance)
-                    if len(disap_vs_total_distances_list) != 0:
-                        disap_vs_total_min_distance = min(disap_vs_total_distances_list)
-                        disap_vs_total_min_distance_idx = disap_vs_total_distances_list.index(disap_vs_total_min_distance)
-                        if disap_vs_total_min_distance < 200 * (disap_tracked_strack_cp[1] / 360)**2:
-                            merged_strack = self.tracked_stracks_history[-1]['tracked_stracks_list'][disap_vs_total_min_distance_idx]
-                            if merged_strack.cls == 0 and (1 / merged_strack.xyah[2]) < 2.7:
-                                self.tracked_stracks_history[-1]['merge_stracks'].append(merged_strack)
-                                merged_strack.merge.append(disap_tracked_strack)
-                                merged_strack.merge = list(set(merged_strack.merge))
-                                merged_strack.meta_label += disap_tracked_strack.meta_label
-                    disap_tracked_strack.meta_label = 1
-
-        return self.tracked_stracks_history
-
-
-def is_not_boundary(xyah):
-    x = xyah[0]
-    y = xyah[1]
-    if 20 < x < 620 and 30 < y < 330:
-        return True
-    else:
-        return False
+        return self.tracked_stracks
 
 
 def joint_stracks(tlista, tlistb):
