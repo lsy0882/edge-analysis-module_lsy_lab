@@ -28,7 +28,7 @@ class WandererEvent(Event):
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
         self.id_stack = [0, 0, 0, 0]
         self.wandering_id_list = []
-        self.tracker = WanderTracker()
+        self.tracker = WanderTracker(max_age=2, min_hits=3)
         self.temp_frame = 1
 
     def inference(self, frame_info, detection_result, score_threshold=0.5):
