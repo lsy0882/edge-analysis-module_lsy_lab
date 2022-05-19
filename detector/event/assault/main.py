@@ -38,6 +38,7 @@ class AssaultEvent(Event):
         self.result = False
         self.frame_count += 1
 
+        detection_result = self.filter_object_result(detection_result, score_threshold)
         tracked_stracks = self.tracker.update(detection_result)
         self.tracked_stracks_history.append({'frame_id': self.frame_count, 'tracked_stracks_list': tracked_stracks, 'appear_tracked_stracks_list': [],
                                             'disap_tracked_stracks_list': [], 'switch_stracks': [], 'separation_stracks': [], 'merge_stracks': []})
