@@ -25,21 +25,20 @@ class AssaultEvent(Event):
         self.tracker = BYTETracker(track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=20)
 
     def inference(self, frame_info, detection_result, score_threshold=0.1): 
-        # detection_result = self.filter_object_result(detection_result, score_threshold)
-        tracked_stracks = self.tracker.update(detection_result)
-
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
+
         start = 0
         end = 0
-
-        self.result = False
-        self.frame_count += 1
 
         if self.debug:
             start = time.time()
 
+        # TODO: analysis(시작 지점)
+        self.result = False
+        self.frame_count += 1
 
+        tracked_stracks = self.tracker.update(detection_result)
         self.tracked_stracks_history.append({'frame_id': self.frame_count, 'tracked_stracks_list': tracked_stracks, 'appear_tracked_stracks_list': [],
                                             'disap_tracked_stracks_list': [], 'switch_stracks': [], 'separation_stracks': [], 'merge_stracks': []})
 
