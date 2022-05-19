@@ -3,13 +3,13 @@ import time
 import numpy as np
 
 from detector.event.template.main import Event
-
+from detector.tracker.assault_tracker.BYTETracker import BYTETracker
 
 class AssaultEvent(Event):
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=20):
         super().__init__(debug)
         self.model_name = "assault"
         self.debug = debug
@@ -22,11 +22,11 @@ class AssaultEvent(Event):
         self.impact_history = []
         self.merge_history = []
         self.start_assault_true_alarm_frame = 9999999
+        self.tracker = BYTETracker(track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=20)
 
     def inference(self, frame_info, detection_result, score_threshold=0.1): 
-
         # detection_result = self.filter_object_result(detection_result, score_threshold)
-        tracked_stracks = detection_result
+        tracked_stracks = self.tracker.update(detection_result)
 
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]

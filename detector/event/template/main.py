@@ -14,6 +14,7 @@ class Event:
         self.r_value = False
         self.frameseq_info = {"start_frame": 0, "end_frame": 1}
         self.model_name = "dummy"
+        self.new_seq_flag = True
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
