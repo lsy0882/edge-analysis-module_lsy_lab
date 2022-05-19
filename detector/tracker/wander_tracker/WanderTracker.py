@@ -34,7 +34,7 @@ class WanderTracker(Tracker):
           detection_result: object detection results in following format
             ※ refer to the following path for format:
               $PROJECT_ROOT/detector/object_detection/template/ObjectDetection.py
-        Converted Params:
+        Converted object detection result:
           dets - a numpy array of detections in the format [[x1,y1,x2,y2,score],[x1,y1,x2,y2,score],...]
         Requires: this method must be called once for each frame even with empty detections (use np.empty((0, 5)) for frames without detections).
         Returns the a similar array, where the last column is the object ID.
