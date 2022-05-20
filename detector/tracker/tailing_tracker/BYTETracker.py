@@ -3,8 +3,6 @@ from collections import deque
 import os
 import os.path as osp
 import copy
-import torch
-import torch.nn.functional as F
 
 from itertools import combinations
 
