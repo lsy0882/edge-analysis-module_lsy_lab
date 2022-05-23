@@ -51,14 +51,15 @@ class KidnappingEvent(Event):
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, tracker_name=None):
         super().__init__(debug)
         self.model_name = "kidnapping"
         self.analysis_time = 0
         self.debug = debug
         self.history = []
+        self.tracker_name = tracker_name
 
-    def inference(self, frame_info, detection_result, score_threshold=0.5):
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         detection_result = self.filter_object_result(detection_result, score_threshold)
         start = 0
         end = 0

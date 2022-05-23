@@ -1,7 +1,6 @@
 import os
 import time
 from detector.event.template.main import Event
-from detector.tracker.wander_tracker.WanderTracker import WanderTracker
 
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
@@ -12,7 +11,7 @@ class WandererEvent(Event):
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, tracker_name="sort"):
         super().__init__(debug)
         self.model_name = "wanderer"
         self.analysis_time = 0
@@ -28,10 +27,10 @@ class WandererEvent(Event):
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
         self.id_stack = [0, 0, 0, 0]
         self.wandering_id_list = []
-        self.tracker = WanderTracker(max_age=2, min_hits=3)
         self.temp_frame = 1
+        self.tracker_name = tracker_name
 
-    def inference(self, frame_info, detection_result, score_threshold=0.5):
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
 
@@ -46,13 +45,11 @@ class WandererEvent(Event):
         #   따라서 반드시 결과 값은 self.result에 저장하시기 바라며, 마지막 라인은 변경하지 마시기 바랍니다.
         # - 이전 프레임의 결과를 사용해야하는 모듈들의 경우 self.history에 저장한 후 사용하시기 바랍니다.
         # - self.result에는 True 또는 False 값으로 이벤트 검출 결과를 저장해주시기 바랍니다.
-        detection_result = self.filter_object_result(detection_result, score_threshold)
 
         frame = detection_result["frame_number"]
-        detection_result = detection_result["results"][0]["detection_result"]
         result = {}
 
-        trackers = self.tracker.update(detection_result)
+        trackers = tracking_result
         self.result = False
         for d in trackers:
             while len(self.id_stack) <= d[4]:

@@ -28,14 +28,13 @@ class TailingEvent(Event):
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, tracker_name="byte_tracker"):
         super().__init__(debug)
         self.model_name = "tailing"
         self.analysis_time = 0
         self.debug = debug
         self.history = [0, ] * 40
         self.result = False
-
         
         self.max_history = 40
         self.frame = None
@@ -43,7 +42,7 @@ class TailingEvent(Event):
         self.row_idx = 0
         self.nonmove_cnt = 0
 
-       
+        self.tracker_name = tracker_name
         self.prev_stack = None
         self.id_dict_stack = {}
         self.id_cp_dict = defaultdict(list)
@@ -57,7 +56,7 @@ class TailingEvent(Event):
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 4개 변수(model_name, analysis_time, debug, result) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-    def inference(self, frame_info, detection_result, score_threshold=0.5):
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         detection_result = self.filter_object_result(detection_result, score_threshold)
         #h,w = frame_info['frame'].shape[0], frame_info['frame'].shape[1]
         start = 0

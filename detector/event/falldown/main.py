@@ -13,7 +13,7 @@ class FalldownEvent(Event):
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, tracker_name=None):
         super().__init__(debug)
         self.model_name = "falldown"
         self.people_max = 100
@@ -38,8 +38,9 @@ class FalldownEvent(Event):
         self.stop_count = 0
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
+        self.tracker_name = tracker_name
 
-    def inference(self, frame_info, detection_result, score_threshold=0.5):
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         od_result = self.filter_object_result(detection_result, score_threshold)
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]

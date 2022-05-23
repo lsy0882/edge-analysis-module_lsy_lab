@@ -1,4 +1,5 @@
 import datetime
+import time
 
 import pycuda.autoinit
 import argparse
@@ -15,6 +16,8 @@ from detector.event.obstacle.main import ObstacleEvent
 from detector.event.tailing.main import TailingEvent
 from detector.event.wanderer.main import WandererEvent
 from detector.object_detection.yolov4.yolov4 import YOLOv4
+from detector.tracker.byte_tracker.BYTETracker import BYTETracker
+from detector.tracker.sort.Sort import Sort
 
 from utils.time_util import convert_framenumber2timestamp
 from utils import Logging
@@ -39,7 +42,7 @@ def load_video(video_path, extract_fps):
     return capture, framecount, fps
 
 
-def load_models(od_model_name="yolov4-416", score_threshold=0.5, nms_threshold=0.3, event_model_names="all"):
+def load_models(od_model_name="yolov4-416", tracker_params=None, score_threshold=0.5, nms_threshold=0.3, event_model_names="all"):
     if od_model_name == "yolov4-416":
         od_model = YOLOv4(model=od_model_name, score_threshold=score_threshold, nms_threshold=nms_threshold)
     else :
@@ -49,6 +52,11 @@ def load_models(od_model_name="yolov4-416", score_threshold=0.5, nms_threshold=0
     print(Logging.s("model name: {}".format(od_model_name)))
     print(Logging.s("score threshold: {}".format(score_threshold)))
     print(Logging.s("nms threshold: {}".format(nms_threshold)))
+
+    trackers = []
+    for tracker_param in tracker_params:
+        tracker = tracker_param["tracker_class"](tracker_param)
+        trackers.append(tracker)
 
     event_detectors = []
     print(Logging.i("{} model is loaded".format("Object detection(yolov4)")))
@@ -85,7 +93,7 @@ def load_models(od_model_name="yolov4-416", score_threshold=0.5, nms_threshold=0
         event_detectors.append(wanderer_detection_model)
         print(Logging.i("{} model is loaded".format(wanderer_detection_model.model_name)))
 
-    return od_model, event_detectors
+    return od_model, trackers, event_detectors
 
 
 def make_result_dir(result_dir, video_name, save_frame_result):
@@ -105,81 +113,30 @@ def make_result_dir(result_dir, video_name, save_frame_result):
     return frame_dir, fram_bbox_dir, json_dir, event_dir
 
 
-def run_detection(video_info, od_model, score_threshold, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result):
-    print(Logging.i("Processing..."))
-    fps = video_info["fps"]
-    framecount = video_info["framecount"]
-    extract_fps = video_info["extract_fps"]
+def define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps):
+    dict_result = dict()
+    dict_result["image_path"] = os.path.join(frame_dir, frame_name)
+    dict_result["cam_address"] = video_path
+    dict_result["module"] = od_model_name
+    dict_result["frame_number"] = int(frame_number / extract_fps * fps)
+    dict_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
+    dict_result["results"] = []
+    return dict_result
 
-    decoder = FFmpegDecoder(video_info["video_path"], fps=extract_fps)
-    decoder.load()
 
+def define_event_result(video_path, frame_number, extract_fps, fps):
+    event_result = dict()
+    event_result["cam_address"] = video_path
+    event_result["frame_number"] = int(frame_number / extract_fps * fps)
+    event_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
+    event_result["event_result"] = dict()
+    return event_result
+
+
+def load_viderwriter():
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
     video_writer = cv2.VideoWriter(bbox_video_path, fourcc, 20, (640, 360))
-
-    expected_framecount = int(framecount / fps * extract_fps)
-    frame_number = 0
-    event_results = []
-    cls_dict = get_cls_dict(15)
-    bbox_visualization = BBoxVisualization(cls_dict)
-    sequence_result = dict()
-    end_flag =0
-
-    while True:
-        ret, frame = decoder.read()
-        if ret == False:
-            end_flag =1
-            for event_detector in event_detectors:
-                sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
-            break
-
-        frame_number += 1
-        frame_name = "{0:06d}.jpg".format(frame_number)
-        frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
-        results = od_model.inference_by_image(frame)
-
-        dict_result = dict()
-        dict_result["image_path"] = os.path.join(frame_dir, frame_name)
-        dict_result["cam_address"] = video_path
-        dict_result["module"] = od_model_name
-        dict_result["frame_number"] = int(frame_number / extract_fps * fps)
-        dict_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
-        dict_result["results"] = []
-        dict_result["results"].append({"detection_result": results})
-
-        event_result = dict()
-        event_result["cam_address"] = video_path
-        event_result["frame_number"] = int(frame_number / extract_fps * fps)
-        event_result["timestamp"] = str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps))
-        event_result["event_result"] = dict()
-
-        frame_bbox = bbox_visualization.draw_bboxes(frame, results)
-        video_writer.write(frame_bbox)
-
-        for event_detector in event_detectors:
-            event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, dict_result, score_threshold[event_detector.model_name])
-            sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
-        event_results.append(event_result)
-
-        print(Logging.ir("frame number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
-            .format(
-                frame_number,
-                expected_framecount,
-                int(frame_number / extract_fps * fps),
-                str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
-            ), end='')
-
-        if save_frame_result:
-            json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
-            json.dump(dict_result, json_result_file, indent=4)
-            json_result_file.close()
-    video_writer.release()
-    print(Logging.inl("Extraction is successfully completed(framecount: {})".format(frame_number)))
-    if os.path.exists(bbox_video_path) :
-        print(Logging.i("BBox video is successfully generated(path: {})".format(bbox_video_path)))
-    else :
-        print(Logging.i("BBox video is failed to generated."))
-    return event_results, sequence_result
+    return video_writer
 
 
 def extract_event_results(event_model_names, event_dir, video_name, event_detectors, event_results):
@@ -270,64 +227,205 @@ def draw_event(bbox_video_path, sequence_json_path, extract_fps, events):
     print(Logging.i("Sequence result video is successfully generated(path: {})".format(event_video_path)))
     print(Logging.i("Sequence json file is successfully generated(path: {})".format(json_file_path)))
 
+
+def run_detection(video_info, od_model, trackers, score_threshold, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time):
+    print(Logging.i("Processing..."))
+    # Parameters
+    fps = video_info["fps"]
+    framecount = video_info["framecount"]
+    extract_fps = video_info["extract_fps"]
+    expected_framecount = int(framecount / fps * extract_fps)
+    frame_number = 0
+    event_results = []
+    cls_dict = get_cls_dict(15)
+    bbox_visualization = BBoxVisualization(cls_dict)
+
+    # Load decoder
+    decoder = FFmpegDecoder(video_info["video_path"], fps=extract_fps)
+    decoder.load()
+    # load video writer
+    video_writer = load_viderwriter()
+
+    sequence_result = dict()
+    end_flag = 0
+
+    while True:
+        ret, frame = decoder.read()
+        if ret == False:
+            end_flag =1
+            for event_detector in event_detectors:
+                sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
+            break
+
+        frame_number += 1
+        frame_name = "{0:06d}.jpg".format(frame_number)
+        frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
+        od_result = od_model.inference_by_image(frame)
+
+        # Object Detection
+        object_result = define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps)
+        object_result["results"].append({"detection_result": od_result})
+        tracking_results = dict()
+
+        # Tracking(Byte Tracker, Sort)
+        for tracker in trackers:
+            tracking_result = tracker.update(object_result.copy())
+            tracking_results[tracker.tracker_name] = tracking_result
+
+        # Draw object detection results
+        frame_bbox = bbox_visualization.draw_bboxes(frame, od_result)
+        video_writer.write(frame_bbox)
+
+        # Event Detection
+        event_result = define_event_result(video_path, frame_number, extract_fps, fps)
+        event_process_times = []
+        for event_detector in event_detectors:
+            if event_detector.tracker_name == "byte_tracker":
+                tracking_result = tracking_results["byte_tracker"]
+            elif event_detector.tracker_name == "sort":
+                tracking_result = tracking_results["sort"]
+            else:
+                tracking_result = None
+
+            start_time = time.time()
+            event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, object_result, tracking_result, score_threshold[event_detector.model_name])
+            if process_time:
+                event_process_times.append(time.time() - start_time)
+            sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
+        event_results.append(event_result)
+
+        # Save frame results
+        if save_frame_result:
+            json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
+            json.dump(object_result, json_result_file, indent=4)
+            json_result_file.close()
+
+        # Print log
+        print(Logging.ir("frame number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
+            .format(
+                frame_number,
+                expected_framecount,
+                int(frame_number / extract_fps * fps),
+                str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
+            ), end='')
+        if process_time:
+            print("\t/ process time: ", end="")
+            for i, event_detector in enumerate(event_detectors):
+                print("{0}: {1:03f}\t/".format(event_detector.model_name, event_process_times[i]), end="")
+            print()
+
+    video_writer.release()
+    print(Logging.inl("Extraction is successfully completed(framecount: {})".format(frame_number)))
+    if os.path.exists(bbox_video_path) :
+        print(Logging.i("BBox video is successfully generated(path: {})".format(bbox_video_path)))
+    else :
+        print(Logging.i("BBox video is failed to generated."))
+    return event_results, sequence_result
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--video_path", type=str, default="videos/001_360.mp4", help="Video path")
     parser.add_argument("--fps", type=int, default=20, help="FPS of extraction frame ")
     parser.add_argument("--od_model_name", type=str, default="yolov4-416", help="Object detection model name")
-    parser.add_argument("--nms_th", type=float, default=0.5, help="Object detection nms threshold")
-    parser.add_argument("--assault_score_th", type=float, default=0.5, help="Object score threshold of assault model")
-    parser.add_argument("--falldown_score_th", type=float, default=0.5, help="Object score threshold of falldown model")
-    parser.add_argument("--kidnapping_score_th", type=float, default=0.5, help="Object score threshold of kidnapping model")
-    parser.add_argument("--tailing_score_th", type=float, default=0.5, help="Object score threshold of tailing model")
-    parser.add_argument("--wanderer_score_th", type=float, default=0.5, help="Object score threshold of wanderer model")
+    parser.add_argument("--score_threshold", type=float, default=0.1, help="Object detection nms threshold")
+    parser.add_argument("--nms_threshold", type=float, default=0.5, help="Object detection nms threshold")
+    parser.add_argument("--byte_tracker_params", type=str, default="0.1,0.5,30,0.8,10,20",
+                        help="Byte tracker parameters(score_threshold,track_threshold,tracker_buffer,match_threshold,min_box_area,frame_rate)")
+    parser.add_argument("--sort_params", type=str, default="0.5,2,20", help="Sort tracker parameters(score_threshold,max_age,min_hits)")
     parser.add_argument("--event_model", type=str, default="all", help="Event model names")
+    parser.add_argument("--event_model_score_threshold", type=str, default="0,0.5,0.5,0,0", help="Event model score threshold(assault,falldown,kidnapping,tailing,wanderer)")
     parser.add_argument("--result_dir", type=str, default="./result", help="Directory path of results and frame")
     parser.add_argument("--save_frame_result", action='store_true', help="Is save frame result")
+    parser.add_argument("--process_time", action='store_true', help="print processing time event models")
 
     option = parser.parse_known_args()[0]
 
     video_path = option.video_path
     video_name = video_path.split("/")[-1]
     extract_fps = option.fps
-    nms_threshold = option.nms_th
-    score_threshold = {
-        "assault": option.assault_score_th,
-        "falldown": option.falldown_score_th,
-        "kidnapping": option.kidnapping_score_th,
-        "tailing": option.tailing_score_th,
-        "wanderer": option.wanderer_score_th,
-    }
+    score_threshold = option.score_threshold
+    nms_threshold = option.nms_threshold
     od_model_name = option.od_model_name
+    byte_tracker_params = str(option.byte_tracker_params).split(",")
+    sort_params = str(option.sort_params).split(",")
     event_model_names = option.event_model
+    event_model_score_threshold = str(option.event_model_score_threshold).split(",")
     result_dir = option.result_dir
     save_frame_result = option.save_frame_result
+    process_time = option.process_time
+    event_model_tracker = {
+        "assault": "byte_tracker",
+        "falldown": "none",
+        "kidnapping": "none",
+        "tailing": "byte_tracker",
+        "wanderer": "sort",
+    }
+    event_model_score_thresholds = {
+        "assault": float(event_model_score_threshold[0]),
+        "falldown": float(event_model_score_threshold[1]),
+        "kidnapping": float(event_model_score_threshold[2]),
+        "tailing": float(event_model_score_threshold[3]),
+        "wanderer": float(event_model_score_threshold[4]),
+    }
 
     bbox_video_path = os.path.join(result_dir, video_name.split(".mp4")[0] + "_bbox.avi")
     print(Logging.i("Argument Info:"))
     print(Logging.s("input video path: {}".format(video_path)))
     print(Logging.s("extract fps: {}".format(extract_fps)))
-    print(Logging.s("nms threshold: {}".format(nms_threshold)))
-    print(Logging.s("object detection model name: {}".format(od_model_name)))
-    print(Logging.s("event model names: {}".format(event_model_names)))
     print(Logging.s("result directory path: {}".format(result_dir)))
     print(Logging.s("bbox video path: {}".format(bbox_video_path)))
-    print(Logging.s("score threshold:"))
+    print(Logging.s("Object Detection model params"))
+    print(Logging.s("\tmodel name: {}".format(od_model_name)))
+    print(Logging.s("\tscore threshold: {}".format(score_threshold)))
+    print(Logging.s("\tnms threshold: {}".format(nms_threshold)))
+    print(Logging.s("Tracker info"))
+    print(Logging.s("\tBYTE Tracker"))
+    print(Logging.s("\t\tscore threshold: {}".format(byte_tracker_params[0])))
+    print(Logging.s("\t\ttrack threshold: {}".format(byte_tracker_params[1])))
+    print(Logging.s("\t\ttrack buffer: {}".format(byte_tracker_params[2])))
+    print(Logging.s("\t\tmatch threshold: {}".format(byte_tracker_params[3])))
+    print(Logging.s("\t\tmin box area: {}".format(byte_tracker_params[4])))
+    print(Logging.s("\t\tframe rate: {}".format(byte_tracker_params[5])))
+    print(Logging.s("\tSort"))
+    print(Logging.s("\t\tscore threshold: {}".format(sort_params[0])))
+    print(Logging.s("\t\tmax age: {}".format(sort_params[1])))
+    print(Logging.s("\t\tmin hits: {}".format(sort_params[2])))
+    print(Logging.s("Event model info(model name/tracker/score threshold):".format(event_model_names)))
     for event_name in split_model_names(event_model_names):
-        print(Logging.s("    {}: {}".format(event_name, score_threshold[event_name])))
+        print(Logging.s("\t{}\t/ {}\t/ {}".format(event_name, event_model_tracker[event_name], event_model_score_thresholds[event_name])))
+    tracker_params = [{
+            "tracker_class": BYTETracker,
+            "tracker_name": "byte_tracker",
+            "score_threshold": float(byte_tracker_params[0]),
+            "track_threshold": float(byte_tracker_params[1]),
+            "track_buffer": int(byte_tracker_params[2]),
+            "match_threshold": float(byte_tracker_params[3]),
+            "min_box_area": int(byte_tracker_params[4]),
+            "frame_rate": int(byte_tracker_params[5])
+        },
+        {
+            "tracker_class": Sort,
+            "tracker_name": "sort",
+            "score_threshold": float(sort_params[0]),
+            "max_age": int(sort_params[1]),
+            "min_hits": int(sort_params[1])
+        }
+    ]
+
 
     # Load Video
     capture, framecount, fps = load_video(video_path, extract_fps)
 
     # Load Object Detection & Event Detection models
-    od_model, event_detectors = load_models(od_model_name, score_threshold=0.1, nms_threshold=nms_threshold, event_model_names=event_model_names)
+    od_model, trackers, event_detectors = load_models(od_model_name, tracker_params, score_threshold=0.1, nms_threshold=nms_threshold, event_model_names=event_model_names)
 
     # Result Directory info
     frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name, save_frame_result)
 
     # Run detection
     video_info = {"video_path": video_path, "fps": fps, "framecount": framecount, 'extract_fps': extract_fps}
-    event_results, sequence_results = run_detection(video_info, od_model, score_threshold, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result)
+    event_results, sequence_results = run_detection(video_info, od_model, trackers, event_model_score_thresholds, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time)
 
     # Extract event result as csv
     if save_frame_result:

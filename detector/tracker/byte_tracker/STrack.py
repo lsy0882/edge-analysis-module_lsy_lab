@@ -1,5 +1,5 @@
-from detector.tracker.assault_tracker.basetrack import BaseTrack, TrackState
-from detector.tracker.assault_tracker.kalman_filter import KalmanFilter
+from detector.tracker.byte_tracker.basetrack import BaseTrack, TrackState
+from detector.tracker.byte_tracker.kalman_filter import KalmanFilter
 from itertools import combinations
 import numpy as np
 

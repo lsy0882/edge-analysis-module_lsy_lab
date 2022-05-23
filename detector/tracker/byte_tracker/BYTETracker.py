@@ -2,28 +2,30 @@ import numpy as np
 import copy
 
 from detector.tracker.tracker_template.Template import Tracker
-from detector.tracker.assault_tracker.kalman_filter import KalmanFilter
-from detector.tracker.assault_tracker.basetrack import TrackState
-from detector.tracker.assault_tracker.utils import *
-from detector.tracker.assault_tracker.STrack import STrack
+from detector.tracker.byte_tracker.kalman_filter import KalmanFilter
+from detector.tracker.byte_tracker.basetrack import TrackState
+from detector.tracker.byte_tracker.utils import *
+from detector.tracker.byte_tracker.STrack import STrack
 
 
 class BYTETracker(Tracker):
-    def __init__(self, track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=30):
-        super().__init__()
+    def __init__(self, params):
+        super().__init__(params)
         self.tracked_stracks = []
         self.lost_stracks = []
         self.removed_stracks = []
-        self.min_box_area=min_box_area
+        self.min_box_area=params["min_box_area"]
 
         self.frame_id = 0
 
-        self.match_thresh = match_thresh
-        self.track_thresh = track_thresh
-        self.det_thresh = track_thresh + 0.1
-        self.buffer_size = int(frame_rate / 30.0 * track_buffer)
+        self.score_treshold = params["score_threshold"]
+        self.match_thresh = params["match_threshold"]
+        self.track_thresh = params["track_threshold"]
+        self.det_thresh = params["track_threshold"] + 0.1
+        self.buffer_size = int(params["frame_rate"] / 30.0 * params["track_buffer"])
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
+        self.tracker_name = params["tracker_name"]
 
     @staticmethod
     def det_to_trk_data_conversion(detection_result):
@@ -54,6 +56,7 @@ class BYTETracker(Tracker):
         return boxes_list_array, scores_list_array, classes_list_array
 
     def update(self, detection_result):
+        detection_result = self.filter_object_result(detection_result, self.score_treshold)
         bboxes, scores, classes = self.det_to_trk_data_conversion(detection_result)
         self.frame_id += 1
         scores=scores.reshape(-1)

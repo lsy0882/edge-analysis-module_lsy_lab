@@ -1,18 +1,20 @@
 from detector.tracker.tracker_template.Template import Tracker
-from detector.tracker.wander_tracker.utils import *
-from detector.tracker.wander_tracker.KalmanBoxTracker import KalmanBoxTracker
+from detector.tracker.sort.utils import *
+from detector.tracker.sort.KalmanBoxTracker import KalmanBoxTracker
 
 
-class WanderTracker(Tracker):
-    def __init__(self, max_age=2, min_hits=3):
+class Sort(Tracker):
+    def __init__(self, params):
         """
         Sets key parameters for SORT
         """
-        super().__init__()
-        self.max_age = max_age
-        self.min_hits = min_hits
+        super().__init__(params)
+        self.score_threshold = params["score_threshold"]
+        self.max_age = params["max_age"]
+        self.min_hits = params["min_hits"]
         self.trackers = []
         self.frame_count = 0
+        self.tracker_name = params["tracker_name"]
 
     @staticmethod
     def reformat_detection_result(detection_result):
@@ -41,7 +43,8 @@ class WanderTracker(Tracker):
 
         NOTE: The number of objects returned may differ from the number of detections provided.
         """
-        dets = self.reformat_detection_result(detection_result)
+        detection_result = self.filter_object_result(detection_result, self.score_threshold)
+        dets = self.reformat_detection_result(detection_result['results'][0]['detection_result'])
         self.frame_count += 1
         # get predicted locations from existing trackers.
         trks = np.zeros((len(self.trackers), 5))

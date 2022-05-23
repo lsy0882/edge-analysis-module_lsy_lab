@@ -6,7 +6,7 @@ import time
 # - 이미 정의된 함수 및 클래스 멤버 변수의 이름은 *****절대로**** 변경하지마세요.
 
 class Event:
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, tracker_name=None):
         self.analysis_time = 0
         self.debug = debug
         self.result = False
@@ -15,13 +15,14 @@ class Event:
         self.frameseq_info = {"start_frame": 0, "end_frame": 1}
         self.model_name = "dummy"
         self.new_seq_flag = True
+        self.tracker_name = tracker_name
 
         # TODO: __init__
         # - 분석에 필요한 모델이 별도의 초기화나 load가 필요한 경우 이곳에서 초기화를 진행합니다.
         # - self.model_name을 분석 모델의 이름으로 수정해야 하며 이 변수는 전체 결과에서 구분자 역할을 합니다.
         # - 위의 7개 변수(model_name, analysis_time, debug, result, frameseq, r_value, frameseq_info) 중 하나라도 삭제하면 동작이 안되니 유의해주시기 바랍니다.
 
-    def inference(self, frame_info, detection_result, score_threshold=0.5):
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
         start = 0
@@ -68,7 +69,8 @@ class Event:
         self.r_value = self.result
         return self.frameseq
 
-    def filter_object_result(self, detection_result, score_threshold):
+    @staticmethod
+    def filter_object_result(detection_result, score_threshold):
         object_result = []
         for obj in detection_result["results"][0]["detection_result"]:
             score = obj["label"][0]["score"]

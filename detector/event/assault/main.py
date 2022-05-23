@@ -3,13 +3,13 @@ import time
 import numpy as np
 
 from detector.event.template.main import Event
-from detector.tracker.assault_tracker.BYTETracker import BYTETracker
+from detector.tracker.byte_tracker.BYTETracker import BYTETracker
 
 class AssaultEvent(Event):
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False, track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=20):
+    def __init__(self, debug=False, tracker_name="byte_tracker"):
         super().__init__(debug)
         self.model_name = "assault"
         self.debug = debug
@@ -22,9 +22,9 @@ class AssaultEvent(Event):
         self.impact_history = []
         self.merge_history = []
         self.start_assault_true_alarm_frame = 9999999
-        self.tracker = BYTETracker(track_thresh=0.5, track_buffer=30, match_thresh=0.8, min_box_area=10, frame_rate=20)
+        self.tracker_name = tracker_name
 
-    def inference(self, frame_info, detection_result, score_threshold=0.1): 
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.1):
         frame = frame_info["frame"]
         frame_number = frame_info["frame_number"]
 
@@ -38,8 +38,7 @@ class AssaultEvent(Event):
         self.result = False
         self.frame_count += 1
 
-        detection_result = self.filter_object_result(detection_result, score_threshold)
-        tracked_stracks = self.tracker.update(detection_result)
+        tracked_stracks = tracking_result
         self.tracked_stracks_history.append({'frame_id': self.frame_count, 'tracked_stracks_list': tracked_stracks, 'appear_tracked_stracks_list': [],
                                             'disap_tracked_stracks_list': [], 'switch_stracks': [], 'separation_stracks': [], 'merge_stracks': []})
 
