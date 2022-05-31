@@ -329,7 +329,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
                 .format(
                     frame_number,
                     frame_count,
-                    str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
+                    str(convert_framenumber2timestamp(frame_number, fps)))
                 ), end='')
             if process_time:
                 print("\t/ process time: ", end="")
