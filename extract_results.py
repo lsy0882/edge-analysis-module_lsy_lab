@@ -31,17 +31,17 @@ def split_model_names(model_names):
 
 def load_video(video_path, extract_fps):
     capture = cv2.VideoCapture(video_path)
-    framecount = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(round(capture.get(cv2.CAP_PROP_FPS)))
 
     print(Logging.i("Extract information"))
     print(Logging.s("video path: {}".format(video_path)))
     print(Logging.s("video fps: {}".format(fps)))
-    print(Logging.s("video framecount: {}".format(framecount)))
+    print(Logging.s("video frame_count: {}".format(frame_count)))
     print(Logging.s("extract fps: {}".format(extract_fps)))
-    print(Logging.s("extract frame number: {}".format(int(framecount/(fps/extract_fps)))))
+    print(Logging.s("extract frame number: {}".format(int(frame_count/(fps/extract_fps)))))
 
-    return capture, framecount, fps
+    return capture, frame_count, fps
 
 
 def load_models(od_model_name="yolov4-416", tracker_params=None, score_threshold=0.5, nms_threshold=0.3, event_model_names="all"):
@@ -249,9 +249,8 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
     print(Logging.i("Processing..."))
     # Parameters
     fps = video_info["fps"]
-    framecount = video_info["framecount"]
+    frame_count = video_info["frame_count"]
     extract_fps = video_info["extract_fps"]
-    expected_framecount = int(framecount / fps * extract_fps)
     filter_frame_numbers = generate_filter_numbers(extract_fps, fps)
     event_results = []
     cls_dict = get_cls_dict(15)
@@ -329,7 +328,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             print(Logging.ir("frame number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
                 .format(
                     frame_number,
-                    expected_framecount,
+                    frame_count,
                     int(frame_number / extract_fps * fps),
                     str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
                 ), end='')
@@ -340,7 +339,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
                 print()
 
     video_writer.release()
-    print(Logging.inl("Extraction is successfully completed(framecount: {})".format(frame_number)))
+    print(Logging.inl("Extraction is successfully completed(frame_count: {})".format(frame_number)))
     if os.path.exists(bbox_video_path) :
         print(Logging.i("BBox video is successfully generated(path: {})".format(bbox_video_path)))
     else :
@@ -440,7 +439,7 @@ if __name__ == '__main__':
 
 
     # Load Video
-    capture, framecount, fps = load_video(video_path, extract_fps)
+    capture, frame_count, fps = load_video(video_path, extract_fps)
 
     # Load Object Detection & Event Detection models
     od_model, trackers, event_detectors = load_models(od_model_name, tracker_params, score_threshold=0.1, nms_threshold=nms_threshold, event_model_names=event_model_names)
@@ -449,7 +448,7 @@ if __name__ == '__main__':
     frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name, save_frame_result)
 
     # Run detection
-    video_info = {"video_path": video_path, "fps": fps, "framecount": framecount, 'extract_fps': extract_fps}
+    video_info = {"video_path": video_path, "fps": fps, "frame_count": frame_count, 'extract_fps': extract_fps}
     event_results, sequence_results = run_detection(video_info, od_model, trackers, event_model_score_thresholds, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time)
 
     # Extract event result as csv
