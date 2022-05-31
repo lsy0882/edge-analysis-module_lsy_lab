@@ -283,7 +283,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             if filter_frame_number == 30:
                 filter_frame_number = 0
             frame_name = "{0:06d}.jpg".format(frame_number)
-            frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
+            frame_info = {"frame": frame, "frame_number": frame_number}
             od_result = od_model.inference_by_image(frame)
 
             # Object Detection
@@ -325,11 +325,10 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
                 json_result_file.close()
 
             # Print log
-            print(Logging.ir("frame number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
+            print(Logging.ir("frame number: {:>6}/{}\t/ timestamp: {:>6}"
                 .format(
                     frame_number,
                     frame_count,
-                    int(frame_number / extract_fps * fps),
                     str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
                 ), end='')
             if process_time:
