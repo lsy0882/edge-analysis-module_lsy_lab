@@ -9,6 +9,8 @@ import cv2
 import csv
 
 from decoder.FFmpegDecoder import FFmpegDecoder
+
+from decoder.CvDecoder import CvDecoder
 from detector.event.assault.main import AssaultEvent
 from detector.event.falldown.main import FalldownEvent
 from detector.event.kidnapping.main import KidnappingEvent
@@ -167,6 +169,7 @@ def extract_event_results(event_model_names, event_dir, video_name, event_detect
 
 
 def extract_sequence_results(event_dir, video_name, sequence_results):
+    # 빈클래스 추가 필요
     sequence_json_file_path = os.path.join(event_dir, video_name.replace(".mp4", ".json"))
     with open(sequence_json_file_path, "w") as sequence_file:
         json.dump(sequence_results, sequence_file, indent='\t')
@@ -228,6 +231,20 @@ def draw_event(bbox_video_path, sequence_json_path, extract_fps, events):
     print(Logging.i("Sequence json file is successfully generated(path: {})".format(json_file_path)))
 
 
+def generate_filter_numbers(extract_fps, fps):
+    filter_frame_numbers = []
+    if extract_fps is not 0 and fps is not 0:
+        tmp_nums = []
+        for i in range(1, fps + 1):
+            filter_num = int(i * (extract_fps / fps))
+            if filter_num != 0 and filter_num not in tmp_nums:
+                tmp_nums.append(filter_num)
+                filter_frame_numbers.append(i)
+        return filter_frame_numbers
+    else:
+        return filter_frame_numbers
+
+
 def run_detection(video_info, od_model, trackers, score_threshold, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time):
     print(Logging.i("Processing..."))
     # Parameters
@@ -235,13 +252,15 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
     framecount = video_info["framecount"]
     extract_fps = video_info["extract_fps"]
     expected_framecount = int(framecount / fps * extract_fps)
-    frame_number = 0
+    filter_frame_numbers = generate_filter_numbers(extract_fps, fps)
     event_results = []
     cls_dict = get_cls_dict(15)
     bbox_visualization = BBoxVisualization(cls_dict)
+    frame_number = 0
+    filter_frame_number = 0
 
     # Load decoder
-    decoder = FFmpegDecoder(video_info["video_path"], fps=extract_fps)
+    decoder = CvDecoder(video_info["video_path"])
     decoder.load()
     # load video writer
     video_writer = load_viderwriter()
@@ -251,6 +270,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
 
     while True:
         ret, frame = decoder.read()
+
         if ret == False:
             end_flag =1
             for event_detector in event_detectors:
@@ -258,61 +278,66 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             break
 
         frame_number += 1
-        frame_name = "{0:06d}.jpg".format(frame_number)
-        frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
-        od_result = od_model.inference_by_image(frame)
+        filter_frame_number += 1
 
-        # Object Detection
-        object_result = define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps)
-        object_result["results"].append({"detection_result": od_result})
-        tracking_results = dict()
+        if filter_frame_number in filter_frame_numbers and frame is not None:
+            if filter_frame_number == 30:
+                filter_frame_number = 0
+            frame_name = "{0:06d}.jpg".format(frame_number)
+            frame_info = {"frame": frame, "frame_number": int(frame_number / extract_fps * fps)}
+            od_result = od_model.inference_by_image(frame)
 
-        # Tracking(Byte Tracker, Sort)
-        for tracker in trackers:
-            tracking_result = tracker.update(object_result.copy())
-            tracking_results[tracker.tracker_name] = tracking_result
+            # Object Detection
+            object_result = define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps)
+            object_result["results"].append({"detection_result": od_result})
+            tracking_results = dict()
 
-        # Draw object detection results
-        frame_bbox = bbox_visualization.draw_bboxes(frame, od_result)
-        video_writer.write(frame_bbox)
+            # Tracking(Byte Tracker, Sort)
+            for tracker in trackers:
+                tracking_result = tracker.update(object_result.copy())
+                tracking_results[tracker.tracker_name] = tracking_result
 
-        # Event Detection
-        event_result = define_event_result(video_path, frame_number, extract_fps, fps)
-        event_process_times = []
-        for event_detector in event_detectors:
-            if event_detector.tracker_name == "byte_tracker":
-                tracking_result = tracking_results["byte_tracker"]
-            elif event_detector.tracker_name == "sort":
-                tracking_result = tracking_results["sort"]
-            else:
-                tracking_result = None
+            # Draw object detection results
+            frame_bbox = bbox_visualization.draw_bboxes(frame, od_result)
+            video_writer.write(frame_bbox)
 
-            start_time = time.time()
-            event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, object_result, tracking_result, score_threshold[event_detector.model_name])
+            # Event Detection
+            event_result = define_event_result(video_path, frame_number, extract_fps, fps)
+            event_process_times = []
+            for event_detector in event_detectors:
+                if event_detector.tracker_name == "byte_tracker":
+                    tracking_result = tracking_results["byte_tracker"]
+                elif event_detector.tracker_name == "sort":
+                    tracking_result = tracking_results["sort"]
+                else:
+                    tracking_result = None
+
+                start_time = time.time()
+                event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, object_result, tracking_result, score_threshold[event_detector.model_name])
+                if process_time:
+                    event_process_times.append(time.time() - start_time)
+                sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
+            event_results.append(event_result)
+
+            # Save frame results
+            if save_frame_result:
+                json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
+                json.dump(object_result, json_result_file, indent=4)
+                json_result_file.close()
+
+            # Print log
+            print(Logging.ir("frame number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
+                .format(
+                    frame_number,
+                    expected_framecount,
+                    int(frame_number / extract_fps * fps),
+                    str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
+                ), end='')
             if process_time:
-                event_process_times.append(time.time() - start_time)
-            sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
-        event_results.append(event_result)
-
-        # Save frame results
-        if save_frame_result:
-            json_result_file = open(os.path.join(json_dir, frame_name.split(".jpg")[0] + ".json"), "w")
-            json.dump(object_result, json_result_file, indent=4)
-            json_result_file.close()
-
-        # Print log
-        print(Logging.ir("frame number: {:>6}/{}\t/ extract frame number: {:>6}\t/ timestamp: {:>6}"
-            .format(
-                frame_number,
-                expected_framecount,
-                int(frame_number / extract_fps * fps),
-                str(convert_framenumber2timestamp(frame_number / extract_fps * fps, fps)))
-            ), end='')
-        if process_time:
-            print("\t/ process time: ", end="")
-            for i, event_detector in enumerate(event_detectors):
-                print("{0}: {1:03f}\t/".format(event_detector.model_name, event_process_times[i]), end="")
-            print()
+                print("\t/ process time: ", end="")
+                for i, event_detector in enumerate(event_detectors):
+                    print("{0}: {1:03f}\t/".format(event_detector.model_name, event_process_times[i]), end="")
+                print()
 
     video_writer.release()
     print(Logging.inl("Extraction is successfully completed(framecount: {})".format(frame_number)))
