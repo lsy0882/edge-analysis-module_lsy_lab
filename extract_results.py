@@ -8,8 +8,6 @@ import os
 import cv2
 import csv
 
-from decoder.FFmpegDecoder import FFmpegDecoder
-
 from decoder.CvDecoder import CvDecoder
 from detector.event.assault.main import AssaultEvent
 from detector.event.falldown.main import FalldownEvent
@@ -266,6 +264,15 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
 
     sequence_result = dict()
     end_flag = 0
+    total_object_process_time = 0
+    max_object_process_time = 0
+    min_object_process_time = 10
+    total_tracker_process_times = [float(0) for tracker in trackers if tracker is not None]
+    max_tracker_process_times = [float(0) for tracker in trackers if tracker is not None]
+    min_tracker_process_times = [float(10) for tracker in trackers if tracker is not None]
+    total_event_process_times = [float(0) for event_detector in event_detectors if event_detector is not None]
+    max_event_process_times = [float(0) for event_detector in event_detectors if event_detector is not None]
+    min_event_process_times = [float(10) for event_detector in event_detectors if event_detector is not None]
 
     while True:
         ret, frame = decoder.read()
@@ -284,7 +291,15 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
                 filter_frame_number = 0
             frame_name = "{0:06d}.jpg".format(frame_number)
             frame_info = {"frame": frame, "frame_number": frame_number}
+            start_time = time.time()
             od_result = od_model.inference_by_image(frame)
+            end_time = time.time()
+            if process_time:
+                total_object_process_time += (end_time - start_time)
+                if max_object_process_time < (end_time - start_time):
+                    max_object_process_time = (end_time - start_time)
+                if min_object_process_time > (end_time - start_time):
+                    min_object_process_time = (end_time - start_time)
 
             # Object Detection
             object_result = define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps)
@@ -292,18 +307,26 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             tracking_results = dict()
 
             # Tracking(Byte Tracker, Sort)
-            for tracker in trackers:
+            for i, tracker in enumerate(trackers):
+                start_time = time.time()
                 tracking_result = tracker.update(object_result.copy())
                 tracking_results[tracker.tracker_name] = tracking_result
+                end_time = time.time()
+                if process_time:
+                    total_tracker_process_times[i] += (end_time - start_time)
+                    if max_tracker_process_times[i] < (end_time - start_time):
+                        max_tracker_process_times[i] = (end_time - start_time)
+                    if min_tracker_process_times[i] > (end_time - start_time):
+                        min_tracker_process_times[i] = (end_time - start_time)
 
             # Draw object detection results
             frame_bbox = bbox_visualization.draw_bboxes(frame, od_result)
             video_writer.write(frame_bbox)
 
             # Event Detection
-            event_result = define_event_result(video_path, frame_number, extract_fps, fps)
             event_process_times = []
-            for event_detector in event_detectors:
+            event_result = define_event_result(video_path, frame_number, extract_fps, fps)
+            for i, event_detector in enumerate(event_detectors):
                 if event_detector.tracker_name == "byte_tracker":
                     tracking_result = tracking_results["byte_tracker"]
                 elif event_detector.tracker_name == "sort":
@@ -313,9 +336,16 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
 
                 start_time = time.time()
                 event_result["event_result"][event_detector.model_name] = event_detector.inference(frame_info, object_result, tracking_result, score_threshold[event_detector.model_name])
-                if process_time:
-                    event_process_times.append(time.time() - start_time)
                 sequence_result[event_detector.model_name] = event_detector.merge_sequence(frame_info, end_flag)
+                end_time = time.time()
+
+                if process_time:
+                    event_process_times.append(end_time - start_time)
+                    total_event_process_times[i] += (end_time - start_time)
+                    if max_event_process_times[i] < (end_time - start_time):
+                        max_event_process_times[i] = (end_time - start_time)
+                    if min_event_process_times[i] > (end_time - start_time):
+                        min_event_process_times[i] = (end_time - start_time)
             event_results.append(event_result)
 
             # Save frame results
@@ -334,10 +364,34 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             if process_time:
                 print("\t/ process time: ", end="")
                 for i, event_detector in enumerate(event_detectors):
-                    print("{0}: {1:03f}\t/".format(event_detector.model_name, event_process_times[i]), end="")
+                    print(" {0}: {1:03f}\t/".format(event_detector.model_name, event_process_times[i]), end="")
                 print()
 
     video_writer.release()
+    if process_time:
+        print(Logging.i("Processing Time:"))
+        print(Logging.s("\tObject Detection(yolov4-416) - average: {0:03f}\t/ max: {1:03f}\t / min: {2:03f}".format(
+            total_object_process_time/frame_count,
+            max_object_process_time,
+            min_object_process_time
+        )))
+        print(Logging.s("\tTracker"))
+        for i, tracker in enumerate(trackers):
+            print(Logging.s("\t\t{0} - average: {1:03f}\t/ max: {2:03f}\t / min: {3:03f}".format(
+                tracker.tracker_name,
+                total_tracker_process_times[i]/frame_count,
+                max_tracker_process_times[i],
+                min_tracker_process_times[i]
+            )))
+        print(Logging.s("\tEvent Detection"))
+        for i, event_detector in enumerate(event_detectors):
+            print(Logging.s("\t\t{0} - average: {1:03f}\t/ max: {2:03f}\t / min: {3:03f}".format(
+                event_detector.model_name,
+                total_event_process_times[i]/frame_count,
+                max_event_process_times[i],
+                min_event_process_times[i]
+            )))
+
     print(Logging.inl("Extraction is successfully completed(frame_count: {})".format(frame_number)))
     if os.path.exists(bbox_video_path) :
         print(Logging.i("BBox video is successfully generated(path: {})".format(bbox_video_path)))
@@ -435,7 +489,6 @@ if __name__ == '__main__':
             "min_hits": int(sort_params[1])
         }
     ]
-
 
     # Load Video
     capture, frame_count, fps = load_video(video_path, extract_fps)
