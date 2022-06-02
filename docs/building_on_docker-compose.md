@@ -8,7 +8,7 @@
 ### Clone repository
 ```shell script
 cd ${WORKSPACE}
-git clone https://github.com/Jinhasong/edge-analysis-module.git
+git clone https://${PERSONAL_ACCESS_TOKEN}@github.com/Jinhasong/edge-analysis-module.git
 ```
 ### build Cocker Container using Docker-compose
 ```shell script
@@ -22,27 +22,12 @@ docker attach edge-analysis-module_main_1
 ```
 
 ## Build Project from Source inside Docker Container
-### Reinstall pip
-* 해당 이미지의 pip가 정상적으로 동작하지 않기 때문에 git-pip.py를 이용하여 재설치 해줍니다.
-```shell script
-cd /workspace/scripts
-python3 get-pip.py --force-reinstall
-```
 ### Install python requirements
 ```shell script
 cd /workspace
 pip3 install -r requirements.txt 
 ``` 
 
-### Install Protobuf, PyCUDA and ONNX
-* Jetson Nano에서 해당 소스 코드를 사용하기 위해서는 protobuf-3.8.0 이 필요하며 apt를 이용해 기본으로 설치할 수 있는 protobuf는 이보다 하위 버전이기 때문에 별도의 빌드 및 설치가 필요합니다.
-```shell script
-cd /workspace/scripts
-chmod +x ./install_protobuf-3.8.0_root.sh
-chmod +x ./install_pycuda_root.sh
-./install_protobuf-3.8.0_root.sh
-./install_pycuda_root.sh
-```
 ### Build plugin for yolo layer
 ```shell script
 cd /workspace/detector/object_detection/yolov4/plugins
@@ -61,14 +46,8 @@ chmod +x yolov4_obstacle_yolo_to_trt.sh
 ```shell script
 python3 extract_results.py \
     --event_model=assault,falldown,kidnapping,tailing,wanderer \
-    --assault_score_th=0.1 \
-    --falldown_score_th=0.5 \
-    --kidnapping_score_th=0.5 \
-    --tailing_score_th=0.5 \
-    --wanderer_score_th=0.5 \
     --result_dir=./results/ \
     --video_path=videos/aihub_01_360p.mp4
 ```
-- 4월 8일 업데이트 기준 이전 객체 검출 모델(yolov4)에서 score threshold로 필터링 하던 부분을 각 이벤트 검출 모델에서 필터링 가능하도록 업데이트했습니다
-- extract_results.py 실행 시 각 모델별 필터링 기본값은 __0.5__ 이며 위와 같이 ${EVENT}_score_th 파라미터로 조절 가능합니다.
-- yolov4에서의 기본 필터링 score threshold는 0.1 미만으로 낮췄을 경우 속도저하가 매우 심하여 0.1이 기본값으로 설정되어 있습니다. 
+- yolov4에서의 기본 필터링 score threshold는 0.1 미만으로 낮췄을 경우 속도저하가 매우 심하여 0.1이 기본값으로 설정되어 있습니다.
+- argument에 대한 설명은 hyperparameter가 결정된 후 작성될 예정입니다.
