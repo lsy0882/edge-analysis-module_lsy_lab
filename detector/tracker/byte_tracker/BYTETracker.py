@@ -1,5 +1,4 @@
 import numpy as np
-import copy
 
 from detector.tracker.tracker_template.Template import Tracker
 from detector.tracker.byte_tracker.kalman_filter import KalmanFilter
@@ -56,18 +55,21 @@ class BYTETracker(Tracker):
         return boxes_list_array, scores_list_array, classes_list_array
 
     def update(self, detection_result):
+    
         detection_result = self.filter_object_result(detection_result, self.score_treshold)
         bboxes, scores, classes = self.det_to_trk_data_conversion(detection_result)
+
+        output = []
         self.frame_id += 1
         scores=scores.reshape(-1)
-        classes=classes.reshape(-1)
+        classes=classes.reshape(-1) 
 
         tracked_stracks = []
         lost_stracks = []
-        removed_stracks = []
+        removed_stracks = [] 
         unconfirmed_stracks = []
         activated_starcks = []
-        refind_stracks = []
+        refind_stracks = [] 
 
         for track in self.tracked_stracks:
             if not track.is_activated:
@@ -75,7 +77,7 @@ class BYTETracker(Tracker):
             else:
                 tracked_stracks.append(track)
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
-
+        
         is_human = classes == 0
         low_idxes_low_limit = 0.1 < scores
         low_idxes_high_limit = scores <= self.track_thresh
@@ -180,6 +182,21 @@ class BYTETracker(Tracker):
         STrack.init_overlap(self.tracked_stracks)
         STrack.check_overlap(self.tracked_stracks)
 
-        return self.tracked_stracks
+        
+        ret = convert_output_format_like_sort(self.tracked_stracks)
+        output += self.tracked_stracks
+        output.append(ret)
 
+        # output[:-1] : Tracked box objects, output[-1] : numpy.asarray([[tlbr, id], ... ])
+        return output
 
+def convert_output_format_like_sort(STrack_objects_list):
+    ret = []
+    for STrack in STrack_objects_list:
+        temp_list = []
+        tlbr = list(STrack.tlbr)
+        temp_list += tlbr
+        temp_list.append(STrack.track_id)
+        ret.append(temp_list)
+    ret = np.asarray(ret)
+    return ret
