@@ -5,6 +5,17 @@ import numpy as np
 from detector.event.template.main import Event
 from detector.tracker.byte_tracker.BYTETracker import BYTETracker
 
+parameters = {
+    'close_y' : 5.2,
+    'close_x' : 1.26,
+    'acceleration' : 0.0005115,
+    'impact' : [1.387, 5.66, 3.34],
+    'velocity' : 0.262,
+    'distance' : 0.003,
+    'signal_maintain' : 120,
+    'signal_merge' : 120
+}
+
 class AssaultEvent(Event):
     model = None
     path = os.path.dirname(os.path.abspath(__file__))
@@ -25,8 +36,6 @@ class AssaultEvent(Event):
         self.tracker_name = tracker_name
 
     def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.1):
-        frame = frame_info["frame"]
-        frame_number = frame_info["frame_number"]
 
         start = 0
         end = 0
@@ -38,35 +47,30 @@ class AssaultEvent(Event):
         self.result = False
         self.frame_count += 1
 
-        tracked_stracks = tracking_result
-        self.tracked_stracks_history.append({'frame_id': self.frame_count, 'tracked_stracks_list': tracked_stracks, 'appear_tracked_stracks_list': [],
+        tracked_stracks = tracking_result[:-1]
+
+        self.tracked_stracks_history.append({'frame_count': self.frame_count, 'tracked_stracks_list': tracked_stracks, 'appear_tracked_stracks_list': [],
                                             'disap_tracked_stracks_list': [], 'switch_stracks': [], 'separation_stracks': [], 'merge_stracks': []})
 
         if 2 <= self.frame_count:
-            appear_tracked_stracks_list = list(set(tracked_stracks) - set(self.tracked_stracks_history[-2]['tracked_stracks_list']))
-            appear_tracked_stracks_list = [
-                appear_tracked_strack for appear_tracked_strack in appear_tracked_stracks_list 
-                if (is_not_boundary1(appear_tracked_strack.xyah) == True)
-                ]
+            appear_tracked_stracks_list = list(set(self.tracked_stracks_history[-1]['tracked_stracks_list']) - set(self.tracked_stracks_history[-2]['tracked_stracks_list']))
+            appear_tracked_stracks_list = [appear_tracked_strack for appear_tracked_strack in appear_tracked_stracks_list if (is_not_boundary(appear_tracked_strack.xyah) == True)]
             self.tracked_stracks_history[-1]['appear_tracked_stracks_list'] = appear_tracked_stracks_list
 
-            disap_tracked_stracks_list = list(set(self.tracked_stracks_history[-2]['tracked_stracks_list']) - set(tracked_stracks))
-            disap_tracked_stracks_list = [
-                disap_tracked_strack for disap_tracked_strack in disap_tracked_stracks_list 
-                if (is_not_boundary1(disap_tracked_strack.xyah) == True)
-                ]
+            disap_tracked_stracks_list = list(set(self.tracked_stracks_history[-2]['tracked_stracks_list']) - set(self.tracked_stracks_history[-1]['tracked_stracks_list']))
+            disap_tracked_stracks_list = [disap_tracked_strack for disap_tracked_strack in disap_tracked_stracks_list if (is_not_boundary(disap_tracked_strack.xyah) == True)]
             self.tracked_stracks_history[-1]['disap_tracked_stracks_list'] = disap_tracked_stracks_list
             
             for appear_tracked_strack in self.tracked_stracks_history[-1]['appear_tracked_stracks_list']:
-                appear_tracked_strack_cp = (appear_tracked_strack.xyah[0], appear_tracked_strack.xyah[1])
+                appear_tracked_strack_cp = np.asarray([appear_tracked_strack.xyah[0], appear_tracked_strack.xyah[1]])
 
                 if 1 <= len(self.tracked_stracks_history[-1]['disap_tracked_stracks_list']):
                     appear_vs_disap_disatances_list = []
                     for disap_tracked_strack in self.tracked_stracks_history[-1]['disap_tracked_stracks_list']:
-                        disap_tracked_strack_cp = (disap_tracked_strack.xyah[0], disap_tracked_strack.xyah[1])
-                        appear_vs_disap_distance = np.sqrt((appear_tracked_strack_cp[0] - disap_tracked_strack_cp[0])**2
-                                                            + (appear_tracked_strack_cp[1] - disap_tracked_strack_cp[1])**2)
+                        disap_tracked_strack_cp = np.asarray([disap_tracked_strack.xyah[0], disap_tracked_strack.xyah[1]])
+                        appear_vs_disap_distance = np.linalg.norm(appear_tracked_strack_cp - disap_tracked_strack_cp)
                         appear_vs_disap_disatances_list.append(appear_vs_disap_distance)
+
                     if len(appear_vs_disap_disatances_list) != 0:
                         appear_vs_disap_min_distance = min(appear_vs_disap_disatances_list)
                         appear_vs_disap_min_distance_idx = appear_vs_disap_disatances_list.index(appear_vs_disap_min_distance)
@@ -89,9 +93,8 @@ class AssaultEvent(Event):
                         if appear_tracked_strack in tracked_strack_except_appear_strack.merge:
                             merge_strack = tracked_strack_except_appear_strack
                             merge_strack.merge.remove(appear_tracked_strack)
-                        tracked_strack_except_appear_strack_cp = (tracked_strack_except_appear_strack.xyah[0], tracked_strack_except_appear_strack.xyah[1])
-                        appear_vs_total_distance = np.sqrt((appear_tracked_strack_cp[0] - tracked_strack_except_appear_strack_cp[0])**2
-                                                            + (appear_tracked_strack_cp[1] - tracked_strack_except_appear_strack_cp[1])**2)
+                        tracked_strack_except_appear_strack_cp = np.asarray([tracked_strack_except_appear_strack.xyah[0], tracked_strack_except_appear_strack.xyah[1]])
+                        appear_vs_total_distance = np.linalg.norm(appear_tracked_strack_cp - tracked_strack_except_appear_strack_cp)
                         appear_vs_total_distances_list.append(appear_vs_total_distance)
                     if len(appear_vs_total_distances_list) != 0:
                         appear_vs_total_min_distance = min(appear_vs_total_distances_list)
@@ -108,13 +111,12 @@ class AssaultEvent(Event):
                                 separated_strack.meta_label -= 1
             
             for disap_tracked_strack in self.tracked_stracks_history[-1]['disap_tracked_stracks_list']:
-                disap_tracked_strack_cp = (disap_tracked_strack.xyah[0], disap_tracked_strack.xyah[1])
+                disap_tracked_strack_cp = np.asarray([disap_tracked_strack.xyah[0], disap_tracked_strack.xyah[1]])
                 if disap_tracked_strack.switch_state == False:
                     disap_vs_total_distances_list = []
                     for tracked_strack in self.tracked_stracks_history[-1]['tracked_stracks_list']:
-                        tracked_strack_cp = (tracked_strack.xyah[0], tracked_strack.xyah[1])
-                        disap_vs_total_distance = np.sqrt((disap_tracked_strack_cp[0] - tracked_strack_cp[0])**2 
-                                                            + (disap_tracked_strack_cp[1] - tracked_strack_cp[1])**2)
+                        tracked_strack_cp = np.asarray([tracked_strack.xyah[0], tracked_strack.xyah[1]])
+                        disap_vs_total_distance = np.linalg.norm(disap_tracked_strack_cp - tracked_strack_cp)
                         disap_vs_total_distances_list.append(disap_vs_total_distance)
                     if len(disap_vs_total_distances_list) != 0:
                         disap_vs_total_min_distance = min(disap_vs_total_distances_list)
@@ -131,36 +133,40 @@ class AssaultEvent(Event):
 
         if 2 <= len(self.tracked_stracks_history):
 
-            human_stracks = [strack for strack in self.tracked_stracks_history[-1]['tracked_stracks_list'] if is_not_boundary2(strack.xyah) == True and 800 < strack.tlwh[2] * strack.tlwh[3]]
-            current_strack_cp = []
-            previous_strack_cp = []
+            human_stracks = [strack for strack in self.tracked_stracks_history[-1]['tracked_stracks_list'] if is_not_boundary(strack.xyah) == True and 800 < strack.tlwh[2] * strack.tlwh[3]]
             impact_stracks_list = []
             merge_stracks_list = []
 
             for human_strack in human_stracks:
+
                 if len(human_strack.overlap) != 0:
                     overlaped_human_stracks = human_strack.overlap
                     for overlaped_human_strack in overlaped_human_stracks:
-                        close_y_threshold = ((human_strack.tlwh[3] + overlaped_human_strack.tlwh[3]) / 2) / 5.2
+                        close_y_threshold = ((human_strack.tlwh[3] + overlaped_human_strack.tlwh[3]) / 2) / parameters['close_y']
                         close_y = abs(human_strack.xyah[1] - overlaped_human_strack.xyah[1])
                         if close_y < close_y_threshold:
-                            close_x_threshold = ((human_strack.tlwh[2] + overlaped_human_strack.tlwh[2]) / 2) / 1.26
+                            close_x_threshold = ((human_strack.tlwh[2] + overlaped_human_strack.tlwh[2]) / 2) / parameters['close_x']
                             close_x = abs(human_strack.xyah[0] - overlaped_human_strack.xyah[0])
                             if close_x < close_x_threshold:
                                 human_strack.action_state = "C"
+
                 if human_strack.action_state == "C":
-                    if 3 <= len(human_strack.cp) and human_strack.cp[-1]['frame_id'] - human_strack.cp[-3]['frame_id'] == 2:
+                    if 3 <= len(human_strack.cp) and human_strack.cp[-1]['frame_count'] - human_strack.cp[-3]['frame_count'] == 2:
                         pre_previous_cp = human_strack.cp[-3]['center_point']
                         previous_cp = human_strack.cp[-2]['center_point']
                         current_cp = human_strack.cp[-1]['center_point']
                         previous_velocity = np.linalg.norm(previous_cp - pre_previous_cp)
                         current_velocity = np.linalg.norm(current_cp - previous_cp)
                         current_acceleration = np.linalg.norm(current_velocity - previous_velocity)
-                        acceleration_threshold = (human_strack.tlwh[2] * human_strack.tlwh[3]) * 0.0005115
-                        if acceleration_threshold < current_acceleration < acceleration_threshold * 1.387 and current_acceleration < 5.66 or acceleration_threshold * 3.34 < current_acceleration:
-                            human_strack.action_state = "I"
-                        if current_velocity < 0.262 and acceleration_threshold / 0.00052 > 4610 and 70 < current_cp[1] < 280:
+                        acceleration_threshold = (human_strack.tlwh[2] * human_strack.tlwh[3]) * parameters['acceleration']
+
+                        if (acceleration_threshold < current_acceleration < acceleration_threshold * parameters['impact'][0] and 
+                        current_acceleration < parameters['impact'][1] or acceleration_threshold * parameters['impact'][2] < current_acceleration):
+                            human_strack.action_state = "I" 
+
+                        if current_velocity < parameters['velocity'] and acceleration_threshold > 2.3972 and 70 < current_cp[1] < 280:
                             self.start_assault_true_alarm_frame = self.frame_count
+            
                 if human_strack.action_state == "I":
                     impact_stracks_list.append(human_strack)
                 if 2 <= human_strack.meta_label:
@@ -183,7 +189,7 @@ class AssaultEvent(Event):
                 else:
                     current_impact_frame = self.impact_history[-1]['frame_count']
                     previous_impact_frame = self.impact_history[-2]['frame_count']
-                    if current_impact_frame - previous_impact_frame <= 40:
+                    if current_impact_frame - previous_impact_frame <= 40: 
                         self.start_assault_true_alarm_frame = self.frame_count
                     else:
                         self.result = False
@@ -197,13 +203,13 @@ class AssaultEvent(Event):
                 for current_merge_location_idx in range(len(current_merge_locations)):
                     for recent_impact_location in recent_impact_locations:
                         distance = np.linalg.norm(current_merge_locations[current_merge_location_idx] - recent_impact_location)
-                        distance_threshold = current_merge_box_sizes[current_merge_location_idx] * 0.003
+                        distance_threshold = current_merge_box_sizes[current_merge_location_idx] * paraemters['distance']
                         if current_merge_frame - recent_impact_frame <= 40 and distance <= distance_threshold:
                             self.start_assault_true_alarm_frame = self.frame_count
                         else:
                             self.result = False
 
-            if 0 <= self.frame_count - self.start_assault_true_alarm_frame <= 120:
+            if 0 <= self.frame_count - self.start_assault_true_alarm_frame <= parameters['signal_maintain']:
                 self.result = True
 
         if self.debug:
@@ -211,6 +217,7 @@ class AssaultEvent(Event):
             self.analysis_time = end - start
 
         return self.result
+
 
     def merge_sequence(self, frame_info, end_flag):
         self.frameseq = super().merge_sequence(frame_info,end_flag)
@@ -221,7 +228,7 @@ class AssaultEvent(Event):
             front_start = assault_frame_seq[-2]['start_frame']
             front_end = assault_frame_seq[-2]['end_frame']
             gap = back_start - front_end
-            if gap <= 120:
+            if gap <= parameters['signal_merge']:
                 del assault_frame_seq[-2:]
                 merged_seq = {}
                 merged_seq['start_frame'] = front_start
@@ -233,15 +240,7 @@ class AssaultEvent(Event):
         
         return self.frameseq
 
-def is_not_boundary1(xyah):
-    x = xyah[0]
-    y = xyah[1]
-    if 20 < x < 620 and 30 < y < 330:
-        return True
-    else:
-        return False
-
-def is_not_boundary2(xyah):
+def is_not_boundary(xyah):
     x = xyah[0]
     y = xyah[1]
     if 20 < x < 605 and 30 < y < 318:
