@@ -249,6 +249,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
     fps = video_info["fps"]
     frame_count = video_info["frame_count"]
     extract_fps = video_info["extract_fps"]
+    cam_id = video_info["cam_id"]
     filter_frame_numbers = generate_filter_numbers(extract_fps, fps)
     event_results = []
     cls_dict = get_cls_dict(15)
@@ -290,7 +291,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             if filter_frame_number == 30:
                 filter_frame_number = 0
             frame_name = "{0:06d}.jpg".format(frame_number)
-            frame_info = {"frame": frame, "frame_number": frame_number}
+            frame_info = {"frame": frame, "frame_number": frame_number, "cam_id": cam_id}
             start_time = time.time()
             od_result = od_model.inference_by_image(frame)
             end_time = time.time()
@@ -500,7 +501,7 @@ if __name__ == '__main__':
     frame_dir, fram_bbox_dir, json_dir, event_dir = make_result_dir(result_dir, video_name, save_frame_result)
 
     # Run detection
-    video_info = {"video_path": video_path, "fps": fps, "frame_count": frame_count, 'extract_fps': extract_fps}
+    video_info = {"video_path": video_path, "fps": fps, "frame_count": frame_count, 'extract_fps': extract_fps, "cam_id": video_path}
     event_results, sequence_results = run_detection(video_info, od_model, trackers, event_model_score_thresholds, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time)
 
     # Extract event result as csv
