@@ -24,7 +24,7 @@ class STrack(BaseTrack):
     def record_center_point(frame, stracks):
         for strack in stracks:
             center_point = np.asarray([strack.xyah[0], strack.xyah[1]])
-            strack.cp.append({'frame_id': frame, 'center_point': center_point})
+            strack.cp.append({'frame_count': frame, 'center_point': center_point})
 
     @staticmethod
     def check_overlap(stracks):
