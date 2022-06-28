@@ -203,7 +203,7 @@ class AssaultEvent(Event):
                 for current_merge_location_idx in range(len(current_merge_locations)):
                     for recent_impact_location in recent_impact_locations:
                         distance = np.linalg.norm(current_merge_locations[current_merge_location_idx] - recent_impact_location)
-                        distance_threshold = current_merge_box_sizes[current_merge_location_idx] * paraemters['distance']
+                        distance_threshold = current_merge_box_sizes[current_merge_location_idx] * parameters['distance']
                         if current_merge_frame - recent_impact_frame <= 40 and distance <= distance_threshold:
                             self.start_assault_true_alarm_frame = self.frame_count
                         else:
