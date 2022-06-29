@@ -12,10 +12,12 @@ import pandas as pd
 import math
 from itertools import combinations
 from scipy.spatial.distance import euclidean
+from dtaidistance import dtw, dtw_ndim
 
 from detector.event.tailing.utils import *
 from detector.event.template.main import Event
 from detector.tracker.byte_tracker.BYTETracker import BYTETracker
+
 
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
@@ -44,6 +46,7 @@ class TailingEvent(Event):
         self.tracked_stracks_history = []
         self.prev_stack = None
         self.id_dict_stack = {}
+        self.prev_id_dict_stack = {}
         self.id_cp_dict = defaultdict(list)
         self.prev_track_id_list = []
         self.dict = defaultdict(list)
@@ -67,7 +70,6 @@ class TailingEvent(Event):
         result = OrderedDict()
         
         tracked_stracks = tracking_result[:-1]
-
         self.tracked_stracks_history.append({'frame_count': self.frame_cnt, 'tracked_stracks_list': tracked_stracks, 'appear_tracked_stracks_list': [],
                                             'disap_tracked_stracks_list': [], 'switch_stracks': [], 'separation_stracks': [], 'merge_stracks': []})
 
@@ -152,9 +154,9 @@ class TailingEvent(Event):
 
         
         eventFlag = [0, ] * 40
-        
+        #and is_not_boundary(strack.xyah) == True
         if 2 <= len(self.tracked_stracks_history):
-            human_stracks = [strack for strack in self.tracked_stracks_history[-1]['tracked_stracks_list'] if strack.cls == 0 and is_not_boundary(strack.xyah) == True and 800 < strack.tlwh[2] * strack.tlwh[3]]
+            human_stracks = [strack for strack in self.tracked_stracks_history[-1]['tracked_stracks_list'] if strack.cls == 0  and is_not_stand(strack.tlwh) == True and 800 < strack.tlwh[2] * strack.tlwh[3]] 
             for human_strack in human_stracks:
                 
                 track_id = human_strack.track_id
@@ -172,32 +174,54 @@ class TailingEvent(Event):
                 else:
                     self.id_cp_dict[track_id] = []
 
+        
                 
         if self.frame_cnt >= 40:
             
             temp = []
+            stack_dict = {}
             temp_dict = {}
             for k, v in self.id_dict_stack.items(): #id, stack count
-                if v > 10:  
+                if (v > 25 or k in self.prev_id_dict_stack.keys()) or (k not in self.prev_id_dict_stack.keys() and v == 40): 
                     temp.append(k)
 
-            if 4 > len(temp) >= 2:
+            for k, v in self.id_dict_stack.items():
+                if v == 1 and k not in self.prev_track_id_list:
+                    self.id_cp_dict.pop(k)
+
+            
+             
+            if 4 > len(temp) >= 2 and [] not in self.id_cp_dict.values():
                 equal_id = [t for t in temp if t in self.prev_track_id_list]
+                for i in temp:
+                    if self.id_dict_stack[i] >= 35 and i not in self.prev_track_id_list:
+                        equal_id.append(i)
+                    
 
                 for i in equal_id:
                     coord = np.array(self.id_cp_dict[i])
                     temp_dict[i] = coord
-                
-                
 
                 coord_values = [v for k, v in temp_dict.items()]
+                move_dist_list = []
+                for i in range(len(coord_values)):
+                    coord_xs, coord_ys = coord_values[i][0][0], coord_values[i][0][1]
+                    coord_xe, coord_ye = coord_values[i][-1][0], coord_values[i][-1][1]
+                    
+                    coord_s = np.array([coord_xs, coord_ys])
+                    coord_e = np.array([coord_xe, coord_ye])
+                    move_dist = np.linalg.norm(coord_e - coord_s)
+                    move_dist_list.append(move_dist)
+
+                
+
+                
+                
+
                 comb_id = list(combinations(equal_id, 2))
-
                 comb_coords = list(combinations(coord_values, 2))
-                
-                
-
                 relative_dist_list=[]
+                
                 for i in range(len(comb_coords)):
                     a1, h1 = comb_coords[i][0][-1, 2:]
                     w1 = a1 * h1
@@ -208,46 +232,59 @@ class TailingEvent(Event):
                     rd_b = np.sqrt((w2*h2) / (rx * ry))
                     relative_dist = np.abs((rd_a - rd_b)/rd_a)
                     relative_dist_list.append(relative_dist)
-                    
+      
+
                 combi_frechet = np.array(
-                            [similaritymeasures.frechet_dist(comb_coords[i][0][::2], comb_coords[i][1][::2]) for i in
+                            [similaritymeasures.frechet_dist(comb_coords[i][0][::4,:2], comb_coords[i][1][::4,:2]) for i in
                                 range(len(comb_coords))])
 
+                
 
-                del_idx = []
-                for i in range(len(comb_id)):
-                    if (relative_dist_list[i] > 0.8 or relative_dist_list[i] < 0.2):
-                        del_idx.append(i)
+                combi_dtw = np.array(
+                            [dtw_ndim.distance(comb_coords[i][0][::4, :2], comb_coords[i][1][::4,:2]) for i in
+                                range(len(comb_coords))])
+                
+               
+                if len(combi_dtw) != 0 and len(combi_frechet) != 0:
+                    if np.argmin(combi_frechet) == np.argmin(combi_dtw):
+                        del_idx = []
+                        
+                        for i in range(len(comb_id)):
+                            if (relative_dist_list[i] > 0.95 or relative_dist_list[i] < 0.16) or ((combi_dtw[i] - combi_frechet[i]) > 760 or (combi_dtw[i] - combi_frechet[i]) < 100):
+                                del_idx.append(i)
 
-                
-                if del_idx:
-                    relative_dist_list = np.delete(relative_dist_list, del_idx)
-                    combi_frechet = np.delete(combi_frechet, del_idx)
-                    
-                
-                del_person_id = []
-                for i in del_idx:
-                    del_person_id.append(comb_id[i])
-                for i in del_person_id:
-                    if i in comb_id:
-                        comb_id.remove(i)
-                
-                
-                if len(combi_frechet) > 0 and len(relative_dist_list)>0:
-                    target_comb = comb_id[np.argmin(combi_frechet)]
-                    first_pid = target_comb[0]
-                    second_pid = target_comb[1]
+                        
+                        if del_idx:
+                            relative_dist_list = np.delete(relative_dist_list, del_idx)
+                            combi_frechet = np.delete(combi_frechet, del_idx)
+                            combi_dtw = np.delete(combi_dtw, del_idx)
+                            
+                        
+                        del_person_id = []
+                        for i in del_idx:
+                            del_person_id.append(comb_id[i])
+                        for i in del_person_id:
+                            if i in comb_id:
+                                comb_id.remove(i)
+                        
+                        
+                        if len(combi_frechet) > 0 and len(combi_dtw) > 0 and len(relative_dist_list) > 0:
+                            target_comb = comb_id[np.argmin(combi_frechet)]
+                            first_pid = target_comb[0]
+                            second_pid = target_comb[1]
 
-                    f_sp, f_ep = temp_dict[first_pid][0], temp_dict[first_pid][-1]
-                    s_sp, s_ep = temp_dict[second_pid][0], temp_dict[second_pid][-1]
-                    if 0.5 < cos_sim(f_ep, f_sp, s_ep, s_sp) < 1.0:
-                        eventFlag = [1, ] * 40
-                    else:
-                        eventFlag = [0, ] * 40
+                            f_sp, f_ep = temp_dict[first_pid][0], temp_dict[first_pid][-1]
+                            s_sp, s_ep = temp_dict[second_pid][0], temp_dict[second_pid][-1]
+                            cos_round = np.round_(cos_sim(f_ep, f_sp, s_ep, s_sp), 1)
+                            if 0.7 <= cos_round <= 1.0:
+                                eventFlag = [1, ] * 40
+                            else:
+                                eventFlag = [0, ] * 40
             else:
                 eventFlag = [0, ] * 40
 
             self.frame_cnt = 0
+            self.prev_id_dict_stack = self.id_dict_stack
             self.id_dict_stack = {}
             self.id_cp_dict = defaultdict(list)
             self.prev_track_id_list = temp
@@ -278,6 +315,7 @@ class TailingEvent(Event):
         
         
         self.frame = result
+
 
         # TODO: analysis(끝 지점)
         if self.debug:
