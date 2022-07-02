@@ -152,7 +152,13 @@ def det_to_trk_data_conversion(detection_result):
 def is_not_boundary(xyah):
   x = xyah[0]
   y = xyah[1]
-  if 20 < x < 605 and 30 < y < 318:
+  if 10 < x < 625 and 20 < y < 348:
+      return True
+  else:
+      return False
+
+def is_not_stand(tlwh):
+  if tlwh[2] < tlwh[3]:
       return True
   else:
       return False
