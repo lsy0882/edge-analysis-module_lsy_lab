@@ -24,8 +24,10 @@ from utils import Logging
 from utils.yolo_classes import get_cls_dict
 from utils.Visualize import BBoxVisualization
 
+
 def split_model_names(model_names):
     return model_names.split(",")
+
 
 def load_video(video_path, extract_fps):
     capture = cv2.VideoCapture(video_path)
@@ -40,6 +42,26 @@ def load_video(video_path, extract_fps):
     print(Logging.s("extract frame number: {}".format(int(frame_count/(fps/extract_fps)))))
 
     return capture, frame_count, fps
+
+
+def load_label(json_path):
+    cam_id_list = []
+    if os.path.exists(json_path):
+        with open(json_path) as json_file:
+            metadata = json.load(json_file)
+            frame_count = int(metadata["frame_num"])
+            events = metadata["event"]
+            cam_id_list = ["none" for i in range(frame_count)]
+            for i, event in enumerate(events):
+                start_frame = int(event["start_frame"])
+                end_frame = int(event["end_frame"])
+                cam_id = event["cam_id"]
+                for e in range(start_frame - 1, end_frame):
+                    cam_id_list[e] = cam_id
+            json_file.close()
+        return cam_id_list
+    else :
+        return cam_id_list
 
 
 def load_models(od_model_name="yolov4-416", tracker_params=None, score_threshold=0.5, nms_threshold=0.3, event_model_names="all"):
@@ -243,7 +265,7 @@ def generate_filter_numbers(extract_fps, fps):
         return filter_frame_numbers
 
 
-def run_detection(video_info, od_model, trackers, score_threshold, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time):
+def run_detection(video_info, cam_ids, od_model, trackers, score_threshold, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time):
     print(Logging.i("Processing..."))
     # Parameters
     fps = video_info["fps"]
@@ -275,6 +297,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
     max_event_process_times = [float(0) for event_detector in event_detectors if event_detector is not None]
     min_event_process_times = [float(10) for event_detector in event_detectors if event_detector is not None]
 
+    total_process_start_time = time.time()
     while True:
         ret, frame = decoder.read()
 
@@ -291,7 +314,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
             if filter_frame_number == 30:
                 filter_frame_number = 0
             frame_name = "{0:06d}.jpg".format(frame_number)
-            frame_info = {"frame": frame, "frame_number": frame_number, "cam_id": cam_id}
+            frame_info = {"frame": frame, "frame_number": frame_number, "cam_id": cam_ids[frame_number-1]}
             start_time = time.time()
             od_result = od_model.inference_by_image(frame)
             end_time = time.time()
@@ -367,6 +390,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
                 for i, event_detector in enumerate(event_detectors):
                     print(" {0}: {1:03f}\t/".format(event_detector.model_name, event_process_times[i]), end="")
                 print()
+    total_process_end_time = time.time()
 
     video_writer.release()
     if process_time:
@@ -392,6 +416,7 @@ def run_detection(video_info, od_model, trackers, score_threshold, event_detecto
                 max_event_process_times[i],
                 min_event_process_times[i]
             )))
+        print(Logging.s("\tTotal Process Time: {0:03f}".format(total_process_end_time - total_process_start_time)))
 
     print(Logging.inl("Extraction is successfully completed(frame_count: {})".format(frame_number)))
     if os.path.exists(bbox_video_path) :
@@ -420,6 +445,7 @@ if __name__ == '__main__':
     option = parser.parse_known_args()[0]
 
     video_path = option.video_path
+    json_path = str(video_path).replace("_360p", "").replace(".mp4", ".json")
     video_name = video_path.split("/")[-1]
     extract_fps = option.fps
     score_threshold = option.score_threshold
@@ -450,6 +476,7 @@ if __name__ == '__main__':
     bbox_video_path = os.path.join(result_dir, video_name.split(".mp4")[0] + "_bbox.avi")
     print(Logging.i("Argument Info:"))
     print(Logging.s("input video path: {}".format(video_path)))
+    print(Logging.s("input json path: {}".format(json_path)))
     print(Logging.s("extract fps: {}".format(extract_fps)))
     print(Logging.s("result directory path: {}".format(result_dir)))
     print(Logging.s("bbox video path: {}".format(bbox_video_path)))
@@ -491,8 +518,9 @@ if __name__ == '__main__':
         }
     ]
 
-    # Load Video
+    # Load Video and json
     capture, frame_count, fps = load_video(video_path, extract_fps)
+    cam_ids = load_label(json_path)
 
     # Load Object Detection & Event Detection models
     od_model, trackers, event_detectors = load_models(od_model_name, tracker_params, score_threshold=0.1, nms_threshold=nms_threshold, event_model_names=event_model_names)
@@ -502,7 +530,7 @@ if __name__ == '__main__':
 
     # Run detection
     video_info = {"video_path": video_path, "fps": fps, "frame_count": frame_count, 'extract_fps': extract_fps, "cam_id": video_path}
-    event_results, sequence_results = run_detection(video_info, od_model, trackers, event_model_score_thresholds, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time)
+    event_results, sequence_results = run_detection(video_info, cam_ids, od_model, trackers, event_model_score_thresholds, event_detectors, frame_dir, json_dir, bbox_video_path, save_frame_result, process_time)
 
     # Extract event result as csv
     if save_frame_result:
