@@ -91,7 +91,7 @@ class FalldownEvent(Event):
                 self.starting_num=1
         
         if self.check_list != [] and self.check_list[0][0]-8<=frame_number and self.check_list[0][0]+8>=frame_number:
-            print(self.check_list)
+            
             pop_frame=self.check_list.pop(0)
             cam_number=pop_frame[1][0]
             event_name=pop_frame[1][2:]
@@ -99,7 +99,7 @@ class FalldownEvent(Event):
             if eval("self.cam{}".format(cam_number))[event_name] ==[]:
                 del eval("self.cam{}".format(cam_number))[event_name]
             self.computation_list=frame_list
-            self.layer_dict=np.load('/workspace/detector/event/falldown/npy_file/cam_{}_pretrained_model.npy'.format(str(cam_number)),allow_pickle=True)
+            self.layer_dict=np.load(os.path.join(os.getcwd(), './detector/event/falldown/npy_file/cam_{}_pretrained_model.npy'.format(str(cam_number))),allow_pickle=True)
             self.mlp_layer.load_layer(self.layer_dict)
             #print("complete load model")
             #print(self.check_list)
