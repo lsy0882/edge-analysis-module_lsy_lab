@@ -44,12 +44,13 @@ def load_video(video_path, extract_fps):
     return capture, frame_count, fps
 
 
-def load_label(json_path):
+def load_label(json_path, frame_count):
     cam_id_list = []
+    if json_path is None:
+        return cam_id_list
     if os.path.exists(json_path):
         with open(json_path) as json_file:
             metadata = json.load(json_file)
-            frame_count = int(metadata["frame_num"])
             events = metadata["event"]
             cam_id_list = ["none" for i in range(frame_count)]
             for i, event in enumerate(events):
@@ -314,7 +315,11 @@ def run_detection(video_info, cam_ids, od_model, trackers, score_threshold, even
             if filter_frame_number == 30:
                 filter_frame_number = 0
             frame_name = "{0:06d}.jpg".format(frame_number)
-            frame_info = {"frame": frame, "frame_number": frame_number, "cam_id": cam_ids[frame_number-1]}
+            if len(cam_ids) == 0:
+                cam_id = "none"
+            else:
+                cam_id = cam_ids[frame_number-1]
+            frame_info = {"frame": frame, "frame_number": frame_number, "cam_id": cam_id}
             start_time = time.time()
             od_result = od_model.inference_by_image(frame)
             end_time = time.time()
@@ -446,6 +451,10 @@ if __name__ == '__main__':
 
     video_path = option.video_path
     json_path = str(video_path).replace("_360p", "").replace(".mp4", ".json")
+    if ".mp4" in video_path and os.path.exists(json_path):
+        json_path = str(video_path).replace("_360p", "").replace(".mp4", ".json")
+    else :
+        json_path = None
     video_name = video_path.split("/")[-1]
     extract_fps = option.fps
     score_threshold = option.score_threshold
@@ -520,7 +529,7 @@ if __name__ == '__main__':
 
     # Load Video and json
     capture, frame_count, fps = load_video(video_path, extract_fps)
-    cam_ids = load_label(json_path)
+    cam_ids = load_label(json_path, frame_count)
 
     # Load Object Detection & Event Detection models
     od_model, trackers, event_detectors = load_models(od_model_name, tracker_params, score_threshold=0.1, nms_threshold=nms_threshold, event_model_names=event_model_names)
