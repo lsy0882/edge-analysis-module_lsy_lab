@@ -56,6 +56,7 @@ class FalldownEvent(Event):
         self.mlp_layer=cam_mlp()
         self.result_ratio=0
         self.starting_num=0
+        self.video_name=''
 
     def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         od_result = self.filter_object_result(detection_result, score_threshold)
@@ -67,25 +68,27 @@ class FalldownEvent(Event):
         # 시작할때 정보 가져옴
         if self.starting_num==0:
             self.video_number=detection_result['cam_address'][-11:-9]
-            self.cam1=self.load_cam.get_cam(1)[self.video_number][0]
-            self.cam2=self.load_cam.get_cam(2)[self.video_number][0]
-            self.cam3=self.load_cam.get_cam(3)[self.video_number][0]
-            self.cam4=self.load_cam.get_cam(4)[self.video_number][0]
-            self.cam5=self.load_cam.get_cam(5)[self.video_number][0]
-            check_list1={}
-            for n,i in enumerate([self.cam1, self.cam2, self.cam3, self.cam4, self.cam5]):
-                #print(i)
-                for j in ["falldown","normal","other"]:
-                    #print(j)
-                    if i[j] == [[]]:
-                        del i[j]
-                    else:
-                        for k in i[j]:
-                            check_list1[int(k[0])]=str(n+1)+'_'+j
-            self.check_list=sorted(check_list1.items())
+            self.video_name=detection_result['cam_address'][-15:-12]
+            if self.video_name=='mix':
+                self.cam1=self.load_cam.get_cam(1)[self.video_number][0]
+                self.cam2=self.load_cam.get_cam(2)[self.video_number][0]
+                self.cam3=self.load_cam.get_cam(3)[self.video_number][0]
+                self.cam4=self.load_cam.get_cam(4)[self.video_number][0]
+                self.cam5=self.load_cam.get_cam(5)[self.video_number][0]
+                check_list1={}
+                for n,i in enumerate([self.cam1, self.cam2, self.cam3, self.cam4, self.cam5]):
+                    #print(i)
+                    for j in ["falldown","normal","other"]:
+                        #print(j)
+                        if i[j] == [[]]:
+                            del i[j]
+                        else:
+                            for k in i[j]:
+                                check_list1[int(k[0])]=str(n+1)+'_'+j
+                self.check_list=sorted(check_list1.items())
 
-            # 계속해서 정보 가져오는거 막는 용도
-            self.starting_num=1
+                # 계속해서 정보 가져오는거 막는 용도
+                self.starting_num=1
         
         if self.check_list != [] and self.check_list[0][0]-8<=frame_number and self.check_list[0][0]+8>=frame_number:
             print(self.check_list)
