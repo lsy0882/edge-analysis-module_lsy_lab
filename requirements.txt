@@ -8,3 +8,4 @@ PyYaml==3.12
 ruamel.yaml==0.17.21
 celery==5.1.2
 redis==4.2.2
+dtaidistance==2.3.9
