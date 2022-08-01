@@ -4,7 +4,7 @@ similaritymeasures==0.4.4
 cython_bbox==0.1.3
 lap==0.4.0
 Flask==2.0.3
-PyYaml==3.12
+PyYaml==5.4
 ruamel.yaml==0.17.21
 celery==5.2.2
 redis==4.2.2
