@@ -7,6 +7,7 @@ Implementation of TrtYOLO class with the yolo_layer plugins.
 from __future__ import print_function
 
 import ctypes
+import os
 
 import numpy as np
 import cv2
@@ -15,9 +16,9 @@ import pycuda.driver as cuda
 
 
 try:
-    ctypes.cdll.LoadLibrary('./plugins/libyolo_layer.so')
+    ctypes.cdll.LoadLibrary('detector/object_detection/yolov4/plugins/libyolo_layer.so')
 except OSError as e:
-    raise SystemExit('ERROR: failed to load ./plugins/libyolo_layer.so.  '
+    raise SystemExit('ERROR: failed to load detector/object_detection/yolov4/libyolo_layer.so.  '
                      'Did you forget to do a "make" in the "./plugins/" '
                      'subdirectory?') from e
 
@@ -111,7 +112,7 @@ def _postprocess_yolo(trt_outputs, img_w, img_h, conf_th, nms_threshold,
     # Returns
         boxes, scores, classes (after NMS)
     """
-    # filter low-conf detections and concatenate results of all yolo layers
+    # filter low-conf detections and concatenate results of all yolov4 layers
     detections = []
     for o in trt_outputs:
         dets = o.reshape((-1, 7))
@@ -175,6 +176,19 @@ class HostDeviceMem(object):
         return self.__str__()
 
 
+def get_input_shape(engine):
+    """Get input shape of the TensorRT YOLO engine."""
+    binding = engine[0]
+    assert engine.binding_is_input(binding)
+    binding_dims = engine.get_binding_shape(binding)
+    if len(binding_dims) == 4:
+        return tuple(binding_dims[2:])
+    elif len(binding_dims) == 3:
+        return tuple(binding_dims[1:])
+    else:
+        raise ValueError('bad dims of binding %s: %s' % (binding, str(binding_dims)))
+
+
 def allocate_buffers(engine):
     """Allocates all host/device in/out buffers required for an engine."""
     inputs = []
@@ -182,10 +196,16 @@ def allocate_buffers(engine):
     bindings = []
     output_idx = 0
     stream = cuda.Stream()
-    assert 3 <= len(engine) <= 4  # expect 1 input, plus 2 or 3 outpus
     for binding in engine:
-        size = trt.volume(engine.get_binding_shape(binding)) * \
-               engine.max_batch_size
+        binding_dims = engine.get_binding_shape(binding)
+        if len(binding_dims) == 4:
+            # explicit batch case (TensorRT 7+)
+            size = trt.volume(binding_dims)
+        elif len(binding_dims) == 3:
+            # implicit batch case (TensorRT 6 or older)
+            size = trt.volume(binding_dims) * engine.max_batch_size
+        else:
+            raise ValueError('bad dims of binding %s: %s' % (binding, str(binding_dims)))
         dtype = trt.nptype(engine.get_binding_dtype(binding))
         # Allocate host and device buffers
         host_mem = cuda.pagelocked_empty(size, dtype)
@@ -201,6 +221,8 @@ def allocate_buffers(engine):
             assert size % 7 == 0
             outputs.append(HostDeviceMem(host_mem, device_mem))
             output_idx += 1
+    assert len(inputs) == 1
+    assert len(outputs) == 1
     return inputs, outputs, bindings, stream
 
 
@@ -243,35 +265,18 @@ def do_inference_v2(context, bindings, inputs, outputs, stream):
     return [out.host for out in outputs]
 
 
-def get_yolo_grid_sizes(model_name, h, w):
-    """Get grid sizes (w*h) for all yolo layers in the model."""
-    if 'yolov3' in model_name:
-        if 'tiny' in model_name:
-            return [(h // 32) * (w // 32), (h // 16) * (w // 16)]
-        else:
-            return [(h // 32) * (w // 32), (h // 16) * (w // 16), (h // 8) * (w // 8)]
-    elif 'yolov4' in model_name:
-        if 'tiny' in model_name:
-            return [(h // 32) * (w // 32), (h // 16) * (w // 16)]
-        else:
-            return [(h // 8) * (w // 8), (h // 16) * (w // 16), (h // 32) * (w // 32)]
-    else:
-        raise ValueError('ERROR: unknown model (%s)!' % args.model)
-
-
 class TrtYOLO(object):
     """TrtYOLO class encapsulates things needed to run TRT YOLO."""
 
     def _load_engine(self):
         TRTbin = 'yolo/%s.trt' % self.model
+        TRTbin = os.path.join(os.getcwd(), "detector/object_detection/yolov4/", TRTbin)
         with open(TRTbin, 'rb') as f, trt.Runtime(self.trt_logger) as runtime:
             return runtime.deserialize_cuda_engine(f.read())
 
-    def __init__(self, model, input_shape, category_num=80, letter_box=False,
-                 cuda_ctx=None):
+    def __init__(self, model, category_num=80, letter_box=False, cuda_ctx=None):
         """Initialize TensorRT plugins, engine and conetxt."""
         self.model = model
-        self.input_shape = input_shape
         self.category_num = category_num
         self.letter_box = letter_box
         self.cuda_ctx = cuda_ctx
@@ -282,6 +287,8 @@ class TrtYOLO(object):
                                          else do_inference_v2
         self.trt_logger = trt.Logger(trt.Logger.INFO)
         self.engine = self._load_engine()
+
+        self.input_shape = get_input_shape(self.engine)
 
         try:
             self.context = self.engine.create_execution_context()
@@ -299,7 +306,7 @@ class TrtYOLO(object):
         del self.inputs
         del self.stream
 
-    def detect(self, img, conf_th=0.5, nms_th=0.3, letter_box=None):
+    def detect(self, img, conf_th=0.0, nms_th=0.3, letter_box=None):
         """Detect objects in the input image."""
         letter_box = self.letter_box if letter_box is None else letter_box
         img_resized = _preprocess_yolo(img, self.input_shape, letter_box)

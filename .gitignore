@@ -15,19 +15,9 @@ mtcnn/chobj
 mtcnn/dchobj
 mtcnn/create_engines
 
-ssd/libflattenconcat.so
-ssd/*.uff
-ssd/*.pbtxt
-ssd/*.bin
-ssd/*.json
-
-yolo/yolo*.cfg
-yolo/yolo*.weights
-yolo/yolo*.onnx
-yolo/yolo*.trt
 yolo/*.json
-yolo/calib_images/
-yolo/calib_*.bin
+detector/object_detection/yolov4/calib_images/
+detector/object_detection/yolov4/calib_*.bin
 
 plugins/*.o
 plugins/*.so
@@ -35,3 +25,8 @@ plugins/*.so
 venv/*
 .idea/*
 videos/*
+
+*.trt
+*.onnx
+*.weights
+*.cfg

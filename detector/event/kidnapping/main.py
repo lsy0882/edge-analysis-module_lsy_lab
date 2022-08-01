@@ -1,84 +1,118 @@
 from collections import OrderedDict
 
 import os
-import json
 import time
 import numpy as np
-import math
-from itertools import combinations
+
+from itertools import combinations, product
 from detector.event.template.main import Event
+
+def boxOverlapCheck(coord1, coord2, type):
+
+    if type == 2:
+        if (coord1[2] * coord1[3]) >= (coord2[2] * coord2[3]):
+            return 0
+    elif type == 1:
+        p1 = coord1[2] * coord1[3] # y*w
+        p2 = coord2[2] * coord2[3] # y*w
+        if p1 != p2:
+            if p1 > p2:
+                bigger = p1
+                smaller = p2
+            else :
+                bigger = p2
+                smaller = p1                
+            if bigger > 3 * smaller:
+                return 0
+
+    coord = []
+    coord.append(coord1)
+    coord.append(coord2)
+    eventFlag = 0
+    for target in range(2):
+        targetCoord = []
+        targetCoord = ((coord[target][0], coord[target][1]), ### (x,y)
+            (coord[target][0], coord[target][1] + coord[target][3]), ### (x, y+h)
+            (coord[target][0] + coord[target][2], coord[target][1]), ### (x+w, y)
+            (coord[target][0] + coord[target][2], coord[target][1] + coord[target][3])) ### (x+w, y+h)
+        if target < 1 :
+            other = 1
+        else :
+            other = 0
+        for i in range(4): 
+            if targetCoord[i][0] >= coord[other][0] and targetCoord[i][0] <= (coord[other][0] + coord[other][2]):
+                if targetCoord[i][1] >= coord[other][1] and targetCoord[i][1] <= (coord[other][1] + coord[other][3]):
+                    eventFlag = 1
+
+    return eventFlag
 
 class KidnappingEvent(Event):
     model = None
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, tracker_name=None):
         super().__init__(debug)
         self.model_name = "kidnapping"
         self.analysis_time = 0
         self.debug = debug
         self.history = []
-        self.max_history = 5
-        self.pre_detected_person = 0
-        self.frame = None
-        
-    def inference(self, frame_info, detection_result):
-        frame = frame_info["frame"]
-        frame_number = frame_info["frame_number"]
+        self.tracker_name = tracker_name
 
+    def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
+        detection_result = self.filter_object_result(detection_result, score_threshold)
         start = 0
         end = 0
         if self.debug :
             start = time.time()
 
-        eventFlag = 0
-        result = OrderedDict()
-        detected_person = []
+        ret = 0
+        boxOverlapFlag = 0
+        detected_person, detected_vehicles = [], []
         for i, e in enumerate(detection_result['results'][0]['detection_result']):
-            if e['label'][0]['description'] in ['person']:
+            if e['label'][0]['description'] in ['person'] and e['label'][0]['score'] > 0.65 and (e['position']['w'] < e['position']['h']) and (e['position']['w'] / e['position']['h'])<0.9:
+             
                 detected_person.append(
-                    ((e['position']['x'] + e['position']['w'] / 2), (e['position']['y'] + e['position']['h'] / 2)))
-
+                    (e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h'])
+                    )
+        for i, e in enumerate(detection_result['results'][0]['detection_result']):
+            if e['label'][0]['description'] in ['car'] and e['label'][0]['score'] > 0.5:
+          
+                detected_vehicles.append(
+                    (e['position']['x'], e['position']['y'], e['position']['w'], e['position']['h'])
+                    )                    
         num_of_person = len(detected_person)
+        num_of_vehicles = len(detected_vehicles)
 
-        result["num_of_person"] = num_of_person
-        result["center_coordinates"] = detected_person
+        combi, target = [], []
+        if num_of_person >= 2 and num_of_person <= 4 and num_of_vehicles >= 1: ### 보행자가 2인 이상, 차량이 1개 이상 검출
+            pair_of_person_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
+            if len(pair_of_person_coordinates) >= 1:
+                for i in range(len(pair_of_person_coordinates)) :
+                    boxOverlapFlag = boxOverlapCheck(pair_of_person_coordinates[i][0], pair_of_person_coordinates[i][1], type=1)
+                    if boxOverlapFlag == 1:
+                        combi.append(pair_of_person_coordinates[i][0])
+                        combi.append(pair_of_person_coordinates[i][1])
+            if len(combi) >= 1:
+                pair_of_coordinates = np.array(list(product(combi, detected_vehicles)), dtype=int)
+                if len(pair_of_coordinates) >= 1 :
+                    for i in range(len(pair_of_coordinates)) :
+                        boxOverlapFlag = boxOverlapCheck(pair_of_coordinates[i][0], pair_of_coordinates[i][1], type=2)
+                        if boxOverlapFlag == 1:
+                            ret = 1
 
-        # kidnapping detection module
-        if num_of_person >= 2 :
-            self.pre_detected_person = num_of_person
-            pair_of_center_coordinates = np.array(list(combinations(detected_person, 2)), dtype=int)
-            if len(pair_of_center_coordinates) >= 1 :
-                for i in range(len(pair_of_center_coordinates)) :
-                    dist = np.linalg.norm(pair_of_center_coordinates[i][0] - pair_of_center_coordinates[i][1])
-                    if dist < 120 :
-                        eventFlag = 1
-        elif num_of_person==1:
-            if self.pre_detected_person >=2:
-                eventFlag = 1
-        else:
-            self.pre_detected_person = 0
-            
 
-        if len(self.history) >= self.max_history :
+        
+        
+        if len(self.history) == 80 :
             self.history.pop(0)
-        self.history.append(eventFlag)
 
-        # Smoothing (history check)
-        sum = 0
-        if len(self.history) == self.max_history :
-            for i in range(self.max_history) :
-                if self.history[i] == 1 :
-                    sum += 1
+        self.history.append(ret)
 
-        if sum >= (self.max_history * 0.4) :
-            state = True
+        if sum(self.history) >= 2 :
+            self.result = True
         else :
-            state = False
-
-        self.result = state
-
+            self.result = False
 
         if self.debug :
             end = time.time()

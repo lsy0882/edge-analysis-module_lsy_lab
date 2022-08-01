@@ -1,0 +1,25 @@
+settings:
+  decode_option:
+    fps: 20
+  cctv_info:
+    streaming_url: rtsp://163.239.27.173:8554/video1s1
+    streaming_type: test
+  communication_info:
+    server_url:
+      ip: ${SERVER_ADDR}
+      port: 8000
+    message_size: 1024
+  model:
+    object_detection:
+      model_name: yolov4-416
+      score_threshold: 0.5
+      nms_threshold: 0.5
+    event:
+      event_names:
+        - assault
+        - falldown
+        - kidnapping
+        - tailing
+        - wanderer
+#      event_options:
+#        - 추가 예정
