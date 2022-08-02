@@ -28,7 +28,7 @@ source ~/.bashrc
 ### Clone repository
 ```shell script
 cd ${WORKSPACE}
-git clone https://${AUTH_KEY}@github.com/Jinhasong/edge-analysis-module.git
+git clone https://${PERSONAL_ACCESS_TOKEN}@github.com/Jinhasong/edge-analysis-module.git
 ```
 ### Install python requirements
 ```shell script
