@@ -5,6 +5,7 @@ let disk_color = "rgb(240, 140, 0)";
 let height = 24;
 let value = [Math.round(Math.random()*height)];
 let event_names = ["assault", "falldown", "kidnapping", "tailing", "wanderer"];
+let tracker_names = ["byte_tracker", "sort_tracker"]
 
 
 function create_gage_bar(id, type) {
@@ -197,6 +198,7 @@ function draw_settings() {
 
     // Tracker option
     let tracker_option = model_option["tracker"];
+    let selected_tracker_names = tracker_option["tracker_names"];
     let byte_tracker_option = tracker_option["byte_tracker"];
     let byte_tracker_score_threshold = byte_tracker_option["score_threshold"];
     let byte_tracker_track_threshold = byte_tracker_option["track_threshold"];
@@ -242,6 +244,15 @@ function draw_settings() {
     $("#select-sort-tracker-score-threshold").val(sort_tracker_score_threshold).prop("selected", true);
     $("#select-sort-tracker-max-age").val(sort_tracker_max_age).prop("selected", true);
     $("#select-sort-tracker-min-hits").val(sort_tracker_min_hits).prop("selected", true);
+
+    console.log(tracker_names, selected_tracker_names)
+
+    for (let i = 0; i < tracker_names.length; i++) {
+        if (selected_tracker_names.includes(tracker_names[i])) {
+            $("#checkbox-" + tracker_names[i]).prop("checked", true)
+            $("#collapse-" + tracker_names[i]).prop("class", "collapse show")
+        }
+    }
     for (let i = 0; i < event_names.length; i++) {
         if (selected_event_names.includes(event_names[i])) {
             $("#checkbox-" + event_names[i]).prop("checked", true)
@@ -302,6 +313,16 @@ function save_settings() {
     let od_model_name = select_od_model_name.options[select_od_model_name.selectedIndex].value;
     let od_score_threshold = select_od_score_threshold.options[select_od_score_threshold.selectedIndex].value;
     let od_nms_threshold = select_od_nms_threshold.options[select_od_nms_threshold.selectedIndex].value;
+
+    let checked_tracker_names = "";
+    for (let i = 0; i < tracker_names.length; i++) {
+        if ($("#checkbox-" + tracker_names[i]).prop("checked")) {
+            if (i === tracker_names.length - 1)
+                checked_tracker_names += tracker_names[i];
+            else
+                checked_tracker_names += (tracker_names[i] + ",");
+        }
+    }
 
     let checked_event_names = "";
     for (let i = 0; i < event_names.length; i++) {

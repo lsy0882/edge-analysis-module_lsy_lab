@@ -157,23 +157,33 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text task-title">ID</span>
-                                <input type="text" class="form-control bg-light task-desc" id="task-id" disabled>
+                        <div class="card-body task-card">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">ID</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-id" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">Type</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-type" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">시작시간</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-starttime" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">상태</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-state" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+
+                                </div>
                             </div>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text task-title">Type</span>
-                                <input type="text" class="form-control bg-light task-desc" id="task-type" disabled>
-                            </div>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text task-title">시작시간</span>
-                                <input type="text" class="form-control bg-light task-desc" id="task-starttime" disabled>
-                            </div>
-                            <div class="input-group-prepend">
-                                <span class="input-group-text task-title">상태</span>
-                                <input type="text" class="form-control bg-light task-desc" id="task-state" disabled>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -298,130 +308,144 @@
                                     <div class="card">
                                         <div class="card-body">
                                             <h6>Object Tracker</h6>
-                                            <div class="card card-body">
-                                                <h7>Byte Tracker</h7>
-                                                <div class="input-group input-group-sm">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Score 임계</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-score-threshold">
-                                                            <option selected value="0.1">0.1</option>
-                                                            <option value="0.2">0.2</option>
-                                                            <option value="0.3">0.3</option>
-                                                            <option value="0.4">0.4</option>
-                                                            <option value="0.5">0.5</option>
-                                                            <option value="0.6">0.6</option>
-                                                            <option value="0.7">0.7</option>
-                                                            <option value="0.8">0.8</option>
-                                                            <option value="0.9">0.9</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Track threshold</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-track-threshold">
-                                                            <option selected value="0.1">0.1</option>
-                                                            <option value="0.2">0.2</option>
-                                                            <option value="0.3">0.3</option>
-                                                            <option value="0.4">0.4</option>
-                                                            <option value="0.5">0.5</option>
-                                                            <option value="0.6">0.6</option>
-                                                            <option value="0.7">0.7</option>
-                                                            <option value="0.8">0.8</option>
-                                                            <option value="0.9">0.9</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Track buffer</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-track-buffer">
-                                                            <option selected value="10">10</option>
-                                                            <option value="20">20</option>
-                                                            <option value="30">30</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Match threshold</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-match-threshold">
-                                                            <option selected value="0.1">0.1</option>
-                                                            <option value="0.2">0.2</option>
-                                                            <option value="0.3">0.3</option>
-                                                            <option value="0.4">0.4</option>
-                                                            <option value="0.5">0.5</option>
-                                                            <option value="0.6">0.6</option>
-                                                            <option value="0.7">0.7</option>
-                                                            <option value="0.8">0.8</option>
-                                                            <option value="0.9">0.9</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Min box area</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-min-box-area">
-                                                            <option selected value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10">10</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Framerate</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-frame-rate">
-                                                            <option selected value="10">10</option>
-                                                            <option value="20">20</option>
-                                                            <option value="30">30</option>
-                                                        </select>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-byte_tracker" data-toggle="collapse" data-target="#collapse-byte_tracker" aria-expanded="false" aria-controls="collapse-byte_tracker">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="Byte Tracker" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-byte_tracker">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Track threshold</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-track-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Track buffer</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-track-buffer">
+                                                                <option selected value="10">10</option>
+                                                                <option value="20">20</option>
+                                                                <option value="30">30</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Match threshold</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-match-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Min box area</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-min-box-area">
+                                                                <option selected value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                                <option value="6">6</option>
+                                                                <option value="7">7</option>
+                                                                <option value="8">8</option>
+                                                                <option value="9">9</option>
+                                                                <option value="10">10</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Framerate</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-frame-rate">
+                                                                <option selected value="10">10</option>
+                                                                <option value="20">20</option>
+                                                                <option value="30">30</option>
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="card card-body">
-                                                <h6>Sort Tracker</h6>
-                                                <div class="input-group input-group-sm">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Score 임계</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-score-threshold">
-                                                            <option selected value="0.1">0.1</option>
-                                                            <option value="0.2">0.2</option>
-                                                            <option value="0.3">0.3</option>
-                                                            <option value="0.4">0.4</option>
-                                                            <option value="0.5">0.5</option>
-                                                            <option value="0.6">0.6</option>
-                                                            <option value="0.7">0.7</option>
-                                                            <option value="0.8">0.8</option>
-                                                            <option value="0.9">0.9</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Max age</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-max-age">
-                                                            <option selected value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10">10</option>
-                                                        </select>
-                                                    </div>
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text option-title">Minimum hits</span>
-                                                        <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-min-hits">
-                                                            <option selected value="1">1</option>
-                                                            <option value="2">2</option>
-                                                            <option value="3">3</option>
-                                                            <option value="4">4</option>
-                                                            <option value="5">5</option>
-                                                            <option value="6">6</option>
-                                                            <option value="7">7</option>
-                                                            <option value="8">8</option>
-                                                            <option value="9">9</option>
-                                                            <option value="10">10</option>
-                                                        </select>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-sort_tracker" data-toggle="collapse" data-target="#collapse-sort_tracker" aria-expanded="false" aria-controls="collapse-sort_tracker">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="Sort Tracker" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-sort_tracker">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Max age</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-max-age">
+                                                                <option selected value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                                <option value="6">6</option>
+                                                                <option value="7">7</option>
+                                                                <option value="8">8</option>
+                                                                <option value="9">9</option>
+                                                                <option value="10">10</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Minimum hits</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-min-hits">
+                                                                <option selected value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                                <option value="6">6</option>
+                                                                <option value="7">7</option>
+                                                                <option value="8">8</option>
+                                                                <option value="9">9</option>
+                                                                <option value="10">10</option>
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

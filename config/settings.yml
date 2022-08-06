@@ -1,6 +1,7 @@
 settings:
   cctv_info:
-    streaming_url: rtsp://163.239.27.173:8554/video1s1
+    streaming_url: rtsp://163.239.27.189:8554/video1s1
+    cam_id: 1
     streaming_type: test
   communication_info:
     server_url:
@@ -14,6 +15,9 @@ settings:
       score_threshold: 0.1
       nms_threshold: 0.5
     tracker:
+      tracker_names:
+        - byte_tracker
+        - sort_tracker
       byte_tracker:
         score_threshold: 0.1
         track_threshold: 0.5

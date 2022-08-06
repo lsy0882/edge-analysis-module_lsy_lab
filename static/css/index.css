@@ -92,14 +92,18 @@ h5 {
     height: 160px;
 }
 .task-title {
-    width: 120px;
+    width: 90px;
     display: inline-block;
     text-align: center;
 }
 
 .task-desc {
-    width: 800px;
+    width: 381px;
     margin-right: 5px
+}
+
+.task-card {
+    width: 1018px;
 }
 
 .input-proxy-url {
