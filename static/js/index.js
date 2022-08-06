@@ -172,11 +172,12 @@ function draw_settings() {
     let cctv_info = settings["cctv_info"];
     let communication_info = settings["communication_info"];
     let decode_option = settings["decode_option"];
-    let model_option = settings["model"]
+    let model_option = settings["model"];
 
     // CCTV info
-    let streaming_url = cctv_info["streaming_url"]
-    let cctv_type = 0;
+    let streaming_url = cctv_info["streaming_url"];
+    let cam_id = cctv_info["cam_id"];
+    let cctv_type = "";
     if (cctv_info["streaming_type"] === "cctv")
         cctv_type = "0";
     else
@@ -228,6 +229,7 @@ function draw_settings() {
 
     // Set values in UI
     document.getElementById("input-streaming-url").value = streaming_url;
+    $("#select-cam-id").val(cam_id).prop("selected", true);
     $("#select-cctv-type").val(cctv_type).prop("selected", true);
     document.getElementById("archive-module-ip").value = archive_module_ip;
     document.getElementById("archive-module-port").value = archive_module_port;
@@ -244,8 +246,6 @@ function draw_settings() {
     $("#select-sort-tracker-score-threshold").val(sort_tracker_score_threshold).prop("selected", true);
     $("#select-sort-tracker-max-age").val(sort_tracker_max_age).prop("selected", true);
     $("#select-sort-tracker-min-hits").val(sort_tracker_min_hits).prop("selected", true);
-
-    console.log(tracker_names, selected_tracker_names)
 
     for (let i = 0; i < tracker_names.length; i++) {
         if (selected_tracker_names.includes(tracker_names[i])) {
