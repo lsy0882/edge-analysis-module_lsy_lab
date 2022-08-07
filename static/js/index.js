@@ -276,6 +276,7 @@ function save_settings() {
 
     let input_streaming_url = document.getElementById("input-streaming-url");
     let select_cctv_type = document.getElementById("select-cctv-type");
+    let select_cam_id = document.getElementById("select-cam-id")
     let input_archive_module_ip = document.getElementById("archive-module-ip");
     let input_archive_module_port = document.getElementById("archive-module-port");
     let select_decoding_fps = document.getElementById("select-decoding-fps");
@@ -307,6 +308,7 @@ function save_settings() {
 
     let streaming_url = input_streaming_url.value;
     let streaming_type = cctv_types[select_cctv_type.options[select_cctv_type.selectedIndex].value];
+    let cam_id = select_cam_id.options[select_cam_id.selectedIndex].value;
     let archive_module_ip = input_archive_module_ip.value;
     let archive_module_port = input_archive_module_port.value;
     let decoding_fps = select_decoding_fps.options[select_decoding_fps.selectedIndex].value;
@@ -356,13 +358,14 @@ function save_settings() {
     let settings = {
         "streaming_url": streaming_url,
         "streaming_type": streaming_type,
+        "cam_id": cam_id,
         "archive_server_ip": archive_module_ip,
         "archive_server_port": archive_module_port,
         "decode_fps": parseInt(decoding_fps),
         "od_model_name": od_model_name,
         "od_score_threshold": parseFloat(od_score_threshold),
         "od_nms_threshold": parseFloat(od_nms_threshold),
-        "event_names": checked_event_names,
+        "tracker_names": checked_tracker_names,
         "byte_tracker_score_threshold": byte_tracker_score_threshold,
         "byte_tracker_track_threshold": byte_tracker_track_threshold,
         "byte_tracker_track_buffer": byte_tracker_track_buffer,
@@ -372,6 +375,7 @@ function save_settings() {
         "sort_tracker_score_threshold": sort_tracker_score_threshold,
         "sort_tracker_max_age": sort_tracker_max_age,
         "sort_tracker_min_hits": sort_tracker_min_hits,
+        "event_names": checked_event_names,
         "assault_score_threshold": assault_score_threshold,
         "assault_tracker": assault_tracker,
         "falldown_score_threshold": falldown_score_threshold,
