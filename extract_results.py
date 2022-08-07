@@ -136,7 +136,7 @@ def make_result_dir(result_dir, video_name, save_frame_result):
     return frame_dir, fram_bbox_dir, json_dir, event_dir
 
 
-def define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps):
+def define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps, od_model_name):
     dict_result = dict()
     dict_result["image_path"] = os.path.join(frame_dir, frame_name)
     dict_result["cam_address"] = video_path
@@ -331,7 +331,7 @@ def run_detection(video_info, cam_ids, od_model, trackers, score_threshold, even
                     min_object_process_time = (end_time - start_time)
 
             # Object Detection
-            object_result = define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps)
+            object_result = define_object_result(frame_dir, frame_name, video_path, frame_number, extract_fps, fps, od_model_name)
             object_result["results"].append({"detection_result": od_result})
             tracking_results = dict()
 
