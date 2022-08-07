@@ -162,6 +162,7 @@ def ajax_set_settings():
             "cctv_info": {
                 "streaming_url": str(settings["streaming_url"]),
                 "streaming_type": str(settings["streaming_type"]),
+                "cam_id": settings["cam_id"]
             },
             "communication_info": {
                 "server_url": {
@@ -179,6 +180,7 @@ def ajax_set_settings():
                     "nms_threshold": float(settings["od_nms_threshold"]),
                 },
                 "tracker": {
+                    "tracker_names": settings["tracker_names"].split(","),
                     "byte_tracker": {
                         "score_threshold": float(settings["byte_tracker_score_threshold"]),
                         "track_threshold": float(settings["byte_tracker_track_threshold"]),
