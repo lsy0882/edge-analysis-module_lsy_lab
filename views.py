@@ -1,15 +1,17 @@
 import datetime
 
-import celery
 from flask import Flask, render_template, send_from_directory, request
 from urls import urls
 from utils.setting_utils import *
 from utils.task_utils import *
+from config import config
 import os
 import json
 import shutil
 import ast
 import subprocess
+
+from tasks import *
 
 app = Flask(__name__)
 
@@ -238,25 +240,55 @@ def ajax_set_settings():
 
 
 @app.route(urls["ajax_run_task"], methods=["GET"])
-def ajax_run_module():
+def ajax_run_task():
     result = {"ret": False}
-    task_info_path = os.path.join(os.getcwd(), "config", "task_info.yml")
-
-    from tasks import run_module
 
     try:
         task = run_module.delay()
         result["ret"] = True
-        result["task_type"] = "celery"
-        result["task_id"] = task.id
-        result["task_start_time"] = str(datetime.datetime.now())
-        save_task_info(result, task_info_path)
+        result["type"] = "celery"
     except:
         task = run_module()
         result["ret"] = True
-        result["task_type"] = "flask"
-        result["task_id"] = task.id
-        result["task_start_time"] = str(datetime.datetime.now())
-        save_task_info(result, task_info_path)
+        result["type"] = "flask"
+    current_time = datetime.datetime.now()
+    result["id"] = task.id
+    result["state"] = "PROGRESS"
+    result["start_time"] = str(current_time)
+    result["start_time_num"] = float(current_time.timestamp())
+    save_task_info(result, config.TASK_INFO_PATH)
 
     return json.dumps(result)
+
+
+@app.route(urls["ajax_get_task"], methods=["GET"])
+def ajax_get_task():
+    task_info = get_task_info(config.TASK_INFO_PATH)["task"]
+    ret = get_task_state(task_info["id"], task_info["state"])
+    if not ret:
+        task_info = {
+            "ret": False,
+            "id": None,
+            "state": None,
+            "start_time": None,
+            "start_time_num": None
+        }
+    else:
+        task_info["ret"] = True
+
+    return json.dumps(task_info)
+
+
+@app.route(urls["ajax_delete_task"], methods=["GET"])
+def ajax_delete_task():
+    task_info = get_task_info(config.TASK_INFO_PATH)["task"]
+    ret = del_task(task_info["id"])
+    if ret:
+        result = {}
+        result["task_type"] = ''
+        result["task_id"] = ''
+        result["task_state"] = ''
+        result["task_start_time"] = ''
+        result["task_start_time_num"] = 0
+        save_task_info(result, config.TASK_INFO_PATH)
+    return json.dumps({})

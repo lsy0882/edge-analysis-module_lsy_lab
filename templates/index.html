@@ -153,7 +153,9 @@
                                     <h5 class="mb-0">Task</h5>
                                 </div>
                                 <div class="col">
-                                    <button class="btn btn-info float-right" onclick="ajax_run_task();">새로고침</button>
+                                    <button class="btn btn-outline-success bg-white float-right" id="btn-start-task" onclick="ajax_run_task();">분석 시작</button>
+                                    <button class="btn btn-outline-danger bg-white float-right" id="btn-delete-task" onclick="ajax_delete_task();">분석 종료</button>
+                                    <button class="btn btn-outline-info bg-white float-right" id="btn-refresh-task" onclick="draw_task(null);">새로고침</button>
                                 </div>
                             </div>
                         </div>
@@ -170,12 +172,12 @@
                                             <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-type" disabled>
                                         </div>
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text task-title">시작시간</span>
-                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-starttime" disabled>
-                                        </div>
-                                        <div class="input-group-prepend">
                                             <span class="input-group-text task-title">상태</span>
                                             <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-state" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">시작시간</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-start-time" disabled>
                                         </div>
                                     </div>
                                 </div>
@@ -684,6 +686,7 @@
 
     draw_status();
     draw_settings();
+    draw_task(null)
 
 
 </script>

@@ -389,3 +389,48 @@ function save_settings() {
     }
     ajax_set_settings(settings);
 }
+
+function draw_task(task) {
+    let result = task;
+    if (result  === null)
+        result = ajax_get_task();
+
+    let task_id = "실행 중인 Task 없음"
+    let task_type = "-"
+    let task_state = "-"
+    let task_start_time = "-"
+    let task_elapsed_time = "-"
+
+    let task_ret = result["ret"]
+    if (task_ret) {
+        task_id = result["id"];
+        task_type = result["type"];
+        task_state = result["state"];
+        task_start_time = result["start_time"];
+        task_elapsed_time = result["start_time_num"]
+
+        let elapsed_time = Math.abs(new Date() - task_elapsed_time*1000);
+        task_elapsed_time = ms2strtime(parseInt(elapsed_time));
+        document.getElementById("btn-start-task").setAttribute("disabled","disabled");
+        document.getElementById("btn-delete-task").removeAttribute("disabled");
+    }
+    else {
+        document.getElementById("btn-start-task").removeAttribute("disabled");
+        document.getElementById("btn-delete-task").setAttribute("disabled","disabled");
+    }
+
+    document.getElementById("task-id").value = task_id;
+    document.getElementById("task-type").value = task_type;
+    document.getElementById("task-state").value = task_state;
+    document.getElementById("task-start-time").value = task_start_time;
+    document.getElementById("task-elapsed-time").value = task_elapsed_time;
+}
+
+function ms2strtime( ms ) {
+    let seconds = ms / 1000;
+    const hours = parseInt( seconds / 3600 ); // 3,600 seconds in 1 hour
+    seconds = seconds % 3600; // seconds remaining after extracting hours
+    const minutes = parseInt( seconds / 60 ); // 60 seconds in 1 minute
+    seconds = parseInt(seconds % 60);
+    return String(hours).padStart(2, "0") + "시간 "+ String(minutes).padStart(2, "0") + "분 " + String(seconds).padStart(2, "0") + "초";
+}

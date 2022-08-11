@@ -1,3 +1,5 @@
+import os
+
 from detector.object_detection.yolov4.yolov4 import YOLOv4
 from detector.tracker.byte_tracker.BYTETracker import BYTETracker
 from detector.tracker.sort.Sort import Sort
@@ -9,7 +11,9 @@ from detector.event.wanderer.main import WandererEvent
 
 
 DEBUG = True
-SETTINGS_PATH = "config/settings.yml"
+CONFIG_DIR = os.path.join(os.getcwd(), "config")
+SETTINGS_PATH = os.path.join(CONFIG_DIR, "settings.yml")
+TASK_INFO_PATH = os.path.join(CONFIG_DIR, "task_info.yml")
 
 OBJECT_MODEL = {
     "yolov4-416": YOLOv4

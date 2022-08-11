@@ -76,10 +76,9 @@ function ajax_run_task(){
         type: 'GET',
         url: '/run_task',
         dataType: 'JSON',
-        async: true,
+        async: false,
         success: function (result) {
-            // ret = result;
-            console.log(result)
+            draw_task(result)
         },
         error: function (xtr, status, error) {
             ret = null;
@@ -101,4 +100,36 @@ function ajax_get_task(){
             ret = null;
         }
     });
+    return ret
+}
+
+function ajax_delete_task() {
+    let ret;
+    $.ajax({
+        type: 'GET',
+        url: '/delete_task',
+        dataType: 'JSON',
+        async: false,
+        success: function (result) {
+            ret = result;
+            let task_id = "실행 중인 Task 없음"
+            let task_type = "-"
+            let task_state = "-"
+            let task_start_time = "-"
+            let task_elapsed_time = "-"
+
+            document.getElementById("task-id").value = task_id;
+            document.getElementById("task-type").value = task_type;
+            document.getElementById("task-state").value = task_state;
+            document.getElementById("task-start-time").value = task_start_time;
+            document.getElementById("task-elapsed-time").value = task_elapsed_time;
+
+            document.getElementById("btn-start-task").removeAttribute("disabled");
+            document.getElementById("btn-delete-task").setAttribute("disabled","disabled");
+        },
+        error: function (xtr, status, error) {
+            ret = null;
+        }
+    });
+    return ret
 }
