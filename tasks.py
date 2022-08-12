@@ -3,8 +3,8 @@ from utils.setting_utils import *
 
 import os
 from celery import Celery
-from celery.utils.log import get_task_logger
 from celery.result import AsyncResult
+from celery.utils.log import get_task_logger
 
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
@@ -19,7 +19,6 @@ def run_event_sender(event_result):
     pass
 
 
-@app.task
 def get_task_state(task_id, task_state):
     result = AsyncResult(task_id, app=app)
     if task_state == result.state:
@@ -28,7 +27,6 @@ def get_task_state(task_id, task_state):
         return False
 
 
-@app.task
 def del_task(task_id):
     try:
         app.control.revoke(task_id, terminate=True, signal='SIGKILL')
