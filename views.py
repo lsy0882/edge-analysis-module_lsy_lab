@@ -283,12 +283,13 @@ def ajax_get_task():
 def ajax_delete_task():
     task_info = get_task_info(config.TASK_INFO_PATH)["task"]
     ret = del_task(task_info["id"])
+    print(ret)
     if ret:
         result = {}
-        result["task_type"] = ''
-        result["task_id"] = ''
-        result["task_state"] = ''
-        result["task_start_time"] = ''
-        result["task_start_time_num"] = 0
+        result["type"] = ''
+        result["id"] = ''
+        result["state"] = ''
+        result["start_time"] = ''
+        result["start_time_num"] = 0
         save_task_info(result, config.TASK_INFO_PATH)
     return json.dumps({})
