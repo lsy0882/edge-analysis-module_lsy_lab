@@ -1,0 +1,106 @@
+{
+	"video_name": "mix_25_360p",
+	"length": "00:03:22",
+	"frame_num": "6088",
+	"event": [
+		{
+			"event": "falldown",
+			"start_time": "00:00:00",
+			"end_time": "00:00:08",
+			"start_frame": "1",
+			"end_frame": "254",
+			"origin_file_name": "cam5_falldown_2_1080p.mp4",
+			"cam_id": "cam5"
+		},
+		{
+			"event": "none",
+			"start_time": "00:00:08",
+			"end_time": "00:00:17",
+			"start_frame": "255",
+			"end_frame": "530",
+			"origin_file_name": "cam3_none_3.mp4",
+			"cam_id": "cam3"
+		},
+		{
+			"event": "assault",
+			"start_time": "00:00:17",
+			"end_time": "00:00:48",
+			"start_frame": "531",
+			"end_frame": "1440",
+			"origin_file_name": "ives_assult_17.mp4",
+			"cam_id": "ives"
+		},
+		{
+			"event": "none",
+			"start_time": "00:00:48",
+			"end_time": "00:00:58",
+			"start_frame": "1441",
+			"end_frame": "1747",
+			"origin_file_name": "cam1_none_3.mp4",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "kidnapping,assault",
+			"start_time": "00:00:58",
+			"end_time": "00:01:14",
+			"start_frame": "1748",
+			"end_frame": "2233",
+			"origin_file_name": "cam5_kidnapping_4.mp4",
+			"cam_id": "cam5"
+		},
+		{
+			"event": "none",
+			"start_time": "00:01:14",
+			"end_time": "00:01:24",
+			"start_frame": "2234",
+			"end_frame": "2541",
+			"origin_file_name": "cam4_none_3.mp4",
+			"cam_id": "cam4"
+		},
+		{
+			"event": "assault",
+			"start_time": "00:01:24",
+			"end_time": "00:01:54",
+			"start_frame": "2542",
+			"end_frame": "3449",
+			"origin_file_name": "ives_assult_15.mp4",
+			"cam_id": "ives"
+		},
+		{
+			"event": "none",
+			"start_time": "00:01:54",
+			"end_time": "00:02:04",
+			"start_frame": "3450",
+			"end_frame": "3726",
+			"origin_file_name": "cam2_none_3.mp4",
+			"cam_id": "cam2"
+		},
+		{
+			"event": "wanderer",
+			"start_time": "00:02:04",
+			"end_time": "00:02:35",
+			"start_frame": "3727",
+			"end_frame": "4663",
+			"origin_file_name": "cam3_wanderer_2.mp4",
+			"cam_id": "cam3"
+		},
+		{
+			"event": "none",
+			"start_time": "00:02:35",
+			"end_time": "00:02:44",
+			"start_frame": "4664",
+			"end_frame": "4939",
+			"origin_file_name": "cam5_none_3.mp4",
+			"cam_id": "cam5"
+		},
+		{
+			"event": "tailing",
+			"start_time": "00:02:44",
+			"end_time": "00:03:22",
+			"start_frame": "4940",
+			"end_frame": "6088",
+			"origin_file_name": "cam1_tailing_9.mp4",
+			"cam_id": "cam1"
+		}
+	]
+}

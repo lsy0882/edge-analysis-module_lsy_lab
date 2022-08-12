@@ -1,0 +1,106 @@
+{
+	"video_name": "mix_18_360p",
+	"length": "00:02:55",
+	"frame_num": "5265",
+	"event": [
+		{
+			"event": "falldown",
+			"start_time": "00:00:00",
+			"end_time": "00:00:07",
+			"start_frame": "1",
+			"end_frame": "225",
+			"origin_file_name": "cam1_falldown_2_1080p.mp4",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "none",
+			"start_time": "00:00:07",
+			"end_time": "00:00:17",
+			"start_frame": "226",
+			"end_frame": "532",
+			"origin_file_name": "cam5_none_1.mp4",
+			"cam_id": "cam5"
+		},
+		{
+			"event": "tailing,wanderer",
+			"start_time": "00:00:17",
+			"end_time": "00:00:50",
+			"start_frame": "533",
+			"end_frame": "1526",
+			"origin_file_name": "cam3_tailing_1.mp4",
+			"cam_id": "cam3"
+		},
+		{
+			"event": "none",
+			"start_time": "00:00:50",
+			"end_time": "00:01:01",
+			"start_frame": "1527",
+			"end_frame": "1833",
+			"origin_file_name": "cam1_none_1.mp4",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "kidnapping,assault",
+			"start_time": "00:01:01",
+			"end_time": "00:01:13",
+			"start_frame": "1834",
+			"end_frame": "2197",
+			"origin_file_name": "cam2_kidnapping_1.mp4",
+			"cam_id": "cam2"
+		},
+		{
+			"event": "none",
+			"start_time": "00:01:13",
+			"end_time": "00:01:23",
+			"start_frame": "2198",
+			"end_frame": "2505",
+			"origin_file_name": "cam3_none_1.mp4",
+			"cam_id": "cam3"
+		},
+		{
+			"event": "assault,wanderer",
+			"start_time": "00:01:23",
+			"end_time": "00:01:53",
+			"start_frame": "2506",
+			"end_frame": "3407",
+			"origin_file_name": "voucher_assault_1.mp4",
+			"cam_id": "voucher"
+		},
+		{
+			"event": "none",
+			"start_time": "00:01:53",
+			"end_time": "00:02:03",
+			"start_frame": "3408",
+			"end_frame": "3711",
+			"origin_file_name": "cam4_none_1.mp4",
+			"cam_id": "cam4"
+		},
+		{
+			"event": "falldown",
+			"start_time": "00:02:03",
+			"end_time": "00:02:15",
+			"start_frame": "3712",
+			"end_frame": "4054",
+			"origin_file_name": "cam1_falldown_1_1080p.mp4",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "none",
+			"start_time": "00:02:15",
+			"end_time": "00:02:25",
+			"start_frame": "4055",
+			"end_frame": "4359",
+			"origin_file_name": "cam2_none_1.mp4",
+			"cam_id": "cam2"
+		},
+		{
+			"event": "wanderer",
+			"start_time": "00:02:25",
+			"end_time": "00:02:55",
+			"start_frame": "4360",
+			"end_frame": "5265",
+			"origin_file_name": "cam1_wanderer_1.mp4",
+			"cam_id": "cam1"
+		}
+	]
+}

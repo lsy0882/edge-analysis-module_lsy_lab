@@ -1,0 +1,95 @@
+{
+	"video_name": "merge.mp4",
+	"length": "0:03:20",
+	"frame_num": "6015",
+	"event": [
+		{
+			"event": "falldown",
+			"start_frame": "1",
+			"start_time": "0:00:00",
+			"end_frame": "480",
+			"end_time": "0:00:16",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "none",
+			"start_frame": "481",
+			"start_time": "0:00:16",
+			"end_frame": "785",
+			"end_time": "0:00:26",
+			"cam_id": "cam4"
+		},
+		{
+			"event": "assault",
+			"start_frame": "786",
+			"start_time": "0:00:26",
+			"end_frame": "1325",
+			"end_time": "0:00:44",
+			"cam_id": "cam9"
+		},
+		{
+			"event": "none",
+			"start_frame": "1326",
+			"start_time": "0:00:44",
+			"end_frame": "1614",
+			"end_time": "0:00:53",
+			"cam_id": "cam2"
+		},
+		{
+			"event": "wanderer",
+			"start_frame": "1615",
+			"start_time": "0:00:53",
+			"end_frame": "2545",
+			"end_time": "0:01:24",
+			"cam_id": "cam3"
+		},
+		{
+			"event": "none",
+			"start_frame": "2546",
+			"start_time": "0:01:24",
+			"end_frame": "2850",
+			"end_time": "0:01:35",
+			"cam_id": "cam5"
+		},
+		{
+			"event": "kidnapping,assault",
+			"start_frame": "2851",
+			"start_time": "0:01:35",
+			"end_frame": "3259",
+			"end_time": "0:01:48",
+			"cam_id": "cam2"
+		},
+		{
+			"event": "none",
+			"start_frame": "3260",
+			"start_time": "0:01:48",
+			"end_frame": "3573",
+			"end_time": "0:01:59",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "tailing",
+			"start_frame": "3574",
+			"start_time": "0:01:59",
+			"end_frame": "4790",
+			"end_time": "0:02:39",
+			"cam_id": "cam1"
+		},
+		{
+			"event": "none",
+			"start_frame": "4791",
+			"start_time": "0:02:39",
+			"end_frame": "5090",
+			"end_time": "0:02:49",
+			"cam_id": "cam3"
+		},
+		{
+			"event": "wanderer",
+			"start_frame": "5091",
+			"start_time": "0:02:49",
+			"end_frame": "6015",
+			"end_time": "0:03:20",
+			"cam_id": "cam2"
+		}
+	]
+}

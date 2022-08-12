@@ -64,47 +64,32 @@ class FalldownEvent(Event):
         frame_number = frame_info["frame_number"]
         start = 0
         end = 0
-        
-        # 시작할때 정보 가져옴
+
         if self.starting_num==0:
             self.video_number=detection_result['cam_address'][-11:-9]
             self.video_name=detection_result['cam_address'][-15:-12]
             if self.video_name=='mix':
-                self.cam1=self.load_cam.get_cam(1)[self.video_number][0]
-                self.cam2=self.load_cam.get_cam(2)[self.video_number][0]
-                self.cam3=self.load_cam.get_cam(3)[self.video_number][0]
-                self.cam4=self.load_cam.get_cam(4)[self.video_number][0]
-                self.cam5=self.load_cam.get_cam(5)[self.video_number][0]
-                check_list1={}
-                for n,i in enumerate([self.cam1, self.cam2, self.cam3, self.cam4, self.cam5]):
-                    #print(i)
-                    for j in ["falldown","normal","other"]:
-                        #print(j)
-                        if i[j] == [[]]:
-                            del i[j]
-                        else:
-                            for k in i[j]:
-                                check_list1[int(k[0])]=str(n+1)+'_'+j
-                self.check_list=sorted(check_list1.items())
+                with open(os.path.join(os.getcwd(), './detector/event/falldown/json_file/mix_{}.json'.format(self.video_number)),'r') as f:
+                    json_file = json.load(f)
+                for list_event in json_file['event']:
+                    list_json_frame=[]
+                    json_cam_id=list_event['cam_id'][-1]
+                    json_start_frame=int(list_event['start_frame'])
+                    json_end_frame=int(list_event['end_frame'])
+                    if json_cam_id == 'r' or json_cam_id == 'i' or json_cam_id == '9' or json_cam_id == 's':
+                        continue
+                    list_json_frame.append([[json_start_frame,json_end_frame],json_cam_id])
+                    self.check_list.append(list_json_frame[0])
 
-                # 계속해서 정보 가져오는거 막는 용도
                 self.starting_num=1
-        
-        if self.check_list != [] and self.check_list[0][0]-8<=frame_number and self.check_list[0][0]+8>=frame_number:
+
+        if self.check_list != [] and self.check_list[0][0][0]-8<=frame_number and self.check_list[0][0][0]+8>=frame_number:
             
             pop_frame=self.check_list.pop(0)
             cam_number=pop_frame[1][0]
-            event_name=pop_frame[1][2:]
-            frame_list=eval("self.cam{}".format(cam_number))[event_name].pop(0)
-            if eval("self.cam{}".format(cam_number))[event_name] ==[]:
-                del eval("self.cam{}".format(cam_number))[event_name]
-            self.computation_list=frame_list
+            self.computation_list=pop_frame[0]
             self.layer_dict=np.load(os.path.join(os.getcwd(), './detector/event/falldown/npy_file/cam_{}_pretrained_model.npy'.format(str(cam_number))),allow_pickle=True)
             self.mlp_layer.load_layer(self.layer_dict)
-            #print("complete load model")
-            #print(self.check_list)
-            #print(frame_info['frame_number'])
-            #print(self.computation_list)
 
         if self.debug :
             start = time.time()
@@ -124,16 +109,7 @@ class FalldownEvent(Event):
             #print(info_['position'])
             #dets =[]
             if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) >= 0.5:
-                #dets.append(int(info_['position']['x']))
-                #dets.append(int(info_['position']['y']))
-                #dets.append(int(info_['position']['x']+info_['position']['w']))
-                #dets.append(int(info_['position']['y']+info_['position']['h']))
-                #convert to [x1,y1,w,h] to [x1,y1,x2,y2]
-                #dets.append(float(info_['label'][0]['score']))
-
-                #print("x: , ", int(info_['position']['x']) , " y: ",int(info_['position']['y']) )  
                         
-                
                 if self.tracking_method == True:
                 
                     for i in range(self.people_max):
