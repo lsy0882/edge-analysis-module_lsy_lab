@@ -1,6 +1,6 @@
 settings:
   cctv_info:
-    streaming_url: rtsp://163.239.27.189:8554/video1s1
+    streaming_url: ${CCTV_ADDR}
     cam_id: 1
     streaming_type: test
   communication_info:
