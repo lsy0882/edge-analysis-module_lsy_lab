@@ -83,32 +83,44 @@ class ...Event(Event):
 * 분석에 필요한 입력 데이터와 분석 결과 형식이 관련 이슈에 작성된 내용가 많이 상이하여 해당 형식을 이용하지 못할 경우 [문의](https://github.com/JinhaSong/EdgeAnalysisModule#%EB%AC%B8%EC%9D%98)에 있는 메일로 기
 
 ## 분석 모델 테스트
-### 분석 모델 단독 테스트 (${PROJECT_DIR}/ModelTest.py)
-모델을 작성 후 정의하신 분석 모델을 단독으로 테스트하기 위한 소스코드 파일입니다.
-#### 테스트 코드 내 호출 모델 변경
-```python
-from detector.event.template.main import Event # --> from detector.event.assault.main import AssaultEvent
-```
-* 정의허신 class로 변경하여 import 합니다.(예: from detector.event.template.main import Event -> from detector.event.assault.main import AssaultEvent)
-```python
-model = Event()              # --> model = AssaultEvent()
-```
-* 정의한 class로 변경하여 호출합니다.(예: model = Event() -> model = AssaultEvent())
 #### 테스트 코드 실행 방법
 ```shell script
 cd ${PROJECT_DIR}
-python3 Modules/ModuleTest.py --json_path ${json_path}
+python3 extract_results.py \ 
+    --od_model_name=yolov4-416 \                                    # 객체 검출(Object Detection) 모델 이름(생략가능)
+    --score_threshold=0.1 \                                         # 객체 검출 모델 score threshold(생략가능)
+    --nms_threshold=0.5 \                                           # 객체 검출 모델 nms threshold(생략가능)
+    --byte_tracker_params=0.1,0.5,30,0.8,10,20 \                    # Byte Tracker 파라미터(생략가능)
+    --sort_params=0.5,2,20 \                                        # Sort Tracker 파라미터(생략가능)
+    --event_model=assault,falldown,kidnapping,tailing,wanderer \    # 테스트하고자 하는 이벤트 모델 이름(생략가능)
+    --event_model_score_threshold=0,0.5,0.5,0,0 \                   # 테스트하고자 하는 이벤트 모델의 score threshold(생략가능)
+    --result_dir=${RESULT_DIR} \                                    # 분석 결과 저장 디렉토리 경로
+    --video_path=${VIDEO_PATH} \                                    # 분석할 동영상 경로
+    --save_frame_result \                                           # 옵션 추가 시 프레임 결과 저장(생략 시 저장X)
+    --process_time                                                  # 옵션 추가 시 분석 처리 시간 표시(생략 시 처리 시간 미표시)
 ```
-### edge-analysis-module 전체 실행 방법
+* 파라미터 값을 별토로 설정하지 않고 실행하고 싶을 경우 단순히 분석결과 저장 디렉토리(```--result_dir```)와 동영상 경로(```--video_path```)만 입력으로 주고 실행하면 됩니다.
+  * example: ```python3 extract_results.py --result_dir=./result --video_path=./video.mp4```
+### edge-analysis-module 사용 방법
+#### 모듈 실행
 ```shell script
-python3 main.py --mode=console --cam_address=rtsp://localhost:8554/1_360p --analysis_fps=4 # single video
-python3 main.py --mode=console --cam_address=rtsp://localhost:8554/1_360p,rtsp://localhost/2_360p --analysis_fps=4 # single video
-python3 main.py --mode=console --cam_address=/workspace/videos/1_360p.mp4 --analysis_fps=4
+sh module_initialize.sh   # 모듈 초기화(기존 로그삭제)
+sh module_start.sh        # 모듈 시작
 ```
-#### Argument
-* __mode__: UI 모드 또는 console 모드 (UI 모드는 jetson 상에서만 가능하며 docker container는 GUI 환경을 가지지 못하기 때문에 docker 상에서는 console 모드로만 사용하시기 바랍니다.)
-* __cam_address__: 분석하고자하는 비디오 스트리밍의 주소 또는 비디오 파일의 경로 입니다.
-* __analysis_fps__: 초당 분석할 프레임의 수입니다.
+* 모듈 시작 후 웹브라우저를 통해 ```http://${MODULE_IP}:8000/```로 접속하면 현재 모듈 상태를 확인할 수 있습니다.
+#### Proxy 실행 및 모듈과 연결된 CCTV 화면 모니터링
+```shell
+bash scripts/run_scripts/run_proxy.sh  # streaming proxy 실행
+```
+* 모듈과 연결된 CCTV 카메라의 화면을 보고 싶을 경우 위 명령어를 이용해 proxy 서버를 별도로 실행 해줘야 모니터링 가능합니다.
+* RTSP는 웹브라우저에서는 단독으로 스트리밍이 불가능하며, 별도의 proxy 서버를 실행 해줘야 스트리밍이 가능하기 때문에 proxy를 실행해주는 스크립트가 모듈에 추가되어 있습니다.
+* 위 스크립트를 실행 후 모니터링 페이지에서 가져오기 → 재생 버튼을 차례로 누르면 재생이 됩니다.
+  * 만약 run_proxy.sh를 이용해 proxy를 실행하지 않았다면 브라우저에서 에러메시지를 확인할 수 있습니다.
+* 터미널에서 proxy를 종료하고 싶을 경우 ```scripts/run_scripts/stop_proxy.sh``` 쉘스크립트를 이용해 종료할 수 있습니다.
+#### 모듈 종료
+```shell script
+sh module_shutdown.sh     # 모듈 종료
+```
 
 ## 분석 엔진 반영 방법
 각 연구실에서는 해당 소스 코드를 fork하여 개발을 진행해주시기 바라며, 각 연구실의 분석 모듈이 완성될 경우 을${PROEJCT_DIR}/detector/event 내에 수정하신 분석 모듈만을 pull request 해주시길 바랍니다.
