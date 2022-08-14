@@ -14,7 +14,7 @@ class Event:
         self.r_value = False
         self.frameseq_info = {"start_frame": 0, "end_frame": 1}
         self.model_name = "dummy"
-        self.new_seq_flag = True
+        self.new_seq_flag = False
         self.tracker_name = tracker_name
 
         # TODO: __init__
