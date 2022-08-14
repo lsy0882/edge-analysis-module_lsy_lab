@@ -249,7 +249,7 @@ class EdgeModuleManager:
         while True:
             if len(self.frame_buffer) > 0:
                 frame = self.frame_buffer.pop(0)
-                frame_info = {"frame": frame, "frame_number": int(frame_number / self.extract_fps * self.fps)}
+                frame_info = {"frame": frame, "frame_number": int(frame_number / self.extract_fps * self.fps), "cam_id": self.cam_id}
                 object_result = self.define_object_result("", str(frame_number), self.streaming_url, frame_number, self.extract_fps, self.fps, self.object_model_name)
                 object_result["results"].append({"detection_result": self.object_model.inference_by_image(frame)})
                 tracking_results = dict()

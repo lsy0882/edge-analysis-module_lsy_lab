@@ -56,6 +56,8 @@ def run_module(self):
         return
     # Start to run module
     try:
+        message = "Analysis task is successfully started"
+        self.update_state(state="PROGRESS", meta={"message": message})
         module_manager.run()
     except:
         message = "Error occurred while executing the module."
