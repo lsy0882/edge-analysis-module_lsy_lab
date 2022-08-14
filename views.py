@@ -283,7 +283,6 @@ def ajax_get_task():
 def ajax_delete_task():
     task_info = get_task_info(config.TASK_INFO_PATH)["task"]
     ret = del_task(task_info["id"])
-    print(ret)
     if ret:
         result = {}
         result["type"] = ''
@@ -292,4 +291,34 @@ def ajax_delete_task():
         result["start_time"] = ''
         result["start_time_num"] = 0
         save_task_info(result, config.TASK_INFO_PATH)
-    return json.dumps({})
+    return json.dumps({"ret": ret})
+
+
+@app.route(urls["ajax_get_proxy_url"], methods=["GET"])
+def ajax_get_proxy_url():
+
+    proxy_hls_url = ""
+    ret = False
+    try:
+        out = subprocess.Popen(['hostname', '-I'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        stdout, stderr = out.communicate()
+        ip = stdout.decode("utf-8").replace(" ", "")
+        proxy_hls_url = "http://{}:8888/proxy/index.m3u8".format(ip)
+        message = "HLS Proxy URL is {}. ".format(proxy_hls_url)
+    except:
+        message = "Cannot get proxy url. Please check settings of network. "
+    try:
+        out = subprocess.Popen(["ps -ef | grep ffmpeg"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        stdout, stderr = out.communicate()
+        result =  stdout.decode("utf-8")
+        if "ffmpeg -re -stream_loop" in result:
+            ret = True
+            message += "FFmpeg Proxy has run successfully."
+        else:
+            ret = False
+            message += "Please check whether ffmpeg proxy is running normally."
+    except:
+        ret = False
+
+    result = {"ret": ret, "proxy_url": proxy_hls_url, "message": message}
+    return json.dumps(result)

@@ -220,7 +220,8 @@
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text setting-title">Proxy URL</span>
                                                 <input type="text" class="form-control form-control-sm bg-light input-proxy-url" id="proxy-streaming-url" placeholder="Proxy URL" disabled>
-                                                <button class="btn btn-outline-secondary" type="button" id="btn-get-proxy">가져오기</button>
+                                                <button class="btn btn-outline-secondary" type="button" id="btn-get-proxy" onclick="ajax_get_proxy_url()">가져오기</button>
+                                                <button class="btn btn-outline-secondary" type="button" id="btn-play-proxy" onclick="play_proxy()" disabled>재생</button>
                                             </div>
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text setting-title">CAM ID</span>
@@ -662,9 +663,6 @@
 
 {% block script %}
 <script>
-    let url = "http://163.239.27.173:8888/stream/index.m3u8";
-    // play_url("video", url)
-
     /** Create UI to monitor device status **/
     // - contents : CPU, RAM, GPU, Disk
     let bar_ids = [

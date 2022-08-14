@@ -133,3 +133,30 @@ function ajax_delete_task() {
     });
     return ret
 }
+
+
+function ajax_get_proxy_url() {
+    let ret;
+    $.ajax({
+        type: 'GET',
+        url: '/get_proxy_url',
+        dataType: 'JSON',
+        async: false,
+        success: function (result) {
+            let ret = result["ret"];
+            let proxy_url = result["proxy_url"];
+            let message = result["message"];
+            if (ret) {
+                document.getElementById("btn-play-proxy").removeAttribute("disabled");
+                document.getElementById("btn-get-proxy").setAttribute("disabled","disabled");
+            } else {
+                alert(message)
+            }
+            document.getElementById("proxy-streaming-url").value = proxy_url;
+        },
+        error: function (xtr, status, error) {
+            ret = null;
+        }
+    });
+    return ret
+}

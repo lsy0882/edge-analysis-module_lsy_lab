@@ -426,11 +426,17 @@ function draw_task(task) {
     document.getElementById("task-elapsed-time").value = task_elapsed_time;
 }
 
-function ms2strtime( ms ) {
+function ms2strtime(ms) {
     let seconds = ms / 1000;
     const hours = parseInt( seconds / 3600 ); // 3,600 seconds in 1 hour
     seconds = seconds % 3600; // seconds remaining after extracting hours
     const minutes = parseInt( seconds / 60 ); // 60 seconds in 1 minute
     seconds = parseInt(seconds % 60);
     return String(hours).padStart(2, "0") + "시간 "+ String(minutes).padStart(2, "0") + "분 " + String(seconds).padStart(2, "0") + "초";
+}
+
+function play_proxy() {
+    let proxy_url = document.getElementById("proxy-streaming-url").value;
+    play_url("video", proxy_url);
+    document.getElementById("btn-play-proxy").setAttribute("disabled","disabled");
 }
