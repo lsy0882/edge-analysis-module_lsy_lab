@@ -1,0 +1,122 @@
+.wide-container{
+    max-width: 1800px;
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+h5 {
+    display: inline-block;
+    text-align: center;
+}
+.gage-title {
+    width: 71px;
+    display: inline-block;
+    text-align: center;
+}
+.gage-cpu {
+    width: 146px;
+}
+.memory-gage {
+    width: 146px;
+}
+.gpu-gage {
+    width: 482px;
+}
+.cpu-clock, .gpu-clock {
+    width: 60px;
+    display: inline-block;
+    text-align: center;
+}
+.cpu-unit, .gpu-unit {
+    width: 60px;
+    display: inline-block;
+    text-align: center;
+}
+.memory-value, .disk-usage {
+    width: 125px;
+    display: inline-block;
+    text-align: center;
+}
+.temp-title, .power-title {
+    width: 150px;
+    display: inline-block;
+    text-align: center;
+}
+
+.temp-value, .power-value {
+    width: 60px;
+    display: inline-block;
+    text-align: center;
+}
+
+.temp-unit, .power-unit {
+    width: 60px;
+    display: inline-block;
+    text-align: center;
+}
+
+.setting-title {
+    width: 120px;
+    display: inline-block;
+    text-align: center;
+}
+
+.setting-content {
+    width: 160px;
+}
+
+.input-cctv-info {
+    width: 763px;
+}
+
+.option-title {
+    width: 130px;
+    display: inline-block;
+    text-align: center;
+}
+
+.div-padding-lr {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.div-zero-padding-lr {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.card-body-3row {
+    height: 160px;
+}
+.task-title {
+    width: 90px;
+    display: inline-block;
+    text-align: center;
+}
+
+.task-desc {
+    width: 381px;
+    margin-right: 5px
+}
+
+.task-card {
+    width: 1018px;
+}
+
+.input-proxy-url {
+    width: 695px;
+}
+
+.option-width-col1 {
+    width: 815px;
+}
+.option-width-col2 {
+    width: 275px;
+}
+
+.option-width-col3 {
+    width: 165px;
+}

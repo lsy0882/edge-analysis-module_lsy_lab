@@ -1,0 +1,690 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <script src="{{ url_for('static', filename='js/ajax.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="wide-container">
+        <div class="row">
+            <div class="col-5">
+                <div class="row">
+                    <video id="video" muted controls autoplay  width="640" height="360"></video>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="mb-0">Device Status</h5>
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-info float-right" onclick="draw_status();">새로고침</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">CPU 1</span>
+                                        <span class="input-group-text bg-light gage-cpu" id="gage-cpu-1"></span>
+                                        <span class="input-group-text bg-white cpu-clock" id="clock-cpu-1">1420</span>
+                                        <span class="input-group-text bg-light cpu-unit" id="clock-unit-cpu-1"></span>
+                                        <span class="input-group-text gage-title">CPU 2</span>
+                                        <span class="input-group-text bg-light gage-cpu" id="gage-cpu-2"></span>
+                                        <span class="input-group-text bg-white cpu-clock" id="clock-cpu-2"></span>
+                                        <span class="input-group-text bg-light cpu-unit" id="clock-unit-cpu-2"></span>
+                                    </div>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">CPU 3</span>
+                                        <span class="input-group-text bg-light gage-cpu" id="gage-cpu-3"></span>
+                                        <span class="input-group-text bg-white cpu-clock" id="clock-cpu-3"></span>
+                                        <span class="input-group-text bg-light cpu-unit" id="clock-unit-cpu-3"></span>
+                                        <span class="input-group-text gage-title">CPU 4</span>
+                                        <span class="input-group-text bg-light gage-cpu" id="gage-cpu-4"></span>
+                                        <span class="input-group-text bg-white cpu-clock" id="clock-cpu-4"></span>
+                                        <span class="input-group-text bg-light cpu-unit" id="clock-unit-cpu-4"></span>
+                                    </div>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">CPU 5</span>
+                                        <span class="input-group-text bg-light gage-cpu" id="gage-cpu-5"></span>
+                                        <span class="input-group-text bg-white cpu-clock" id="clock-cpu-5"></span>
+                                        <span class="input-group-text bg-light cpu-unit" id="clock-unit-cpu-5"></span>
+                                        <span class="input-group-text gage-title">CPU 6</span>
+                                        <span class="input-group-text bg-light gage-cpu" id="gage-cpu-6"></span>
+                                        <span class="input-group-text bg-white cpu-clock" id="clock-cpu-6"></span>
+                                        <span class="input-group-text bg-light cpu-unit" id="clock-unit-cpu-6"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">RAM</span>
+                                        <span class="input-group-text bg-light memory-gage" id="gage-ram"></span>
+                                        <span class="input-group-text bg-light memory-value" id="value-ram"></span>
+                                        <span class="input-group-text gage-title">Swap</span>
+                                        <span class="input-group-text bg-light memory-gage" id="gage-swap"></span>
+                                        <span class="input-group-text bg-light memory-value" id="value-swap"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">GPU</span>
+                                        <span class="input-group-text bg-light gpu-gage" id="gage-gpu"></span>
+                                        <span class="input-group-text bg-white gpu-clock" id="clock-gpu"></span>
+                                        <span class="input-group-text bg-light gpu-unit" id="clock-unit-gpu"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">eMMC</span>
+                                        <span class="input-group-text bg-light disk-gage" id="gage-main-disk"></span>
+                                        <span class="input-group-text bg-light disk-usage" id="value-main-disk"></span>
+                                    </div>
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text gage-title">외장</span>
+                                        <span class="input-group-text bg-light disk-gage" id="gage-external-disk"></span>
+                                        <span class="input-group-text bg-light disk-usage" id="value-external-disk"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-group">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text temp-title">CPU 온도</span>
+                                            <span class="input-group-text bg-white temp-value" id="temp-cpu"></span>
+                                            <span class="input-group-text bg-light temp-unit" id="temp-unit-cpu"></span>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text temp-title">GPU 온도</span>
+                                            <span class="input-group-text bg-white temp-value" id="temp-gpu"></span>
+                                            <span class="input-group-text bg-light temp-unit" id="temp-unit-gpu"></span>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text temp-title">장치 온도</span>
+                                            <span class="input-group-text bg-white temp-value" id="temp-device"></span>
+                                            <span class="input-group-text bg-light temp-unit" id="temp-unit-device"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text power-title">CPU GPU CV 전력</span>
+                                            <span class="input-group-text bg-white power-value" id="power-cpugpucv"></span>
+                                            <span class="input-group-text bg-light power-unit" id="power-unit-cpugpucv"></span>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text power-title">SOC 전력</span>
+                                            <span class="input-group-text bg-white power-value" id="power-soc"></span>
+                                            <span class="input-group-text bg-light power-unit" id="power-unit-soc"></span>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text temp-title">전체 전력</span>
+                                            <span class="input-group-text bg-white power-value" id="power-total"></span>
+                                            <span class="input-group-text bg-light power-unit" id="power-unit-total"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+            </div>
+            <div class="col-7">
+                <div class="div-padding-lr row" style="">
+                    <div class="card" >
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="mb-0">Task</h5>
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-outline-success bg-white float-right" id="btn-start-task" onclick="ajax_run_task();">분석 시작</button>
+                                    <button class="btn btn-outline-danger bg-white float-right" id="btn-delete-task" onclick="ajax_delete_task();">분석 종료</button>
+                                    <button class="btn btn-outline-info bg-white float-right" id="btn-refresh-task" onclick="draw_task(null);">새로고침</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body task-card">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">ID</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-id" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">Type</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-type" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">상태</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-state" disabled>
+                                        </div>
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">시작시간</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-start-time" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text task-title">경과시간</span>
+                                            <input type="text" class="form-control form-control-sm bg-light task-desc" id="task-elapsed-time" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="div-padding-lr row">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col">
+                                    <h5 class="mb-0">Settings</h5>
+                                </div>
+                                <div class="col">
+                                    <button class="btn btn-info float-right" onclick="save_settings();">적용</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="div-padding-lr row">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>CCTV 정보</h6>
+                                        <div class="input-group input-group-sm">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text setting-title">URL</span>
+                                                <input type="text" class="form-control form-control-sm option-width-col1" id="input-streaming-url" placeholder="Streaming URL">
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text setting-title">Proxy URL</span>
+                                                <input type="text" class="form-control form-control-sm bg-light input-proxy-url" id="proxy-streaming-url" placeholder="Proxy URL" disabled>
+                                                <button class="btn btn-outline-secondary" type="button" id="btn-get-proxy" onclick="ajax_get_proxy_url()">가져오기</button>
+                                                <button class="btn btn-outline-secondary" type="button" id="btn-play-proxy" onclick="play_proxy()" disabled>재생</button>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text setting-title">CAM ID</span>
+                                                <select class="form-control form-control-sm option-width-col1" id="select-cam-id">
+                                                    <option selected value="1">1</option>
+                                                    <option value="2">2</option>
+                                                    <option value="3">3</option>
+                                                    <option value="4">4</option>
+                                                    <option value="5">5</option>
+                                                    <option value="6">6</option>
+                                                    <option value="7">7</option>
+                                                    <option value="8">8</option>
+                                                    <option value="9">9</option>
+                                                    <option value="10">10</option>
+                                                </select>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text setting-title">Type</span>
+                                                <select class="form-control form-control-sm option-width-col1" id="select-cctv-type">
+                                                    <option selected value="0">cctv</option>
+                                                    <option value="1">test</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row div-padding-lr">
+                                <div class="col-4 div-zero-padding-lr">
+                                    <div class="card">
+                                        <div class="card-body card-body-3row">
+                                            <h6>아카이브 모듈 정보</h6>
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text setting-title">Module IP</span>
+                                                    <input type="text" class="form-control form-control-sm setting-content" id="archive-module-ip" placeholder="Archive Module IP">
+                                                </div>
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text setting-title">Module Port</span>
+                                                    <input type="text" class="form-control form-control-sm setting-content" id="archive-module-port" placeholder="Archive Module Port">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 div-zero-padding-lr">
+                                    <div class="card">
+                                        <div class="card-body card-body-3row">
+                                            <h6>Decoding 정보</h6>
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text setting-title">분석 fps</span>
+                                                    <select class="custom-select custom-select-sm option-width-col3" id="select-decoding-fps">
+                                                        <option selected value="20">20fps</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4 div-zero-padding-lr">
+                                    <div class="card">
+                                        <div class="card-body card-body-3row">
+                                            <h7>객체 검출 모델</h7>
+                                            <div class="input-group input-group-sm">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text setting-title">모델 이름</span>
+                                                    <select class="custom-select custom-select-sm option-width-col3" id="select-od-model-name">
+                                                        <option selected value="yolov4-416">yolov4-416</option>
+                                                    </select>
+                                                </div>
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text setting-title">Score 임계</span>
+                                                    <select class="custom-select custom-select-sm option-width-col3" id="select-od-score-threshold">
+                                                        <option selected value="0.1">0.1</option>
+                                                        <option value="0.2">0.2</option>
+                                                        <option value="0.3">0.3</option>
+                                                        <option value="0.4">0.4</option>
+                                                        <option value="0.5">0.5</option>
+                                                        <option value="0.6">0.6</option>
+                                                        <option value="0.7">0.7</option>
+                                                        <option value="0.8">0.8</option>
+                                                        <option value="0.9">0.9</option>
+                                                    </select>
+                                                </div>
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text setting-title">NMS 임계</span>
+                                                    <select class="custom-select custom-select-sm option-width-col3" id="select-od-nms-threshold">
+                                                        <option selected value="0.1">0.1</option>
+                                                        <option value="0.2">0.2</option>
+                                                        <option value="0.3">0.3</option>
+                                                        <option value="0.4">0.4</option>
+                                                        <option value="0.5">0.5</option>
+                                                        <option value="0.6">0.6</option>
+                                                        <option value="0.7">0.7</option>
+                                                        <option value="0.8">0.8</option>
+                                                        <option value="0.9">0.9</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="div-padding-lr row">
+                                <div class="col-6 div-zero-padding-lr">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>Object Tracker</h6>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-byte_tracker" data-toggle="collapse" data-target="#collapse-byte_tracker" aria-expanded="false" aria-controls="collapse-byte_tracker">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="Byte Tracker" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-byte_tracker">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Track threshold</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-track-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Track buffer</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-track-buffer">
+                                                                <option selected value="10">10</option>
+                                                                <option value="20">20</option>
+                                                                <option value="30">30</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Match threshold</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-match-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Min box area</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-min-box-area">
+                                                                <option selected value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                                <option value="6">6</option>
+                                                                <option value="7">7</option>
+                                                                <option value="8">8</option>
+                                                                <option value="9">9</option>
+                                                                <option value="10">10</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Framerate</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-byte-tracker-frame-rate">
+                                                                <option selected value="10">10</option>
+                                                                <option value="20">20</option>
+                                                                <option value="30">30</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-sort_tracker" data-toggle="collapse" data-target="#collapse-sort_tracker" aria-expanded="false" aria-controls="collapse-sort_tracker">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="Sort Tracker" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-sort_tracker">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Max age</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-max-age">
+                                                                <option selected value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                                <option value="6">6</option>
+                                                                <option value="7">7</option>
+                                                                <option value="8">8</option>
+                                                                <option value="9">9</option>
+                                                                <option value="10">10</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Minimum hits</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-sort-tracker-min-hits">
+                                                                <option selected value="1">1</option>
+                                                                <option value="2">2</option>
+                                                                <option value="3">3</option>
+                                                                <option value="4">4</option>
+                                                                <option value="5">5</option>
+                                                                <option value="6">6</option>
+                                                                <option value="7">7</option>
+                                                                <option value="8">8</option>
+                                                                <option value="9">9</option>
+                                                                <option value="10">10</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 div-zero-padding-lr">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>이벤트 검출 모델</h6>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-assault" data-toggle="collapse" data-target="#collapse-assault" aria-expanded="false" aria-controls="collapse-assault">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="폭행(Assault)" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-assault">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-assault-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Tracker</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-assault-tracker">
+                                                                <option selected value="none">없음</option>
+                                                                <option value="byte_tracker">Byte Tracker</option>
+                                                                <option value="sort_tracker">Sort Tracker</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-falldown" data-toggle="collapse" data-target="#collapse-falldown" aria-expanded="false" aria-controls="collapse-falldown">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="넘어짐(Falldown)" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-falldown">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-falldown-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Tracker</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-falldown-tracker">
+                                                                <option selected value="none">없음</option>
+                                                                <option value="byte_tracker">Byte Tracker</option>
+                                                                <option value="sort_tracker">Sort Tracker</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-kidnapping" data-toggle="collapse" data-target="#collapse-kidnapping" aria-expanded="false" aria-controls="collapse-kidnapping">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="납치(Kidnapping)" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-kidnapping">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-kidnapping-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Tracker</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-kidnapping-tracker">
+                                                                <option selected value="none">없음</option>
+                                                                <option value="byte_tracker">Byte Tracker</option>
+                                                                <option value="sort_tracker">Sort Tracker</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-tailing" data-toggle="collapse" data-target="#collapse-tailing" aria-expanded="false" aria-controls="collapse-tailing">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="미행(Tailing)" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-tailing">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-tailing-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Tracker</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-tailing-tracker">
+                                                                <option selected value="none">없음</option>
+                                                                <option value="byte_tracker">Byte Tracker</option>
+                                                                <option value="sort_tracker">Sort Tracker</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="input-group-prepend">
+                                                <div class="input-group-text">
+                                                    <input type="checkbox" id="checkbox-wanderer" data-toggle="collapse" data-target="#collapse-wanderer" aria-expanded="false" aria-controls="collapse-wanderer">
+                                                </div>
+                                                <input type="text" class="form-control bg-white" value="배회자(Wanderer)" disabled>
+                                            </div>
+                                            <div class="collapse" id="collapse-wanderer">
+                                                <div class="card card-body">
+                                                    <div class="input-group input-group-sm">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Score 임계</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-wanderer-score-threshold">
+                                                                <option selected value="0.1">0.1</option>
+                                                                <option value="0.2">0.2</option>
+                                                                <option value="0.3">0.3</option>
+                                                                <option value="0.4">0.4</option>
+                                                                <option value="0.5">0.5</option>
+                                                                <option value="0.6">0.6</option>
+                                                                <option value="0.7">0.7</option>
+                                                                <option value="0.8">0.8</option>
+                                                                <option value="0.9">0.9</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text option-title">Tracker</span>
+                                                            <select class="custom-select custom-select-sm option-width-col2" id="select-wanderer-tracker">
+                                                                <option selected value="none">없음</option>
+                                                                <option value="byte_tracker">Byte Tracker</option>
+                                                                <option value="sort_tracker">Sort Tracker</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    /** Create UI to monitor device status **/
+    // - contents : CPU, RAM, GPU, Disk
+    let bar_ids = [
+        "cpu-1", "cpu-2", "cpu-3", "cpu-4", "cpu-5", "cpu-6",
+        "ram", "swap",
+        "gpu",
+        "main-disk", "external-disk"
+    ];
+
+    for (let i = 0; i < bar_ids.length; i++) {
+        let bar_type;
+        if (i >= 0 && i < 6)     bar_type = "cpu";
+        else if (i > 6 && i < 8) bar_type = "mem";
+        else if (i === 8)        bar_type = "gpu";
+        else                     bar_type = "disk";
+
+        create_gage_bar(bar_ids[i], bar_type);
+    }
+
+    draw_status();
+    draw_settings();
+    draw_task(null)
+
+
+</script>
+{% endblock %}

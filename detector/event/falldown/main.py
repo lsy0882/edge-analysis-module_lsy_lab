@@ -45,18 +45,12 @@ class FalldownEvent(Event):
         self.tracker_name = tracker_name
         self.load_cam=cam_video_frame.cam()
         self.video_number=''
-        self.cam1={}
-        self.cam2={}
-        self.cam3={}
-        self.cam4={}
-        self.cam5={}
-        self.check_list=[]
-        self.computation_list=[]
         self.layer_dict={}
         self.mlp_layer=cam_mlp()
         self.result_ratio=0
         self.starting_num=0
         self.video_name=''
+        self.before_frame_cam=''
 
     def inference(self, frame_info, detection_result, tracking_result, score_threshold=0.5):
         od_result = self.filter_object_result(detection_result, score_threshold)
@@ -64,47 +58,25 @@ class FalldownEvent(Event):
         frame_number = frame_info["frame_number"]
         start = 0
         end = 0
-        
-        # 시작할때 정보 가져옴
-        if self.starting_num==0:
-            self.video_number=detection_result['cam_address'][-11:-9]
-            self.video_name=detection_result['cam_address'][-15:-12]
-            if self.video_name=='mix':
-                self.cam1=self.load_cam.get_cam(1)[self.video_number][0]
-                self.cam2=self.load_cam.get_cam(2)[self.video_number][0]
-                self.cam3=self.load_cam.get_cam(3)[self.video_number][0]
-                self.cam4=self.load_cam.get_cam(4)[self.video_number][0]
-                self.cam5=self.load_cam.get_cam(5)[self.video_number][0]
-                check_list1={}
-                for n,i in enumerate([self.cam1, self.cam2, self.cam3, self.cam4, self.cam5]):
-                    #print(i)
-                    for j in ["falldown","normal","other"]:
-                        #print(j)
-                        if i[j] == [[]]:
-                            del i[j]
-                        else:
-                            for k in i[j]:
-                                check_list1[int(k[0])]=str(n+1)+'_'+j
-                self.check_list=sorted(check_list1.items())
 
-                # 계속해서 정보 가져오는거 막는 용도
-                self.starting_num=1
-        
-        if self.check_list != [] and self.check_list[0][0]-8<=frame_number and self.check_list[0][0]+8>=frame_number:
-            
-            pop_frame=self.check_list.pop(0)
-            cam_number=pop_frame[1][0]
-            event_name=pop_frame[1][2:]
-            frame_list=eval("self.cam{}".format(cam_number))[event_name].pop(0)
-            if eval("self.cam{}".format(cam_number))[event_name] ==[]:
-                del eval("self.cam{}".format(cam_number))[event_name]
-            self.computation_list=frame_list
-            self.layer_dict=np.load(os.path.join(os.getcwd(), './detector/event/falldown/npy_file/cam_{}_pretrained_model.npy'.format(str(cam_number))),allow_pickle=True)
-            self.mlp_layer.load_layer(self.layer_dict)
-            #print("complete load model")
-            #print(self.check_list)
-            #print(frame_info['frame_number'])
-            #print(self.computation_list)
+        if self.starting_num==0:
+            self.before_frame_cam=frame_info['cam_id'][-1]
+            if self.before_frame_cam == 'r' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
+                pass
+            else:
+                #print("load_model")
+                self.layer_dict=np.load(os.path.join(os.getcwd(), './detector/event/falldown/npy_file/cam_{}_pretrained_model.npy'.format(self.before_frame_cam)),allow_pickle=True)
+                self.mlp_layer.load_layer(self.layer_dict)
+            self.starting_num=1
+
+        if self.before_frame_cam != frame_info['cam_id'][-1]:
+            self.before_frame_cam=frame_info['cam_id'][-1]
+            if self.before_frame_cam == 'r' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
+                pass
+            else:
+                #print("load_model")
+                self.layer_dict=np.load(os.path.join(os.getcwd(), './detector/event/falldown/npy_file/cam_{}_pretrained_model.npy'.format(self.before_frame_cam)),allow_pickle=True)
+                self.mlp_layer.load_layer(self.layer_dict)
 
         if self.debug :
             start = time.time()
@@ -121,19 +93,9 @@ class FalldownEvent(Event):
         detection_result = od_result['results'][0]['detection_result']
         self.result = False #init 
         for info_ in detection_result:
-            #print(info_['position'])
-            #dets =[]
-            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) >= 0.5:
-                #dets.append(int(info_['position']['x']))
-                #dets.append(int(info_['position']['y']))
-                #dets.append(int(info_['position']['x']+info_['position']['w']))
-                #dets.append(int(info_['position']['y']+info_['position']['h']))
-                #convert to [x1,y1,w,h] to [x1,y1,x2,y2]
-                #dets.append(float(info_['label'][0]['score']))
 
-                #print("x: , ", int(info_['position']['x']) , " y: ",int(info_['position']['y']) )  
-                        
-                
+            if info_['label'][0]['description'] == "person" and float(info_['label'][0]['score']) >= 0.5:
+
                 if self.tracking_method == True:
                 
                     for i in range(self.people_max):
@@ -152,43 +114,7 @@ class FalldownEvent(Event):
                     self.people_locate[count] = [int(info_['position']['x']), int(info_['position']['y'])]
                     
                 else:
-                    if self.computation_list != []:
-                        if self.computation_list[0] <= frame_number and self.computation_list[1] >= frame_number:
-                            #print("True")
-                            mlp_result=self.mlp_layer.forward(np.array([int(info_['position']['x']/630),int(info_['position']['y']/360)]))
-                            ratio=info_['position']['h']/info_['position']['w']
-                            self.result_ratio=abs(mlp_result*5-ratio)
-                            #person_ratio_dict[str(info_['position']['x'])+'_'+str(info_['position']['y'])]=self.result_ratio.copy()
-                            
-                            if self.result_ratio>1.35:
-                                if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
-                                    pass
-                                else:
-                                    if int(info_['position']['y']) > 3 and int(info_['position']['y']) + int(info_['position']['h']) < 356:
-                                        self.before_falldown_count[count] += 1
-                                    else:
-                                        if self.before_falldown_count[count] > 0:
-                                            self.before_falldown_count[count] -= 1
-                            elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
-                                self.before_falldown_count[count] -= 1
-                        else:
-                            if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
-                                if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
-                                    pass
-                                else:
-                                    if int(info_['position']['y']) > 3 and int(info_['position']['y']) + int(info_['position']['h']) < 356:
-                                        self.before_falldown_count[count] += 1
-                                    else:
-                                        if self.before_falldown_count[count] > 0:
-                                            self.before_falldown_count[count] -= 1
-                            elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
-                                self.before_falldown_count[count] -= 1
-                        #count += 1 # person count
-                        ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
-                        if count > 2:
-                            return self.result #, person_ratio_dict, self.before_falldown_count #self.result = False
-                        ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617    
-                    else:
+                    if self.before_frame_cam == 'r' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
                         if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
                             if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
                                 pass
@@ -200,12 +126,36 @@ class FalldownEvent(Event):
                                         self.before_falldown_count[count] -= 1
                         elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
                             self.before_falldown_count[count] -= 1
+                    ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
+                    else:
+                        #print("1")
+                        mlp_result=self.mlp_layer.forward(np.array([int(info_['position']['x']/630),int(info_['position']['y']/360)]))
+                        ratio=info_['position']['h']/info_['position']['w']
+                        self.result_ratio=abs(mlp_result*5-ratio)
+                        #print(self.result_ratio)
+                        #person_ratio_dict[str(info_['position']['x'])+'_'+str(info_['position']['y'])]=self.result_ratio.copy()
+                        
+                        if self.result_ratio>1.35:
+                            if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
+                                pass
+                            else:
+                                if int(info_['position']['y']) > 3 and int(info_['position']['y']) + int(info_['position']['h']) < 356:
+                                    self.before_falldown_count[count] += 1
+                                else:
+                                    if self.before_falldown_count[count] > 0:
+                                        self.before_falldown_count[count] -= 1
+                        elif  self.before_falldown_count[count] > 0: #falldown 없으면 falldown_count 1씩 감소
+                            self.before_falldown_count[count] -= 1
+                        #count += 1 # person count
+                        ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
+                        if count > 2:
+                            return self.result #, person_ratio_dict, self.before_falldown_count #self.result = False
+                        ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617 
                     count += 1 # person count
                     ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
                     if count > 2:
                         return self.result #, person_ratio_dict, self.before_falldown_count #self.result = False
-                    ## 사람 2명이하일 때만 검출할 수 있도록 코드 추가 0617
-
+            
 
         ## count 개수가 len(before_falldown_count)보다 작은 경우 그 index이상의 원소들([count:])에 -1씩 해줌
         x = np.array(self.before_falldown_count)
