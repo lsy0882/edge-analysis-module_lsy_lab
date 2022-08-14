@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -e
+
 version="v0.19.2"
 
 echo "[INFO] Download rtsp-simple-server(${version})"
