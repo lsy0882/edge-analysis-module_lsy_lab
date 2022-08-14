@@ -1,3 +1,6 @@
+import sys
+sys.path.append("/media/nvidia/external/edge-analysis-module")
+
 from config import config
 from utils.setting_utils import load_settings
 
