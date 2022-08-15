@@ -85,7 +85,9 @@ class EdgeModuleManager:
 
         tracker_options = settings["model"]["tracker"]
         self.tracker_names, self.tracker_params = self.parse_tracker_params(tracker_options)
-        self.event_model_names = settings["model"]["event"]["event_names"]
+        self.event_model_names = list(settings["model"]["event"]["event_names"])
+        if len(self.event_model_names) != 5:
+            self.event_model_names = self.event_model_names[:-1]
         self.event_model_params = settings["model"]["event"]["event_options"]
 
     def __generate_filter_numbers(self, extract_fps, fps):
@@ -245,6 +247,7 @@ class EdgeModuleManager:
         self.celery_instance.update_state(state="PROGRESS", meta={"message": "Decoder started"})
 
         frame_number = 0
+        hour_check_num = self.extract_fps * 60 * 60
         self.celery_instance.update_state(state="PROGRESS", meta={"message": "Detection started"})
         while True:
             if len(self.frame_buffer) > 0:
@@ -285,6 +288,10 @@ class EdgeModuleManager:
                         # communicator.send_event(event_model.model_name, now, "end", message)
                         self.logger.info("Send end time of {} event sequence({}) - frame number: {}".format(event_model.model_name, now, frame_number))
                 frame_number += 1
+
+                if frame_number != 0 and frame_number % hour_check_num == 0:
+                    hours = frame_number / hour_check_num
+                    self.logger.info("{} hour has elapsed since the analysis started.".format(hours))
             else:
                 if not self.decoder.capture.isOpened():
                     self.celery_instance.update_state(state="FINISHED", meta={"message": "CCTV streaming is closed."})
