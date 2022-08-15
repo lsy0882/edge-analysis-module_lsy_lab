@@ -402,7 +402,9 @@ function draw_task(task) {
     let task_elapsed_time = "-"
 
     let task_ret = result["ret"]
+    console.log("task_ret", task_ret)
     if (task_ret) {
+        // 실행 중인 task 가 있을 경우
         task_id = result["id"];
         task_type = result["type"];
         task_state = result["state"];
@@ -413,10 +415,13 @@ function draw_task(task) {
         task_elapsed_time = ms2strtime(parseInt(elapsed_time));
         document.getElementById("btn-start-task").setAttribute("disabled","disabled");
         document.getElementById("btn-delete-task").removeAttribute("disabled");
+        disable_settings_panel();
     }
     else {
+        // 실행 중인 task 가 없을 경우
         document.getElementById("btn-start-task").removeAttribute("disabled");
         document.getElementById("btn-delete-task").setAttribute("disabled","disabled");
+        enable_settings_panel();
     }
 
     document.getElementById("task-id").value = task_id;
@@ -439,4 +444,96 @@ function play_proxy() {
     let proxy_url = document.getElementById("proxy-streaming-url").value;
     play_url("video", proxy_url);
     document.getElementById("btn-play-proxy").setAttribute("disabled","disabled");
+}
+
+function enable_settings_panel() {
+    // CCTV 정보
+    document.getElementById("input-streaming-url").removeAttribute("disabled");
+    document.getElementById("select-cam-id").removeAttribute("disabled");
+    document.getElementById("select-cctv-type").removeAttribute("disabled");
+    // 아카이브 모듈 정보
+    document.getElementById("archive-module-ip").removeAttribute("disabled");
+    document.getElementById("archive-module-port").removeAttribute("disabled");
+    // Decoding 정보
+    document.getElementById("select-decoding-fps").removeAttribute("disabled");
+    // 객체 검출 모델
+    document.getElementById("select-od-model-name").removeAttribute("disabled");
+    document.getElementById("select-od-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-od-nms-threshold").removeAttribute("disabled");
+    // Object Tracker
+    // - byte tracker
+    document.getElementById("checkbox-byte_tracker").removeAttribute("disabled");
+    document.getElementById("select-byte-tracker-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-byte-tracker-track-threshold").removeAttribute("disabled");
+    document.getElementById("select-byte-tracker-track-buffer").removeAttribute("disabled");
+    document.getElementById("select-byte-tracker-match-threshold").removeAttribute("disabled");
+    document.getElementById("select-byte-tracker-min-box-area").removeAttribute("disabled");
+    document.getElementById("select-byte-tracker-frame-rate").removeAttribute("disabled");
+    // - sort tracker
+    document.getElementById("checkbox-sort_tracker").removeAttribute("disabled");
+    document.getElementById("select-sort-tracker-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-sort-tracker-max-age").removeAttribute("disabled");
+    document.getElementById("select-sort-tracker-min-hits").removeAttribute("disabled");
+    // Event detection model
+    document.getElementById("checkbox-assault").removeAttribute("disabled");
+    document.getElementById("select-assault-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-assault-tracker").removeAttribute("disabled");
+    document.getElementById("checkbox-falldown").removeAttribute("disabled");
+    document.getElementById("select-falldown-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-falldown-tracker").removeAttribute("disabled");
+    document.getElementById("checkbox-kidnapping").removeAttribute("disabled");
+    document.getElementById("select-kidnapping-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-kidnapping-tracker").removeAttribute("disabled");
+    document.getElementById("checkbox-tailing").removeAttribute("disabled");
+    document.getElementById("select-tailing-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-tailing-tracker").removeAttribute("disabled");
+    document.getElementById("checkbox-wanderer").removeAttribute("disabled");
+    document.getElementById("select-wanderer-score-threshold").removeAttribute("disabled");
+    document.getElementById("select-wanderer-tracker").removeAttribute("disabled");
+}
+
+function disable_settings_panel() {
+    // CCTV 정보
+    document.getElementById("input-streaming-url").setAttribute("disabled", "disabled");
+    document.getElementById("select-cam-id").setAttribute("disabled", "disabled");
+    document.getElementById("select-cctv-type").setAttribute("disabled", "disabled");
+    // 아카이브 모듈 정보
+    document.getElementById("archive-module-ip").setAttribute("disabled", "disabled");
+    document.getElementById("archive-module-port").setAttribute("disabled", "disabled");
+    // Decoding 정보
+    document.getElementById("select-decoding-fps").setAttribute("disabled", "disabled");
+    // 객체 검출 모델
+    document.getElementById("select-od-model-name").setAttribute("disabled", "disabled");
+    document.getElementById("select-od-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-od-nms-threshold").setAttribute("disabled", "disabled");
+    // Object Tracker
+    // - byte tracker
+    document.getElementById("checkbox-byte_tracker").setAttribute("disabled", "disabled");
+    document.getElementById("select-byte-tracker-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-byte-tracker-track-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-byte-tracker-track-buffer").setAttribute("disabled", "disabled");
+    document.getElementById("select-byte-tracker-match-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-byte-tracker-min-box-area").setAttribute("disabled", "disabled");
+    document.getElementById("select-byte-tracker-frame-rate").setAttribute("disabled", "disabled");
+    // - sort tracker
+    document.getElementById("checkbox-sort_tracker").setAttribute("disabled", "disabled");
+    document.getElementById("select-sort-tracker-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-sort-tracker-max-age").setAttribute("disabled", "disabled");
+    document.getElementById("select-sort-tracker-min-hits").setAttribute("disabled", "disabled");
+    // Event detection model
+    document.getElementById("checkbox-assault").setAttribute("disabled", "disabled");
+    document.getElementById("select-assault-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-assault-tracker").setAttribute("disabled", "disabled");
+    document.getElementById("checkbox-falldown").setAttribute("disabled", "disabled");
+    document.getElementById("select-falldown-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-falldown-tracker").setAttribute("disabled", "disabled");
+    document.getElementById("checkbox-kidnapping").setAttribute("disabled", "disabled");
+    document.getElementById("select-kidnapping-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-kidnapping-tracker").setAttribute("disabled", "disabled");
+    document.getElementById("checkbox-tailing").setAttribute("disabled", "disabled");
+    document.getElementById("select-tailing-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-tailing-tracker").setAttribute("disabled", "disabled");
+    document.getElementById("checkbox-wanderer").setAttribute("disabled", "disabled");
+    document.getElementById("select-wanderer-score-threshold").setAttribute("disabled", "disabled");
+    document.getElementById("select-wanderer-tracker").setAttribute("disabled", "disabled");
 }
