@@ -61,7 +61,7 @@ class FalldownEvent(Event):
 
         if self.starting_num==0:
             self.before_frame_cam=frame_info['cam_id'][-1]
-            if self.before_frame_cam == 'r' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
+            if self.before_frame_cam == 'r' or self.before_frame_cam == 'm' or self.before_frame_cam == 'b' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
                 pass
             else:
                 #print("load_model")
@@ -71,7 +71,7 @@ class FalldownEvent(Event):
 
         if self.before_frame_cam != frame_info['cam_id'][-1]:
             self.before_frame_cam=frame_info['cam_id'][-1]
-            if self.before_frame_cam == 'r' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
+            if self.before_frame_cam == 'r' or self.before_frame_cam == 'm' or self.before_frame_cam == 'b' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
                 pass
             else:
                 #print("load_model")
@@ -114,7 +114,7 @@ class FalldownEvent(Event):
                     self.people_locate[count] = [int(info_['position']['x']), int(info_['position']['y'])]
                     
                 else:
-                    if self.before_frame_cam == 'r' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
+                    if self.before_frame_cam == 'r' or self.before_frame_cam == 'm' or self.before_frame_cam == 'b' or self.before_frame_cam == 'e' or self.before_frame_cam == '9' or self.before_frame_cam == 's':
                         if int(info_['position']['w']) >= int(info_['position']['h']): #falldown
                             if self.before_falldown_count[count] >= 55: #count 55이상 되면 더이상 count 안함 (fps*2.5)
                                 pass
