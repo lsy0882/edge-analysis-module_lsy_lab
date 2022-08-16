@@ -42,7 +42,6 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
         self.tracker_name = tracker_name
-        self.load_cam=cam_video_frame.cam()
         self.video_number=''
         self.layer_dict={}
         self.mlp_layer=cam_mlp()
