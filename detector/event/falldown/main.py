@@ -6,7 +6,6 @@ import time
 from detector.event.template.main import Event
 import sys
 sys.path.append('./detector/event/falldown')
-import cam_video_frame
 from mlp_layer import cam_mlp
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
