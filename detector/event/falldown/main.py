@@ -6,7 +6,6 @@ import time
 from detector.event.template.main import Event
 import sys
 sys.path.append('./detector/event/falldown')
-import cam_video_frame
 from mlp_layer import cam_mlp
 # Notice
 # - Dummy class는 참고 및 테스트용이기 때문에 해당 class는 수정 또는 삭제하지 말고 참고만 해주시기 바랍니다.
@@ -43,7 +42,6 @@ class FalldownEvent(Event):
         self.tracking_method = False
         self.before_falldown_count = [0 for i in range (self.people_max)]
         self.tracker_name = tracker_name
-        self.load_cam=cam_video_frame.cam()
         self.video_number=''
         self.layer_dict={}
         self.mlp_layer=cam_mlp()
