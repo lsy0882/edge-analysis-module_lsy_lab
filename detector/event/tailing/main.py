@@ -33,10 +33,10 @@ class TailingEvent(Event):
         self.model_name = "tailing"
         self.analysis_time = 0
         self.debug = debug
-        self.history = [0, ] * 40
+        self.history = [0, ] * 20
         self.result = False
         
-        self.max_history = 40
+        self.max_history = 20
         self.frame = None
         self.frame_cnt = 0
         self.row_idx = 0
@@ -84,7 +84,6 @@ class TailingEvent(Event):
             
             for appear_tracked_strack in self.tracked_stracks_history[-1]['appear_tracked_stracks_list']:
                 appear_tracked_strack_cp = np.asarray([appear_tracked_strack.xyah[0], appear_tracked_strack.xyah[1]])
-
                 if 1 <= len(self.tracked_stracks_history[-1]['disap_tracked_stracks_list']):
                     appear_vs_disap_disatances_list = []
                     for disap_tracked_strack in self.tracked_stracks_history[-1]['disap_tracked_stracks_list']:
@@ -153,10 +152,11 @@ class TailingEvent(Event):
 
 
         
-        eventFlag = [0, ] * 40
+        eventFlag = [0, ] * 20
         #and is_not_boundary(strack.xyah) == True
         if 2 <= len(self.tracked_stracks_history):
             human_stracks = [strack for strack in self.tracked_stracks_history[-1]['tracked_stracks_list'] if strack.cls == 0  and is_not_stand(strack.tlwh) == True and 800 < strack.tlwh[2] * strack.tlwh[3]] 
+
             for human_strack in human_stracks:
                 
                 track_id = human_strack.track_id
@@ -175,21 +175,21 @@ class TailingEvent(Event):
                     self.id_cp_dict[track_id] = []
 
         
-                
-        if self.frame_cnt >= 40:
+        
+        if self.frame_cnt >= 20:
             
             temp = []
             stack_dict = {}
             temp_dict = {}
             for k, v in self.id_dict_stack.items(): #id, stack count
-                if (v > 25 or k in self.prev_id_dict_stack.keys()) or (k not in self.prev_id_dict_stack.keys() and v == 40): 
+                if (v > 15 or k in self.prev_id_dict_stack.keys()) or (k not in self.prev_id_dict_stack.keys() and v == 20): 
                     temp.append(k)
 
             for k, v in self.id_dict_stack.items():
                 if v == 1 and k not in self.prev_track_id_list:
                     self.id_cp_dict.pop(k)
 
-            
+            #print(self.id_dict_stack, self.prev_track_id_list, temp)
              
             if 4 > len(temp) >= 2 and [] not in self.id_cp_dict.values():
                 equal_id = [t for t in temp if t in self.prev_track_id_list]
@@ -248,9 +248,9 @@ class TailingEvent(Event):
                 if len(combi_dtw) != 0 and len(combi_frechet) != 0:
                     if np.argmin(combi_frechet) == np.argmin(combi_dtw):
                         del_idx = []
-                        
+                        #print(relative_dist_list, combi_frechet, combi_dtw)
                         for i in range(len(comb_id)):
-                            if (relative_dist_list[i] > 0.95 or relative_dist_list[i] < 0.16) or ((combi_dtw[i] - combi_frechet[i]) > 760 or (combi_dtw[i] - combi_frechet[i]) < 100):
+                            if (relative_dist_list[i] > 0.95 or relative_dist_list[i] < 0.10) or ((combi_dtw[i] - combi_frechet[i]) > 760 or (combi_dtw[i] - combi_frechet[i]) < 76):
                                 del_idx.append(i)
 
                         
@@ -275,13 +275,14 @@ class TailingEvent(Event):
 
                             f_sp, f_ep = temp_dict[first_pid][0], temp_dict[first_pid][-1]
                             s_sp, s_ep = temp_dict[second_pid][0], temp_dict[second_pid][-1]
+                            #print(cos_sim(f_ep, f_sp, s_ep, s_sp))
                             cos_round = np.round_(cos_sim(f_ep, f_sp, s_ep, s_sp), 1)
-                            if 0.7 <= cos_round <= 1.0:
-                                eventFlag = [1, ] * 40
+                            if 0.5 <= cos_sim(f_ep, f_sp, s_ep, s_sp) <= 1.0:
+                                eventFlag = [1, ] * 20
                             else:
-                                eventFlag = [0, ] * 40
+                                eventFlag = [0, ] * 20
             else:
-                eventFlag = [0, ] * 40
+                eventFlag = [0, ] * 20
 
             self.frame_cnt = 0
             self.prev_id_dict_stack = self.id_dict_stack
@@ -294,8 +295,8 @@ class TailingEvent(Event):
 
         self.history.extend(eventFlag)
         if len(self.history) >= self.max_history:
-            self.history = self.history[40:]
-            if sum(self.history) >= 25:
+            self.history = self.history[20:]
+            if sum(self.history) >= 15:
                 tmp = 1
             else :
                 tmp = 0
