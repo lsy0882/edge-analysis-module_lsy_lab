@@ -33,6 +33,7 @@ def load_video(video_path, extract_fps):
     capture = cv2.VideoCapture(video_path)
     frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(round(capture.get(cv2.CAP_PROP_FPS)))
+    capture.release()
 
     print(Logging.i("Extract information"))
     print(Logging.s("video path: {}".format(video_path)))
@@ -440,7 +441,7 @@ if __name__ == '__main__':
     parser.add_argument("--nms_threshold", type=float, default=0.5, help="Object detection nms threshold")
     parser.add_argument("--byte_tracker_params", type=str, default="0.1,0.5,30,0.8,10,20",
                         help="Byte tracker parameters(score_threshold,track_threshold,tracker_buffer,match_threshold,min_box_area,frame_rate)")
-    parser.add_argument("--sort_params", type=str, default="0.5,2,20", help="Sort tracker parameters(score_threshold,max_age,min_hits)")
+    parser.add_argument("--sort_params", type=str, default="0.5,2,3", help="Sort tracker parameters(score_threshold,max_age,min_hits)")
     parser.add_argument("--event_model", type=str, default="all", help="Event model names")
     parser.add_argument("--event_model_score_threshold", type=str, default="0,0.5,0.5,0,0", help="Event model score threshold(assault,falldown,kidnapping,tailing,wanderer)")
     parser.add_argument("--result_dir", type=str, default="./result", help="Directory path of results and frame")
