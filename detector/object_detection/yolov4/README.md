@@ -26,7 +26,7 @@
 | chair           |      26,665 |
 | potted_plant    |      62,121 |
 | table           |       7,983 |
-| tree_trunk      |     34,4375 |
+| tree_trunk      |     344,375 |
 | pole            |     322,610 |
 | fire_hydrant    |       9,254 |
 
