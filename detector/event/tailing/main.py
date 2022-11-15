@@ -8,7 +8,6 @@ from collections import OrderedDict, defaultdict
 
 import time
 import numpy as np
-import pandas as pd
 import math
 from itertools import combinations
 from scipy.spatial.distance import euclidean

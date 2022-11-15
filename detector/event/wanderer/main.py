@@ -11,7 +11,7 @@ class WandererEvent(Event):
     result = None
     path = os.path.dirname(os.path.abspath(__file__))
 
-    def __init__(self, debug=False, tracker_name="sort"):
+    def __init__(self, debug=False, tracker_name="sort_tracker"):
         super().__init__(debug)
         self.model_name = "wanderer"
         self.analysis_time = 0

@@ -1,5 +1,5 @@
 from module_manager import EdgeModuleManager
-from utils.setting_utils import *
+from utils.params_util import *
 
 import os
 from celery import Celery

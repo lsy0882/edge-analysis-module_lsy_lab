@@ -2,13 +2,13 @@ import yaml
 import ruamel.yaml
 
 
-def load_settings(settings_path):
+def load_params(settings_path):
     with open(settings_path) as settings_file:
         settings = yaml.safe_load(settings_file)
     return settings
 
 
-def save_settings(settings, settings_path):
+def save_params(settings, settings_path):
     try:
         ruamel_yaml = ruamel.yaml.YAML()
         ruamel_yaml.preserve_quotes = True

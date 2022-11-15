@@ -1,6 +1,7 @@
 import os
 
-from detector.object_detection.yolov4.yolov4 import YOLOv4
+# from detector.object_detection.yolov4.yolov4 import YOLOv4
+from detector.object_detection.yolov7.yolov7 import TRTyolov7
 from detector.tracker.byte_tracker.BYTETracker import BYTETracker
 from detector.tracker.sort.Sort import Sort
 from detector.event.assault.main import AssaultEvent
@@ -16,7 +17,8 @@ SETTINGS_PATH = os.path.join(CONFIG_DIR, "settings.yml")
 TASK_INFO_PATH = os.path.join(CONFIG_DIR, "task_info.yml")
 
 OBJECT_MODEL = {
-    "yolov4-416": YOLOv4
+    # "yolov4-416": YOLOv4,
+    "yolov7-trt": TRTyolov7
 }
 TRACKER = {
     "byte_tracker": BYTETracker,
@@ -29,3 +31,4 @@ EVENT_MODEL = {
     "tailing": TailingEvent,
     "wanderer": WandererEvent,
 }
+

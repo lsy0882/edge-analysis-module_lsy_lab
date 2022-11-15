@@ -2,7 +2,7 @@ import datetime
 
 from flask import Flask, render_template, send_from_directory, request
 from urls import urls
-from utils.setting_utils import *
+from utils.params_util import *
 from utils.task_utils import *
 from config import config
 import os

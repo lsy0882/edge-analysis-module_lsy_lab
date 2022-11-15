@@ -1,0 +1,71 @@
+settings:
+  decode:
+    decode_mode: cpu
+    extract_fps: 14
+  model:
+    running_model:
+      batch_size: 14
+      object_detection: yolov7-trt
+      tracker:
+      - byte_tracker
+      - sort_tracker
+      event:
+      - assault
+      - falldown
+      - kidnapping
+      - tailing
+      - wanderer
+    object_detection:
+      model_name: yolov7x
+      dataset: obstacle-15
+      conf_thresh: 0.1
+      nms_thresh: 0.45
+      image_size: 640
+      is_batch: false
+      batch_size: 14
+    tracker:
+      byte_tracker:
+        tracker_name: byte_tracker
+        score_threshold: 0.1
+        track_threshold: 0.5
+        track_buffer: 30
+        match_threshold: 0.8
+        min_box_area: 10
+        frame_rate: 16
+      sort_tracker:
+        tracker_name: sort_tracker
+        score_threshold: 0.5
+        max_age: 2
+        min_hits: 3
+    event:
+      assault:
+        model_name: assault
+        score_threshold: 0.1
+        tracker: byte_tracker
+      falldown:
+        model_name: falldown
+        score_threshold: 0.5
+        tracker: none
+      kidnapping:
+        model_name: kidnapping
+        score_threshold: 0.5
+        tracker: none
+      tailing:
+        model_name: tailing
+        score_threshold: 0.1
+        tracker: byte_tracker
+      wanderer:
+        model_name: wanderer
+        score_threshold: 0.1
+        tracker: sort_tracker
+  visualization:
+    object:
+      visual: true
+      conf_thresh: 0.1
+    event:
+      visual: true
+  result:
+    frame_dir: results/frame
+    video_dir: results/video
+    save_frame: false
+    save_video: false

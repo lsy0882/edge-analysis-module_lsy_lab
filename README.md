@@ -59,7 +59,7 @@ class ...Event(Event):
 * TODO 하위의 주의사항에 유념하셔서 개발을 진행하시기 바랍니다. 
 
 ```python
-        def inference(self, detection_result):
+    def inference(self, detection_result):
         start = 0
         end = 0
         if self.debug :

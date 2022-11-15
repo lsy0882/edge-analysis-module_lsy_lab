@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+from config.dataset import OBJECT_DATASET_CLASSES
+
 # Constants
 ALPHA = 0.5
 FONT = cv2.FONT_HERSHEY_PLAIN
@@ -64,10 +66,12 @@ def draw_boxed_text(img, text, topleft, color):
     return img
 
 
-class BBoxVisualization():
-    def __init__(self, cls_dict):
-        self.cls_dict = cls_dict
-        self.colors = gen_colors(len(cls_dict))
+class Visualization():
+    def __init__(self, params):
+        self.visual_params = params["visualization"]
+        self.object_params = params["model"]["object_detection"]
+        self.object_class = OBJECT_DATASET_CLASSES[self.object_params["dataset"]]
+        self.colors = gen_colors(len(self.object_class) + 1)
         self.event_colors = {
             "assault": (196, 114, 68),
             "falldown": (49, 125, 237),
@@ -76,7 +80,7 @@ class BBoxVisualization():
             "wanderer": (211, 151, 84),
         }
 
-    def draw_bboxes(self, img, detection_results):
+    def draw_bboxes(self, img, detection_results, score_threshold=0.5):
         for detection_result in detection_results:
             score = detection_result["label"][0]["score"]
             cl = detection_result["label"][0]["class_idx"]
@@ -87,10 +91,11 @@ class BBoxVisualization():
             x_max = bbox["x"] + bbox["w"]
             y_max = bbox["y"] + bbox["h"]
             color = self.colors[cl]
-            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
-            txt_loc = (max(x_min+2, 0), max(y_min+2, 0))
-            txt = '{} {:.2f}'.format(cls_name, score)
-            img = draw_boxed_text(img, txt, txt_loc, color)
+            if score >= score_threshold:
+                cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+                txt_loc = (max(x_min+2, 0), max(y_min+2, 0))
+                txt = '{} {:.2f}'.format(cls_name, score)
+                img = draw_boxed_text(img, txt, txt_loc, color)
         return img
 
     def put_text(self, img, event_result, event_names):
