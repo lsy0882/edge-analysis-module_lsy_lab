@@ -16,7 +16,7 @@ settings:
       - tailing
       - wanderer
     object_detection:
-      model_name: yolov7x
+      model_name: yolov7-trt
       dataset: obstacle-15
       conf_thresh: 0.1
       nms_thresh: 0.45
@@ -68,4 +68,4 @@ settings:
     frame_dir: results/frame
     video_dir: results/video
     save_frame: false
-    save_video: false
+    save_video: true
