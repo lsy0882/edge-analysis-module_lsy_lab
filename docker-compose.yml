@@ -10,7 +10,7 @@ services:
     env_file:
       - "docker-compose-env/main.env"
     volumes:
-      - /home/mmlab/Projects/CCTV/videos:/videos
+      - /home/ssd0/lsy/datasets/HAB/Test_videos:/workspace/media
     expose:
       - "8000"
       - "22"
